@@ -1,8 +1,15 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-const App = () => (
-  <h1>Hello World</h1>
-);
+import SessionResolver from './SessionProvider';
+import Session from "../contexts/Session";
+
+const App = () => {
+  return (
+    <SessionResolver>
+      <h1>Yo</h1>
+    </SessionResolver>
+  );
+};
 
 ReactDOM.render(<App />, document.getElementById("app"));
