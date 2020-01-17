@@ -19,8 +19,6 @@ cache:
 # services such as redis or postgres
 before_script:
 - $PATH=$PATH:/usr/lib
-- $PATH
-- ls /usr/lib
 - python3 -V  # Print out python version for debugging
 # Uncomment next line if your Django app needs a JS runtime:
 # - apt-get update -q && apt-get install nodejs -yqq
