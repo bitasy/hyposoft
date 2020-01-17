@@ -19,6 +19,7 @@ cache:
 # services such as redis or postgres
 before_script:
 - $PATH
+- $PATH=$PATH:/usr/lib
 - whereis python
 - ls /usr/lib
 - python3 -V  # Print out python version for debugging
