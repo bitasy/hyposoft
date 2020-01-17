@@ -11,9 +11,9 @@ variables:
 
 # This folder is cached between builds
 # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
-cache:
-  paths:
-  - ~/.cache/pip3/
+#cache:
+#  paths:
+#  - ~/.cache/pip3/
 
 # This is a basic example for a gem or script which doesn't use
 # services such as redis or postgres
