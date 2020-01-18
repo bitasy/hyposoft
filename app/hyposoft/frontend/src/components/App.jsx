@@ -4,7 +4,7 @@ import { HashRouter as Router, Switch, Route } from "react-router-dom";
 
 import SessionProvider from "./SessionProvider";
 import Session from "../contexts/Session";
-import LoginPage from "./auth/LoginPage";
+import LoginPage from "./auth/LoginPage/LoginPage";
 import ManagementPageFrame from "./management/ManagementPageFrame";
 import Overview from "./management/Overview";
 

@@ -1,1 +1,2 @@
-import App from "./components/App"; // eslint-disable-line
+import "./index.css";
+import "./components/App";
