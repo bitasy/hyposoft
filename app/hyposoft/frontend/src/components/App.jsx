@@ -6,7 +6,11 @@ import SessionProvider from "./SessionProvider";
 import Session from "../contexts/Session";
 import LoginPage from "./auth/LoginPage/LoginPage";
 import ManagementPageFrame from "./management/ManagementPageFrame";
-import Overview from "./management/Overview";
+import ModelManagementPage from "./management/ModelManagement/ModelManagementPage";
+import InstanceManagementPage from "./management/InstanceManagement/InstanceManagementPage";
+import ToolingPage from "./management/Tooling/ToolingPage";
+import HelpPage from "./management/Help/HelpPage";
+import OverviewPage from "./management/Overview/OverviewPage";
 
 function App() {
   return (
@@ -20,15 +24,27 @@ function Routes() {
   const session = React.useContext(Session);
 
   return session.isLoggedIn ? (
-    <ManagementPageFrame>
-      <Router>
+    <Router>
+      <ManagementPageFrame>
         <Switch>
-          <Route exact path="/">
-            <Overview />
+          <Route path="/models">
+            <ModelManagementPage />
+          </Route>
+          <Route path="/instances">
+            <InstanceManagementPage />
+          </Route>
+          <Route exact path="/tools">
+            <ToolingPage />
+          </Route>
+          <Route exact path="/help">
+            <HelpPage />
+          </Route>
+          <Route>
+            <OverviewPage />
           </Route>
         </Switch>
-      </Router>
-    </ManagementPageFrame>
+      </ManagementPageFrame>
+    </Router>
   ) : (
     <LoginPage />
   );
