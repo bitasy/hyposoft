@@ -1,7 +1,8 @@
 import React from "react";
+import { DatePicker } from "antd";
 
 function LoginPage() {
-  return <h1>Login Page</h1>;
+  return <DatePicker />;
 }
 
 export default LoginPage;

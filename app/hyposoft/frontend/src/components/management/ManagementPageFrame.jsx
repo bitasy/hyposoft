@@ -28,7 +28,7 @@ function Footer() {
 }
 
 ManagementPageFrame.propTypes = {
-  children: PropTypes.elementType
+  children: PropTypes.node
 };
 
 ManagementPageFrame.defaultProps = {

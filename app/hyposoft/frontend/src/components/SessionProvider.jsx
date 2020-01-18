@@ -29,7 +29,7 @@ const SessionProvider = ({ children }) => {
 };
 
 SessionProvider.propTypes = {
-  children: PropTypes.elementType
+  children: PropTypes.node
 };
 
 SessionProvider.defaultProps = {

@@ -7,10 +7,18 @@ module.exports = {
         use: {
           loader: "babel-loader"
         }
+      },
+      {
+        test: /\.less$/,
+        loader: "less-loader" // compiles Less to CSS
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"]
       }
     ]
   },
-	resolve: {
-		extensions: ['.js', '.jsx'],
-	}
+  resolve: {
+    extensions: [".js", ".jsx"]
+  }
 };
