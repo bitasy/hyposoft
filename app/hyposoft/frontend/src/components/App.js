@@ -1,15 +1,41 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import {
+  HashRouter as Router,
+  Switch,
+  Route,
+} from 'react-router-dom';
 
-import SessionResolver from './SessionProvider';
+import SessionProvider from "./SessionProvider";
 import Session from "../contexts/Session";
+import LoginPage from "./auth/LoginPage";
+import ManagementPageFrame from "./management/ManagementPageFrame";
+import Overview from "./management/Overview";
 
-const App = () => {
+function App() {
   return (
-    <SessionResolver>
-      <h1>Yo</h1>
-    </SessionResolver>
+    <SessionProvider>
+      <Routes/>
+    </SessionProvider>
   );
 };
+
+function Routes() {
+  const session = React.useContext(Session);
+
+  return session.isLoggedIn ? (
+    <ManagementPageFrame>
+      <Router>
+        <Switch>
+          <Route exact path="/">
+            <Overview/>
+          </Route>
+        </Switch>
+      </Router>
+    </ManagementPageFrame>
+  ) : (
+    <LoginPage/>
+  )
+}
 
 ReactDOM.render(<App />, document.getElementById("app"));
