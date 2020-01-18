@@ -12,6 +12,7 @@ import InstanceManagementPage from "./management/InstanceManagement/InstanceMana
 import ToolingPage from "./management/Tooling/ToolingPage";
 import HelpPage from "./management/Help/HelpPage";
 import OverviewPage from "./management/Overview/OverviewPage";
+import InstanceDetailPage from "./management/InstanceManagement/InstanceDetailPage";
 
 function App() {
   return (
@@ -35,9 +36,13 @@ function Routes() {
             <ModelDetailPage />
           </Route>
 
-          <Route path="/instances">
+          <Route exact path="/instances">
             <InstanceManagementPage />
           </Route>
+          <Route exact path="/instances/:id">
+            <InstanceDetailPage />
+          </Route>
+
           <Route exact path="/tools">
             <ToolingPage />
           </Route>

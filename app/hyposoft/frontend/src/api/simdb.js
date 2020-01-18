@@ -32,7 +32,7 @@ export const instances = {
     model: models[0],
     hostname: "server9",
     rack: "B12",
-    ract_u: 5,
+    rack_u: 5,
     owner: "some_owner",
     comment: "Some\nMultiline\nComment"
   },
@@ -41,6 +41,6 @@ export const instances = {
     model: models[1],
     hostname: "server10",
     rack: "B12",
-    ract_u: 12
+    rack_u: 12
   }
 };

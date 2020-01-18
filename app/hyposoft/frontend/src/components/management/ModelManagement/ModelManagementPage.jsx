@@ -11,7 +11,7 @@ function ModelManagementPage() {
 
   React.useEffect(() => {
     API.getModels().then(setModels);
-  });
+  }, []);
 
   return (
     <div style={{ padding: 16 }}>

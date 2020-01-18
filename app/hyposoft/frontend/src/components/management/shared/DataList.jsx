@@ -10,7 +10,10 @@ function makeColumns(schema) {
         dataIndex: schemaFrag.fieldName,
         sorter: schemaFrag.sorter,
         defaultSortOrder: schemaFrag.defaultSortOrder,
-        sortDirections: schemaFrag.sortDirections
+        sortDirections: schemaFrag.sortDirections,
+        render: (txt, record, idx) => (
+          <span>{schemaFrag.toString(record[schemaFrag.fieldName])}</span>
+        )
       };
     });
 }

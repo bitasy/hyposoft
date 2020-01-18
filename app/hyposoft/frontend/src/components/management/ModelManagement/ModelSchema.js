@@ -10,6 +10,7 @@ const modelSchema = [
     type: "string",
     required: true,
     defaultValue: "",
+    toString: s => s,
     sorter: (a, b) => strcmp(a.vendor, b.vendor),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
@@ -20,6 +21,7 @@ const modelSchema = [
     type: "string",
     required: true,
     defaultValue: "",
+    toString: s => s,
     sorter: (a, b) => strcmp(a.model_number, b.model_number),
     sortDirections: ["ascend", "descend"]
   },
@@ -29,6 +31,7 @@ const modelSchema = [
     type: "number",
     required: true,
     defaultValue: 1,
+    toString: s => s.toString(),
     min: 1,
     sorter: (a, b) => a.height - b.height,
     sortDirections: ["ascend", "descend"]
