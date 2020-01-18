@@ -17,7 +17,7 @@ function ManagementPageFrame({ children }) {
             IT Asset Management System
           </h1>
         </Col>
-        <Col lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
+        <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
           <Button ghost onClick={session.logout}>
             <Icon type="logout" />
             Logout
@@ -25,11 +25,17 @@ function ManagementPageFrame({ children }) {
         </Col>
       </Header>
       <Layout>
-        <Sider width={160} theme="light">
+        <Sider width={160} theme="light" collapsible>
           <Sidebar />
         </Sider>
         <Layout style={{ padding: "0 16px 16px" }}>
-          <Content style={{ marginTop: 16, backgroundColor: "white" }}>
+          <Content
+            style={{
+              marginTop: 16,
+              backgroundColor: "white",
+              minHeight: "85vh"
+            }}
+          >
             {children}
           </Content>
         </Layout>
@@ -49,27 +55,27 @@ function Sidebar() {
     <Menu onClick={handleClick} selectedKeys={[]} mode="inline">
       <Menu.Item key="/">
         <Icon type="appstore" />
-        Overview
+        <span>Overview</span>
       </Menu.Item>
 
-      <Menu.Item key="models">
+      <Menu.Item key="/models">
         <Icon type="inbox" />
-        Models
+        <span>Models</span>
       </Menu.Item>
 
       <Menu.Item key="/instances">
         <Icon type="database" />
-        Instances
+        <span>Instances</span>
       </Menu.Item>
 
       <Menu.Item key="/tools">
         <Icon type="tool" />
-        Tools
+        <span>Tools</span>
       </Menu.Item>
 
-      <Menu.Item key="help">
+      <Menu.Item key="/help">
         <Icon type="question-circle" />
-        Help
+        <span>Help</span>
       </Menu.Item>
     </Menu>
   );

@@ -17,6 +17,12 @@ export const models = {
     vendor: "Delli",
     model_number: "R100",
     height: 2
+  },
+  2: {
+    id: 2,
+    vendor: "Delli",
+    model_number: "R100",
+    height: 2
   }
 };
 

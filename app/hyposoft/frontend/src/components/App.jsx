@@ -7,6 +7,7 @@ import Session from "../contexts/Session";
 import LoginPage from "./auth/LoginPage/LoginPage";
 import ManagementPageFrame from "./management/ManagementPageFrame";
 import ModelManagementPage from "./management/ModelManagement/ModelManagementPage";
+import ModelDetailPage from "./management/ModelManagement/ModelDetailPage";
 import InstanceManagementPage from "./management/InstanceManagement/InstanceManagementPage";
 import ToolingPage from "./management/Tooling/ToolingPage";
 import HelpPage from "./management/Help/HelpPage";
@@ -27,9 +28,13 @@ function Routes() {
     <Router>
       <ManagementPageFrame>
         <Switch>
-          <Route path="/models">
+          <Route exact path="/models">
             <ModelManagementPage />
           </Route>
+          <Route exact path="/models/:id">
+            <ModelDetailPage />
+          </Route>
+
           <Route path="/instances">
             <InstanceManagementPage />
           </Route>
