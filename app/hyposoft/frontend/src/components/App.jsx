@@ -1,10 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import {
-  HashRouter as Router,
-  Switch,
-  Route,
-} from 'react-router-dom';
+import { HashRouter as Router, Switch, Route } from "react-router-dom";
 
 import SessionProvider from "./SessionProvider";
 import Session from "../contexts/Session";
@@ -15,10 +11,10 @@ import Overview from "./management/Overview";
 function App() {
   return (
     <SessionProvider>
-      <Routes/>
+      <Routes />
     </SessionProvider>
   );
-};
+}
 
 function Routes() {
   const session = React.useContext(Session);
@@ -28,14 +24,15 @@ function Routes() {
       <Router>
         <Switch>
           <Route exact path="/">
-            <Overview/>
+            <Overview />
           </Route>
         </Switch>
       </Router>
     </ManagementPageFrame>
   ) : (
-    <LoginPage/>
-  )
+    <LoginPage />
+  );
 }
 
+/* eslint-env browser */
 ReactDOM.render(<App />, document.getElementById("app"));

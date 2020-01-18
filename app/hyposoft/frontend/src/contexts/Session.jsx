@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
 const Session = React.createContext({
   isLoggedIn: false,
   login: () => {},
-  logout: () => {},
+  logout: () => {}
 });
 
 export default Session;
