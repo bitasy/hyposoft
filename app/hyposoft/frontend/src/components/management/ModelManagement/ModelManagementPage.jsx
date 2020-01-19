@@ -20,6 +20,7 @@ function ModelManagementPage() {
         schema={modelSchema}
         data={models}
         onSelect={id => history.push(`/models/${id}`)}
+        onCreate={() => history.push("/models/create")}
       />
     </div>
   );

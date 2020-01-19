@@ -1,5 +1,5 @@
 import React from "react";
-import { Table } from "antd";
+import { Table, Button, Icon } from "antd";
 
 function makeColumns(schema) {
   return schema
@@ -18,7 +18,17 @@ function makeColumns(schema) {
     });
 }
 
-function DataList({ schema, data, onSelect }) {
+function ListFooter({ onCreate }) {
+  return (
+    <div>
+      <Button onClick={onCreate}>
+        <Icon type="plus"></Icon>
+      </Button>
+    </div>
+  );
+}
+
+function DataList({ schema, data, onSelect, onCreate }) {
   const paginationConfig = {
     position: "top",
     defaultPageSize: 10,
@@ -37,6 +47,7 @@ function DataList({ schema, data, onSelect }) {
       }}
       pagination={paginationConfig}
       className="pointer-on-hover"
+      footer={() => ListFooter({ onCreate })}
     />
   );
 }

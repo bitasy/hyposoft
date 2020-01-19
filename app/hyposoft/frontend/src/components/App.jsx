@@ -13,6 +13,8 @@ import ToolingPage from "./management/Tooling/ToolingPage";
 import HelpPage from "./management/Help/HelpPage";
 import OverviewPage from "./management/Overview/OverviewPage";
 import InstanceDetailPage from "./management/InstanceManagement/InstanceDetailPage";
+import CreateModelPage from "./management/ModelManagement/CreateModelPage";
+import CreateInstancePage from "./management/InstanceManagement/CreateInstancePage";
 
 function App() {
   return (
@@ -32,12 +34,18 @@ function Routes() {
           <Route exact path="/models">
             <ModelManagementPage />
           </Route>
+          <Route exact path="/models/create">
+            <CreateModelPage />
+          </Route>
           <Route exact path="/models/:id">
             <ModelDetailPage />
           </Route>
 
           <Route exact path="/instances">
             <InstanceManagementPage />
+          </Route>
+          <Route exact path="/instances/create">
+            <CreateInstancePage />
           </Route>
           <Route exact path="/instances/:id">
             <InstanceDetailPage />

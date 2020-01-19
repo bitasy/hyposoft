@@ -20,6 +20,7 @@ function InstanceManagementPage() {
         schema={instanceSchema}
         data={instances}
         onSelect={id => history.push(`/instances/${id}`)}
+        onCreate={() => history.push("/instances/create")}
       />
     </div>
   );

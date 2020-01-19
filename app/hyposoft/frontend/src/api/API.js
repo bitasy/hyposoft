@@ -112,12 +112,13 @@ function mockedCreateInstance(fields) {
   const newID = Object.keys(instances).length;
   instances[newID] = {
     id: newID,
-    ...fields,
-    model: models[fields.model]
+    ...fields
   };
   return Promise.resolve(newID);
 }
 
+// updates has the whole model by itself rather than just model_id.
+// so we'll have to double check that here
 function updateInstance(id, updates) {
   return Axios.patch(`${id}`, updates);
 }
