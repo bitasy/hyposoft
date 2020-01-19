@@ -7,47 +7,38 @@ function modelToString(model) {
   return model.vendor + " · " + model.model_number;
 }
 
-const instanceSchema = [
+function instanceToLocation(instance) {
+  return instance.rack + " U" + instance.rack_u;
+}
+
+export const instanceSchema = [
   {
     displayName: "Model",
     fieldName: "model",
     type: "model",
     required: true,
-    defaultValue: null,
-    toString: modelToString,
-    sorter: (a, b) => strcmp(modelToString(a.model), modelToString(b.model)),
-    sortDirections: ["ascend", "descend"]
+    defaultValue: null
   },
   {
     displayName: "Host",
     fieldName: "hostname",
     type: "string",
     required: true,
-    defaultValue: "",
-    toString: s => s,
-    sorter: (a, b) => strcmp(a.hostname, b.hostname),
-    sortDirections: ["ascend", "descend"]
+    defaultValue: ""
   },
   {
     displayName: "Rack",
     fieldName: "rack",
     type: "string",
     required: true,
-    defaultValue: "",
-    toString: s => s,
-    sorter: (a, b) => strcmp(a.rack - b.rack),
-    defaultSortOrder: "ascend",
-    sortDirections: ["ascend", "descend"]
+    defaultValue: ""
   },
   {
     displayName: "Rack U",
     fieldName: "rack_u",
     type: "number",
     required: true,
-    defaultValue: 0,
-    toString: s => s.toString(),
-    sorter: (a, b) => a.rack_u - b.rack_u,
-    sortDirections: ["ascend", "descend"]
+    defaultValue: 0
   },
   {
     displayName: "Owner",
@@ -65,4 +56,27 @@ const instanceSchema = [
   }
 ];
 
-export default instanceSchema;
+export const instanceColumns = [
+  {
+    title: "Model",
+    key: "model",
+    toString: r => modelToString(r.model),
+    sorter: (a, b) => strcmp(modelToString(a.model), modelToString(b.model)),
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Host",
+    key: "host",
+    toString: r => r.hostname,
+    sorter: (a, b) => strcmp(a.hostname, b.hostname),
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Location",
+    key: "location",
+    toString: r => instanceToLocation(r),
+    sorter: (a, b) => strcmp(instanceToLocation(a) - instanceToLocation(b)),
+    defaultSortOrder: "ascend",
+    sortDirections: ["ascend", "descend"]
+  }
+];

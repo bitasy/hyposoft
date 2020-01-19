@@ -1,21 +1,13 @@
 import React from "react";
 import { Table, Button, Icon } from "antd";
 
-function makeColumns(schema) {
-  return schema
-    .filter(schemaFrag => schemaFrag.required)
-    .map(schemaFrag => {
-      return {
-        title: schemaFrag.displayName,
-        dataIndex: schemaFrag.fieldName,
-        sorter: schemaFrag.sorter,
-        defaultSortOrder: schemaFrag.defaultSortOrder,
-        sortDirections: schemaFrag.sortDirections,
-        render: (txt, record, idx) => (
-          <span>{schemaFrag.toString(record[schemaFrag.fieldName])}</span>
-        )
-      };
-    });
+function decorateColumns(columns) {
+  return columns.map(column => {
+    return {
+      ...column,
+      render: (txt, record, idx) => <span>{column.toString(record)}</span>
+    };
+  });
 }
 
 function ListFooter({ onCreate }) {
@@ -28,7 +20,7 @@ function ListFooter({ onCreate }) {
   );
 }
 
-function DataList({ schema, data, onSelect, onCreate }) {
+function DataList({ columns, data, onSelect, onCreate }) {
   const paginationConfig = {
     position: "top",
     defaultPageSize: 10,
@@ -37,8 +29,8 @@ function DataList({ schema, data, onSelect, onCreate }) {
 
   return (
     <Table
-      rowKey="id"
-      columns={makeColumns(schema)}
+      rowKey={r => r.id}
+      columns={decorateColumns(columns)}
       dataSource={data}
       onRow={r => {
         return {

@@ -1,7 +1,7 @@
 import React from "react";
 import DataDetailForm from "../shared/DataDetailForm";
 import API from "../../../api/API";
-import instanceSchema from "./InstanceSchema";
+import { instanceSchema } from "./InstanceSchema";
 import { Typography } from "antd";
 
 function InstanceDetailPage() {

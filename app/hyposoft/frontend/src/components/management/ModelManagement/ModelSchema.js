@@ -3,7 +3,7 @@ function strcmp(a, b) {
   else return a < b ? -1 : 1;
 }
 
-const modelSchema = [
+export const modelSchema = [
   {
     displayName: "Vendor",
     fieldName: "vendor",
@@ -90,4 +90,27 @@ const modelSchema = [
   }
 ];
 
-export default modelSchema;
+export const modelColumns = [
+  {
+    title: "Vendor",
+    key: "vendor",
+    toString: r => r.vendor,
+    sorter: (a, b) => strcmp(a.vendor, b.vendor),
+    defaultSortOrder: "ascend",
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Model #",
+    key: "model_number",
+    toString: r => r.model_number,
+    sorter: (a, b) => strcmp(a.model_number, b.model_number),
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Height",
+    key: "height",
+    toString: s => s.height,
+    sorter: (a, b) => a.height - b.height,
+    sortDirections: ["ascend", "descend"]
+  }
+];

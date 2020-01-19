@@ -2,7 +2,7 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import API from "../../../api/API";
 import { Typography } from "antd";
-import instanceSchema from "./InstanceSchema";
+import { instanceColumns } from "./InstanceSchema";
 import DataList from "../shared/DataList";
 
 function InstanceManagementPage() {
@@ -17,7 +17,7 @@ function InstanceManagementPage() {
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Registered Instances</Typography.Title>
       <DataList
-        schema={instanceSchema}
+        columns={instanceColumns}
         data={instances}
         onSelect={id => history.push(`/instances/${id}`)}
         onCreate={() => history.push("/instances/create")}

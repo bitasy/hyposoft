@@ -1,7 +1,7 @@
 import React from "react";
 import CreateDataForm from "../shared/CreateDataForm";
 import API from "../../../api/API";
-import modelSchema from "./ModelSchema";
+import { modelSchema } from "./ModelSchema";
 import { Typography } from "antd";
 
 function CreateModelPage() {
