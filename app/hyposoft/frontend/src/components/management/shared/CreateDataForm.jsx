@@ -17,7 +17,7 @@ function CreateDataForm({ form, createRecord, schema }) {
   }
 
   return (
-    <Form onSubmit={handleSubmit} layout="vertical" style={{ width: 400 }}>
+    <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
       {schema.map(schemaFrag => (
         <FormItem
           key={schemaFrag.fieldName}
