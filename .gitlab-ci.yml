@@ -16,6 +16,10 @@ before_script:
 # Uncomment next line if your Django app needs a JS runtime:
 # - apt-get update -q && apt-get install nodejs -yqq
 - /usr/bin/pip3 install -r requirements.txt
+- cd ./app/hyposoft/frontend
+- npm install
+- npm run build
+- cd ../../..
 
 # To get Django tests to work you may need to create a settings file using
 # the following DATABASES:
