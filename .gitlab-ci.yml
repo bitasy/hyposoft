@@ -57,7 +57,7 @@ stage_dev:
   - cd "$CI_COMMIT_SHORT_SHA-staging"
   - git checkout dev
   - cd app/hyposoft
-  - python3 manage.py collectstatic
+  - python3 manage.py collectstatic --no-input
   only:
   - dev
   tags:
