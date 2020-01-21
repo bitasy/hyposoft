@@ -1,3 +1,4 @@
 venv
 activate.sh
 __pycache__/
+.vscode
