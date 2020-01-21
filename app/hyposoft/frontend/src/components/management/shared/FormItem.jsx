@@ -2,6 +2,8 @@ import React from "react";
 import { Form, Input, InputNumber, Select } from "antd";
 import { ChromePicker } from "react-color";
 import API from "../../../api/API";
+import Rack from "./Rack";
+import InstancePositionPicker from "./InstancePositionPicker";
 
 const formItemLayout = {
   labelCol: { span: 8 },
@@ -151,6 +153,55 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
+function RackUFormItem({
+  form,
+  schemaFrag,
+  originalValue,
+  currentRecord,
+  onChange
+}) {
+  const initialValue = originalValue || schemaFrag.defaultValue;
+  const rules = schemaFrag.required
+    ? [{ required: true, message: "This field is required" }]
+    : [];
+
+  const [instances, setInstances] = React.useState([]);
+
+  React.useEffect(() => {
+    API.getInstancesForRack(currentRecord.rack).then(instances =>
+      setInstances(instances.filter(i => i.id !== currentRecord.id))
+    );
+  }, [currentRecord.rack]);
+
+  const rack = {
+    height: 42,
+    name: currentRecord.rack,
+    instances: instances
+  };
+
+  return currentRecord.model ? (
+    <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
+      {form.getFieldDecorator(schemaFrag.fieldName, {
+        rules,
+        initialValue: initialValue
+      })(
+        <InstancePositionPicker
+          rack={rack}
+          model={currentRecord.model}
+          onSelect={(instance, level) => {
+            onChange({
+              [schemaFrag.fieldName]: level
+            });
+            form.setFieldsValue({
+              [schemaFrag.fieldName]: level
+            });
+          }}
+        />
+      )}
+    </Form.Item>
+  ) : null;
+}
+
 function FormItem(props) {
   return props.schemaFrag.type === "string" ? (
     <StringFormItem {...props} />
@@ -162,6 +213,8 @@ function FormItem(props) {
     <TextAreaFormItem {...props} />
   ) : props.schemaFrag.type === "model" ? (
     <ModelFormItem {...props} />
+  ) : props.schemaFrag.type === "rack_u" ? (
+    <RackUFormItem {...props} />
   ) : null;
 }
 

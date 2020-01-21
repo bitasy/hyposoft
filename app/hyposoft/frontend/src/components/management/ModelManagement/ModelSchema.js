@@ -3,6 +3,8 @@ function strcmp(a, b) {
   else return a < b ? -1 : 1;
 }
 
+export const DEFAULT_COLOR_VALUE = "#1ff2eb";
+
 export const modelSchema = [
   {
     displayName: "Vendor",
@@ -41,7 +43,7 @@ export const modelSchema = [
     fieldName: "display_color",
     type: "color-string",
     required: false,
-    defaultValue: "#1ff2eb"
+    defaultValue: DEFAULT_COLOR_VALUE
   },
   {
     displayName: "Ethernet Ports",

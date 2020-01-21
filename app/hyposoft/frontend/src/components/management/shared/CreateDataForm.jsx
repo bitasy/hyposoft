@@ -23,6 +23,7 @@ function CreateDataForm({ form, createRecord, schema }) {
           key={schemaFrag.fieldName}
           form={form}
           schemaFrag={schemaFrag}
+          currentRecord={newRecord}
           onChange={changeSet =>
             setNewRecord(Object.assign(newRecord, changeSet))
           }

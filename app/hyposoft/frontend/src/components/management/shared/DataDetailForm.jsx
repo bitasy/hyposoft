@@ -57,6 +57,7 @@ function DataDetailForm({
             form={form}
             schemaFrag={schemaFrag}
             originalValue={record[schemaFrag.fieldName]}
+            currentRecord={newRecord}
             onChange={changeSet => {
               setNewRecord(Object.assign(newRecord, changeSet));
             }}

@@ -36,7 +36,7 @@ export const instanceSchema = [
   {
     displayName: "Rack U",
     fieldName: "rack_u",
-    type: "number",
+    type: "rack_u",
     required: true,
     defaultValue: 0
   },
