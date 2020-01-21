@@ -1,7 +1,3 @@
-# Official framework image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python
-image: python:latest
-
 variables:
   DB_HOST: database-1.clf9gopmww58.us-east-1.rds.amazonaws.com
   DB_USER: postgres
@@ -39,6 +35,41 @@ before_script:
 #
 # and then adding `--settings app.settings.ci` (or similar) to the test command
 
-test:
+stages:
+- test
+- staging
+- deploy
+
+django_test:
+  stage: test
   script:
-  - /usr/bin/python3 app/hyposoft/manage.py test
+  - python3 app/hyposoft/manage.py test
+  except:
+  - master
+  tags:
+  - dev
+
+stage_dev:
+  stage: staging
+  script:
+  - cd /home/gitlab-runner/
+  - git clone git@gitlab.oit.duke.edu:ban20/hyposoft-group-8.git "$CI_COMMIT_SHORT_SHA-staging"
+  - cd "$CI_COMMIT_SHORT_SHA-staging"
+  - git checkout dev
+  - cd app/hyposoft
+  - python3 manage.py collectstatic
+  only:
+  - dev
+  tags:
+  - dev
+
+deploy_dev:
+  stage: deploy
+  script:
+  - mv -f /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
+  - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py migrate
+  - sudo uwsgi --reload /home/gitlab-runner/uwsgi.pid
+  only:
+  - dev
+  tags:
+  - dev
