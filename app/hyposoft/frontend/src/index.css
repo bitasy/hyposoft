@@ -39,3 +39,7 @@
 :global(.pointer-on-hover):hover {
   cursor: pointer;
 }
+
+:global(.ant-page-header-content) {
+  padding: 0 5px;
+}

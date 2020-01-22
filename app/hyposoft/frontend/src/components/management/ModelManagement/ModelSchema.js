@@ -3,6 +3,10 @@ function strcmp(a, b) {
   else return a < b ? -1 : 1;
 }
 
+function collect(lst, f) {
+  return lst.map(f).filter(elm => !!elm);
+}
+
 export const DEFAULT_COLOR_VALUE = "#1ff2eb";
 
 export const modelSchema = [
@@ -114,5 +118,77 @@ export const modelColumns = [
     toString: s => s.height,
     sorter: (a, b) => a.height - b.height,
     sortDirections: ["ascend", "descend"]
+  }
+];
+
+export function modelKeywordMatch(value, record) {
+  const lowercase = value.toLowerCase();
+  return modelSchema
+    .filter(frag => frag.type === "string" && record[frag.fieldName])
+    .map(frag => record[frag.fieldName].toLowerCase())
+    .some(str => str.includes(lowercase));
+}
+
+export const modelFilters = [
+  {
+    title: "Keyword Search (Ignoring case)",
+    fieldName: "keyword",
+    type: "text",
+    extractDefaultValue: () => "",
+    shouldInclude: modelKeywordMatch
+  },
+  {
+    title: "Height",
+    fieldName: "height",
+    type: "range",
+    min: 1,
+    max: 42,
+    marks: { 1: "1", 42: "42" },
+    step: 1,
+    extractDefaultValue: records => [
+      Math.min(...records.map(r => r.height)),
+      Math.max(...records.map(r => r.height))
+    ],
+    shouldInclude: ([l, r], record) => l <= record.height && record.height <= r
+  },
+  {
+    title: "# of ethernet ports",
+    fieldName: "ethernet_ports",
+    type: "nullable-range",
+    min: 0,
+    max: 99,
+    marks: { 0: "0", 50: "50", 99: "99" },
+    step: 1,
+    extractDefaultValue: records => [
+      [
+        Math.min(...collect(records, r => r.ethernet_ports)),
+        Math.max(...collect(records, r => r.ethernet_ports))
+      ],
+      true
+    ],
+    shouldInclude: ([[l, r], includeNull], record) =>
+      record.ethernet_ports
+        ? l <= record.ethernet_ports && record.ethernet_ports <= r
+        : includeNull
+  },
+  {
+    title: "# of power ports",
+    fieldName: "power_ports",
+    type: "nullable-range",
+    min: 0,
+    max: 10,
+    marks: { 0: "0", 10: "10" },
+    step: 1,
+    extractDefaultValue: records => [
+      [
+        Math.min(...collect(records, r => r.power_ports)),
+        Math.max(...collect(records, r => r.power_ports))
+      ],
+      true
+    ],
+    shouldInclude: ([[l, r], includeNull], record) =>
+      record.power_ports
+        ? l <= record.power_ports && record.power_ports <= r
+        : includeNull
   }
 ];
