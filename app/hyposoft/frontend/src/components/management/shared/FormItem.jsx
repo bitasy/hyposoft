@@ -174,7 +174,7 @@ function RackUFormItem({
   }, [currentRecord.rack]);
 
   const rack = {
-    height: 42,
+    height: 42, // fixed for now
     name: currentRecord.rack,
     instances: instances
   };
