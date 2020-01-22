@@ -2,7 +2,6 @@ from rest_framework import generics
 from .models import ITModel, Instance, Rack
 from .serializers import ITModelSerializer, InstanceSerializer, RackSerializer
 
-# CRUD, list views
 # ITModel
 class ITModelCreateView(generics.CreateAPIView):
     queryset = ITModel.objects.all()
