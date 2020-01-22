@@ -7,7 +7,7 @@ function collect(lst, f) {
   return lst.map(f).filter(elm => !!elm);
 }
 
-export const DEFAULT_COLOR_VALUE = "#1ff2eb";
+export const DEFAULT_COLOR_VALUE = "#ddd";
 
 export const modelSchema = [
   {
