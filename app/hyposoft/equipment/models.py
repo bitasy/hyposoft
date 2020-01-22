@@ -77,7 +77,8 @@ class Instance(models.Model):
     rack_u = models.IntegerField()
     owner = models.ForeignKey(
         User,
-        null=True
+        null=True,
+        on_delete=models.SET(None)
     )
     comment = models.TextField()
 
