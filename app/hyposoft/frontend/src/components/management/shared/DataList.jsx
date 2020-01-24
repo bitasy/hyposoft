@@ -29,7 +29,7 @@ function getDefaults(data, filters) {
   }, {});
 }
 
-function DataList({ columns, filters, data, onSelect, onCreate }) {
+function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
   const paginationConfig = {
     position: "top",
     defaultPageSize: 10,
@@ -54,22 +54,24 @@ function DataList({ columns, filters, data, onSelect, onCreate }) {
 
   return (
     <>
-      <Collapse>
-        <Collapse.Panel header="Filters" key="1">
-          {filters.map(filter => (
-            <div key={filter.fieldName} style={{ marginTop: 10 }}>
-              <p style={{ marginBottom: 2 }}>{filter.title}</p>
-              <Filter
-                filterDef={filter}
-                data={data}
-                onChange={changeSet =>
-                  setFilterValues(Object.assign({}, filterValues, changeSet))
-                }
-              />
-            </div>
-          ))}
-        </Collapse.Panel>
-      </Collapse>
+      {filters.length > 0 ? (
+        <Collapse>
+          <Collapse.Panel header="Filters" key="1">
+            {filters.map(filter => (
+              <div key={filter.fieldName} style={{ marginTop: 10 }}>
+                <p style={{ marginBottom: 2 }}>{filter.title}</p>
+                <Filter
+                  filterDef={filter}
+                  data={data}
+                  onChange={changeSet =>
+                    setFilterValues(Object.assign({}, filterValues, changeSet))
+                  }
+                />
+              </div>
+            ))}
+          </Collapse.Panel>
+        </Collapse>
+      ) : null}
       <Table
         rowKey={r => r.id}
         columns={decorateColumns(columns)}
@@ -81,7 +83,7 @@ function DataList({ columns, filters, data, onSelect, onCreate }) {
         }}
         pagination={paginationConfig}
         className="pointer-on-hover"
-        footer={() => ListFooter({ onCreate })}
+        footer={() => (noCreate ? null : ListFooter({ onCreate }))}
       />
     </>
   );

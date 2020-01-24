@@ -1,17 +1,17 @@
 import React from "react";
-import { useParams, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { objectEquals } from "object-equals";
 import { Form, Button, Icon } from "antd";
 import FormItem from "./FormItem";
 
 function DataDetailForm({
+  id,
   form,
   getRecord,
   updateRecord,
   deleteRecord,
   schema
 }) {
-  const { id } = useParams();
   const [record, setRecord] = React.useState(null);
   const [newRecord, setNewRecord] = React.useState(null);
 

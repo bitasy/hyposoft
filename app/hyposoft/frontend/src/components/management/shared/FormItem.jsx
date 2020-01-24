@@ -1,8 +1,8 @@
 import React from "react";
-import { Form, Input, InputNumber, Select } from "antd";
+import { useHistory } from "react-router-dom";
+import { Form, Input, InputNumber, Select, Button, Icon, Row, Col } from "antd";
 import { ChromePicker } from "react-color";
 import API from "../../../api/API";
-import Rack from "./Rack";
 import InstancePositionPicker from "./InstancePositionPicker";
 
 const formItemLayout = {
@@ -118,6 +118,8 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
     ? [{ required: true, message: "This field is required" }]
     : [];
 
+  const history = useHistory();
+
   const [modelList, setModelList] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -128,27 +130,44 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
     });
   }, []);
 
+  const selectedModelID = form.getFieldValue(schemaFrag.fieldName);
+
   return (
     <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
-      {form.getFieldDecorator(schemaFrag.fieldName, {
-        rules,
-        initialValue: originalValue && originalValue.id
-      })(
-        <Select
-          loading={loading}
-          onChange={v =>
-            onChange({
-              [schemaFrag.fieldName]: modelList.filter(m => m.id === v)[0]
-            })
-          }
-        >
-          {modelList.map(model => (
-            <Select.Option key={model.id} value={model.id}>
-              {model.vendor + " · " + model.model_number}
-            </Select.Option>
-          ))}
-        </Select>
-      )}
+      <Row align="middle" type="flex" gutter={8}>
+        <Col span={22}>
+          {form.getFieldDecorator(schemaFrag.fieldName, {
+            rules,
+            initialValue: originalValue && originalValue.id
+          })(
+            <Select
+              loading={loading}
+              onChange={v =>
+                onChange({
+                  [schemaFrag.fieldName]: modelList.filter(m => m.id === v)[0]
+                })
+              }
+            >
+              {modelList.map(model => (
+                <Select.Option key={model.id} value={model.id}>
+                  {model.vendor + " · " + model.model_number}
+                </Select.Option>
+              ))}
+            </Select>
+          )}
+        </Col>
+        <Col span={2}>
+          <Button
+            size="small"
+            shape="circle"
+            disabled={selectedModelID == null}
+            style={{ marginTop: "auto", marginBottom: "auto" }}
+            onClick={() => history.push(`/models/${selectedModelID}`)}
+          >
+            <Icon type="link" />
+          </Button>
+        </Col>
+      </Row>
     </Form.Item>
   );
 }
