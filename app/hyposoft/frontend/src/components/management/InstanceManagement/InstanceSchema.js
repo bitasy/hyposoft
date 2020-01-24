@@ -9,8 +9,12 @@ function modelToString(model) {
   return model.vendor + " · " + model.model_number;
 }
 
+export function rackToString({ row, number }) {
+  return row + number;
+}
+
 function instanceToLocation(instance) {
-  return instance.rack + " U" + instance.rack_u;
+  return `${rackToString(instance.rack)} U${instance.rack_u}`;
 }
 
 export const instanceSchema = [
@@ -31,16 +35,16 @@ export const instanceSchema = [
   {
     displayName: "Rack",
     fieldName: "rack",
-    type: "string",
+    type: "rack",
     required: true,
-    defaultValue: ""
+    defaultValue: null
   },
   {
     displayName: "Rack U",
     fieldName: "rack_u",
     type: "rack_u",
     required: true,
-    defaultValue: 0
+    defaultValue: null
   },
   {
     displayName: "Owner",
@@ -108,10 +112,11 @@ export const instanceFilters = [
     title: "Rack",
     fieldName: "rack",
     type: "select",
-    extractOptions: records => Array.from(new Set(records.map(r => r.rack))),
+    extractOptions: records =>
+      Array.from(new Set(records.map(r => rackToString(r.rack)))),
     extractDefaultValue: records =>
-      Array.from(new Set(records.map(r => r.rack))),
-    shouldInclude: (value, record) => value.includes(record.rack)
+      Array.from(new Set(records.map(r => rackToString(r.rack)))),
+    shouldInclude: (value, record) => value.includes(rackToString(record.rack))
   },
   {
     title: "Rack U",

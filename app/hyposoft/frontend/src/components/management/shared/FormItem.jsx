@@ -4,6 +4,7 @@ import { Form, Input, InputNumber, Select, Button, Icon, Row, Col } from "antd";
 import { ChromePicker } from "react-color";
 import API from "../../../api/API";
 import InstancePositionPicker from "./InstancePositionPicker";
+import { rackToString } from "../InstanceManagement/InstanceSchema";
 
 const formItemLayout = {
   labelCol: { span: 8 },
@@ -113,6 +114,46 @@ function TextAreaFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
+function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
+  const rules = schemaFrag.required
+    ? [{ required: true, message: "This field is required" }]
+    : [];
+
+  const [rackList, setRackList] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    API.getRacks().then(racks => {
+      setRackList(racks);
+      setLoading(false);
+    });
+  }, []);
+
+  return (
+    <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
+      {form.getFieldDecorator(schemaFrag.fieldName, {
+        rules,
+        initialValue: originalValue && originalValue.id
+      })(
+        <Select
+          loading={loading}
+          onChange={v =>
+            onChange({
+              [schemaFrag.fieldName]: rackList.filter(m => m.id === v)[0]
+            })
+          }
+        >
+          {rackList.map(rack => (
+            <Select.Option key={rack.id} value={rack.id}>
+              {rack.row + rack.number}
+            </Select.Option>
+          ))}
+        </Select>
+      )}
+    </Form.Item>
+  );
+}
+
 function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
   const rules = schemaFrag.required
     ? [{ required: true, message: "This field is required" }]
@@ -187,18 +228,20 @@ function RackUFormItem({
   const [instances, setInstances] = React.useState([]);
 
   React.useEffect(() => {
-    API.getInstancesForRack(currentRecord.rack).then(instances =>
-      setInstances(instances.filter(i => i.id !== currentRecord.id))
-    );
+    if (currentRecord.rack) {
+      API.getInstancesForRack(currentRecord.rack.id).then(instances =>
+        setInstances(instances.filter(i => i.id !== currentRecord.id))
+      );
+    }
   }, [currentRecord.rack]);
 
   const rack = {
     height: 42, // fixed for now
-    name: currentRecord.rack,
+    name: currentRecord.rack ? rackToString(currentRecord.rack) : "",
     instances: instances
   };
 
-  return currentRecord.model ? (
+  return currentRecord.model && currentRecord.rack ? (
     <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
       {form.getFieldDecorator(schemaFrag.fieldName, {
         rules,
@@ -232,6 +275,8 @@ function FormItem(props) {
     <TextAreaFormItem {...props} />
   ) : props.schemaFrag.type === "model" ? (
     <ModelFormItem {...props} />
+  ) : props.schemaFrag.type === "rack" ? (
+    <RackFormItem {...props} />
   ) : props.schemaFrag.type === "rack_u" ? (
     <RackUFormItem {...props} />
   ) : null;
