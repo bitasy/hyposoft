@@ -182,23 +182,15 @@ function mockedCreateRacks(fromRow, toRow, fromNumber, toNumber) {
   return Promise.resolve(createdIDs);
 }
 
-function deleteRacks(fromRow, toRow, fromNumber, toNumber) {
-  return Axios.delete("", { fromRow, toRow, fromNumber, toNumber });
+function deleteRacks(rackIDs) {
+  return Axios.delete("", rackIDs);
 }
 
-function mockedDeleteRacks(fromRow, toRow, fromNumber, toNumber) {
+function mockedDeleteRacks(rackIDs) {
   const deleted = [];
 
-  const toDelete = [];
-  for (let i = fromRow.charCodeAt(0); i <= toRow.charCodeAt(0); i++) {
-    const row = String.fromCharCode(i);
-    for (let j = fromNumber; j <= toNumber; j++) {
-      toDelete.push(row + j);
-    }
-  }
-
   Object.keys(racks).map(id => {
-    if (toDelete.includes(racks[id].row + racks[id].number)) {
+    if (rackIDs.includes(parseInt(id))) {
       deleted.push(racks[id]);
       delete racks[id];
     }

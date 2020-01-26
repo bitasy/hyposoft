@@ -14,7 +14,8 @@ function isOverlapping(interval1, interval2) {
 function InstancePositionPicker({ rack, model, value, onSelect }) {
   const temporaryInstance = value && {
     rack_u: value,
-    model: model
+    model: model,
+    isTmp: true
   };
 
   const newRack = {

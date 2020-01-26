@@ -20,6 +20,14 @@ function join(strs) {
   return strs.join(" ");
 }
 
+// rack:
+/*
+  {
+    name: string,
+    height: number,
+    instances: [Instance]
+  }
+*/
 function Rack({ rack, onSelect }) {
   const instancesByLevel = byLevel(rack.height, rack.instances);
 
@@ -55,6 +63,7 @@ function Rack({ rack, onSelect }) {
       >
         <td className={style.numberColumn}>{level}</td>
         <td className={style.infoColumn}>
+          {isBottom && instance.isTmp ? "*" : ""}
           {isBottom
             ? model.vendor +
               "\t" +
@@ -68,7 +77,10 @@ function Rack({ rack, onSelect }) {
   }
 
   return (
-    <table style={{ borderCollapse: "collapse" }} className={style.borders}>
+    <table
+      style={{ borderCollapse: "collapse", width: "100%" }}
+      className={style.borders}
+    >
       <thead>
         <tr className={style.borders}>
           <th className={style.numberColumn}>#</th>
