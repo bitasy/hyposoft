@@ -15,7 +15,7 @@ function InstanceManagementPage() {
 
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Registered Instances</Typography.Title>
+      <Typography.Title level={3}>Instances</Typography.Title>
       <DataList
         columns={instanceColumns}
         filters={instanceFilters}

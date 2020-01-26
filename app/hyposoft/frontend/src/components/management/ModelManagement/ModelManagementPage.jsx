@@ -15,7 +15,7 @@ function ModelManagementPage() {
 
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Registered Models</Typography.Title>
+      <Typography.Title level={3}>Models</Typography.Title>
       <DataList
         columns={modelColumns}
         filters={modelFilters}
