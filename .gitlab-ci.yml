@@ -2,8 +2,6 @@ variables:
   DB_HOST: database-1.clf9gopmww58.us-east-1.rds.amazonaws.com
   DB_USER: postgres
   DB_PASS: hyposoft
-  DB_NAME: dev
-
 
 # This folder is cached between builds
 # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
@@ -41,6 +39,8 @@ stages:
 - deploy
 
 django_test:
+  variables:
+    DB_NAME: dev
   stage: test
   script:
   - python3 app/hyposoft/manage.py test
@@ -51,13 +51,15 @@ django_test:
 
 stage_dev:
   stage: staging
+  variables:
+    DB_NAME: dev
   script:
   - cd /home/gitlab-runner/
   - git clone git@gitlab.oit.duke.edu:ban20/hyposoft-group-8.git "$CI_COMMIT_SHORT_SHA-staging"
   - cd "$CI_COMMIT_SHORT_SHA-staging"
   - git checkout dev
   - cd app/hyposoft
-  - python3 manage.py collectstatic
+  - python3 manage.py collectstatic --no-input
   only:
   - dev
   tags:
@@ -65,7 +67,10 @@ stage_dev:
 
 deploy_dev:
   stage: deploy
+  variables:
+    DB_NAME: dev
   script:
+  - rm -rf /home/gitlab-runner/hyposoft-deployed
   - mv -f /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
   - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py migrate
   - sudo uwsgi --reload /home/gitlab-runner/uwsgi.pid
