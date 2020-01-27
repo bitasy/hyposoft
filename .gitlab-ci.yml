@@ -54,7 +54,7 @@ stage_dev:
   - git clone git@gitlab.oit.duke.edu:ban20/hyposoft-group-8.git "$CI_COMMIT_SHORT_SHA-staging"
   - cd "$CI_COMMIT_SHORT_SHA-staging"
   - git checkout dev
-  - cd app/hyposoft/frontent
+  - cd app/hyposoft/frontend
   - npm install
   - npm run build
   - cd ..
