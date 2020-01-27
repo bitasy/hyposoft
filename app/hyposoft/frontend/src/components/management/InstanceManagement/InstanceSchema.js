@@ -1,12 +1,13 @@
-import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
+import {
+  modelKeywordMatch,
+  modelToString,
+  modelToDataSource
+} from "../ModelManagement/ModelSchema";
+import API from "../../../api/API";
 
 function strcmp(a, b) {
   if (a === b) return 0;
   else return a < b ? -1 : 1;
-}
-
-function modelToString(model) {
-  return model.vendor + " · " + model.model_number;
 }
 
 export function rackToString({ row, number }) {
@@ -22,6 +23,11 @@ export const instanceSchema = [
     displayName: "Model",
     fieldName: "model",
     type: "model",
+    autocomplete: s => {
+      return API.getModels()
+        .then(models => models.filter(m => modelKeywordMatch(s, m)))
+        .then(models => models.map(modelToDataSource));
+    },
     required: true,
     defaultValue: null
   },

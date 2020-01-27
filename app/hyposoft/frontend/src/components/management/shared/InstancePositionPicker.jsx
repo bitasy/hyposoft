@@ -11,12 +11,34 @@ function isOverlapping(interval1, interval2) {
   return !(r1 <= l2 || r2 <= l1);
 }
 
-function InstancePositionPicker({ rack, model, value, onSelect }) {
+function validateLevel(model, level, rack) {
+  const interval1 = toInterval(level, model.height);
+  return (
+    rack.instances != null &&
+    rack.instances.every(inst => {
+      const interval2 = toInterval(inst.rack_u, inst.model.height);
+      return !isOverlapping(interval1, interval2);
+    }) &&
+    level + model.height - 1 <= rack.height
+  );
+}
+
+function InstancePositionPicker({
+  rack,
+  model,
+  value,
+  onSelect,
+  onValidation
+}) {
   const temporaryInstance = value && {
     rack_u: value,
     model: model,
     isTmp: true
   };
+
+  React.useEffect(() => {
+    value && onValidation(validateLevel(model, value, rack));
+  }, [rack, model, value]);
 
   const newRack = {
     ...rack,
@@ -26,17 +48,7 @@ function InstancePositionPicker({ rack, model, value, onSelect }) {
   };
 
   function validateAndSelect(instance, level) {
-    if (rack.instances) {
-      const interval1 = toInterval(level, model.height);
-      if (
-        rack.instances.every(inst => {
-          const interval2 = toInterval(inst.rack_u, inst.model.height);
-          return !isOverlapping(interval1, interval2);
-        })
-      ) {
-        onSelect(instance, level);
-      }
-    }
+    validateLevel(model, level, rack) && onSelect(instance, level);
   }
 
   return <Rack rack={newRack} onSelect={validateAndSelect} />;

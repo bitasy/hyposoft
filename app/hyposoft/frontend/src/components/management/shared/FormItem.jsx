@@ -1,10 +1,21 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import { Form, Input, InputNumber, Select, Button, Icon, Row, Col } from "antd";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Button,
+  Icon,
+  Row,
+  Col,
+  AutoComplete
+} from "antd";
 import { ChromePicker } from "react-color";
 import API from "../../../api/API";
 import InstancePositionPicker from "./InstancePositionPicker";
 import { rackToString } from "../InstanceManagement/InstanceSchema";
+import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
 
 const formItemLayout = {
   labelCol: { span: 8 },
@@ -13,6 +24,14 @@ const formItemLayout = {
 
 function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
   const initialValue = originalValue || schemaFrag.defaultValue;
+
+  const [value, setValue] = React.useState(initialValue);
+  const [suggestions, setSuggestions] = React.useState([]);
+
+  React.useEffect(() => {
+    const ac = schemaFrag.autocomplete;
+    ac && ac(value).then(setSuggestions);
+  }, [value]);
 
   React.useEffect(() => {
     onChange({ [schemaFrag.fieldName]: initialValue });
@@ -25,9 +44,13 @@ function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
   return (
     <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
       {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
-        <Input
+        <AutoComplete
           placeholder={schemaFrag.displayName}
-          onChange={e => onChange({ [schemaFrag.fieldName]: e.target.value })}
+          dataSource={suggestions}
+          onChange={v => {
+            onChange({ [schemaFrag.fieldName]: v });
+            setValue(v);
+          }}
         />
       )}
     </Form.Item>
@@ -154,6 +177,10 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
+function groupByID(arr) {
+  return arr.reduce((acc, elm) => Object.assign(acc, { [elm.id]: elm }), {});
+}
+
 function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
   const rules = schemaFrag.required
     ? [{ required: true, message: "This field is required" }]
@@ -161,12 +188,16 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
 
   const history = useHistory();
 
+  const initialValue = originalValue && originalValue.id;
+
   const [modelList, setModelList] = React.useState([]);
+  const [modelsByID, setModelsByID] = React.useState({});
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     API.getModels().then(models => {
       setModelList(models);
+      setModelsByID(groupByID(models));
       setLoading(false);
     });
   }, []);
@@ -179,15 +210,17 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
         <Col span={22}>
           {form.getFieldDecorator(schemaFrag.fieldName, {
             rules,
-            initialValue: originalValue && originalValue.id
+            initialValue: initialValue
           })(
             <Select
+              showSearch
               loading={loading}
-              onChange={v =>
-                onChange({
-                  [schemaFrag.fieldName]: modelList.filter(m => m.id === v)[0]
-                })
-              }
+              onChange={v => {
+                onChange({ [schemaFrag.fieldName]: modelsByID[v] });
+              }}
+              filterOption={(input, option) => {
+                return modelKeywordMatch(input, modelsByID[option.props.value]);
+              }}
             >
               {modelList.map(model => (
                 <Select.Option key={model.id} value={model.id}>
@@ -257,6 +290,12 @@ function RackUFormItem({
             form.setFieldsValue({
               [schemaFrag.fieldName]: level
             });
+          }}
+          onValidation={isValid => {
+            !isValid &&
+              form.setFieldsValue({
+                [schemaFrag.fieldName]: null
+              });
           }}
         />
       )}

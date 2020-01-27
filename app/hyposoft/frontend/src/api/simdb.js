@@ -21,8 +21,8 @@ export const models = {
   2: {
     id: 2,
     vendor: "Delli",
-    model_number: "R100",
-    height: 2
+    model_number: "R1000",
+    height: 30
   }
 };
 
