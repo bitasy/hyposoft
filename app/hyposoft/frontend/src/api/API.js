@@ -1,7 +1,12 @@
 import Cookies from "js-cookie";
 import Axios from "axios";
+import { message } from "antd";
 
 import { models, instances, racks } from "./simdb";
+
+function displayError(error) {
+  message.error(error.message);
+}
 
 const USE_MOCKED = false;
 
@@ -13,7 +18,7 @@ function createURL(path) {
 
 // Auth APIs
 function login(username, password) {
-  return Axios.post(createURL(""), { username, password });
+  return Axios.post(createURL(""), { username, password }).catch(displayError);
 }
 
 function mockedLogin() {
@@ -22,7 +27,7 @@ function mockedLogin() {
 }
 
 function logout() {
-  return Axios.post(createURL(""));
+  return Axios.post(createURL("")).catch(displayError);
 }
 
 function mockedLogout() {
@@ -32,7 +37,7 @@ function mockedLogout() {
 
 // Model APIs
 function getModels() {
-  return Axios.get(createURL("ITModelList"));
+  return Axios.get(createURL("ITModelList")).catch(displayError);
 }
 
 function mockedGetModels() {
@@ -40,7 +45,7 @@ function mockedGetModels() {
 }
 
 function getModel(id) {
-  return Axios.get(createURL(`ITModelRetrieve/${id}`));
+  return Axios.get(createURL(`ITModelRetrieve/${id}`)).catch(displayError);
 }
 
 function mockedGetModel(id) {
@@ -48,7 +53,7 @@ function mockedGetModel(id) {
 }
 
 function createModel(fields) {
-  return Axios.post(createURL(`ITModelCreate`), fields);
+  return Axios.post(createURL(`ITModelCreate`), fields).catch(displayError);
 }
 
 function mockedCreateModel(fields) {
@@ -58,7 +63,9 @@ function mockedCreateModel(fields) {
 }
 
 function updateModel(id, updates) {
-  return Axios.patch(createURL(`ITModelUpdate/${id}`), updates);
+  return Axios.patch(createURL(`ITModelUpdate/${id}`), updates).catch(
+    displayError
+  );
 }
 
 function mockedUpdateModel(id, updates) {
@@ -67,7 +74,7 @@ function mockedUpdateModel(id, updates) {
 }
 
 function deleteModel(id) {
-  return Axios.delete(createURL(`ITModelDestroy/${id}`));
+  return Axios.delete(createURL(`ITModelDestroy/${id}`)).catch(displayError);
 }
 
 function mockedDeleteModel(id) {
@@ -89,9 +96,9 @@ function itModel2Model(m) {
 }
 
 function getInstances() {
-  return Axios.get(createURL("InstanceList")).then(instances =>
-    instances.map(itModel2Model)
-  );
+  return Axios.get(createURL("InstanceList"))
+    .then(instances => instances.map(itModel2Model))
+    .catch(displayError);
 }
 
 function mockedGetInstances() {
@@ -100,9 +107,9 @@ function mockedGetInstances() {
 
 // ex) A12
 function getInstancesForRack(rackID) {
-  return getInstances().then(instances =>
-    instances.filter(inst => inst.rack.id === rackID)
-  );
+  return getInstances()
+    .then(instances => instances.filter(inst => inst.rack.id === rackID))
+    .catch(displayError);
 }
 
 function mockedGetInstancesForRack(rackID) {
@@ -112,7 +119,9 @@ function mockedGetInstancesForRack(rackID) {
 }
 
 function getInstance(id) {
-  return Axios.get(createURL(`InstanceRetrieve/${id}`)).then(itModel2Model);
+  return Axios.get(createURL(`InstanceRetrieve/${id}`))
+    .then(itModel2Model)
+    .catch(displayError);
 }
 
 function mockedGetInstance(id) {
@@ -126,7 +135,7 @@ function mockedGetInstance(id) {
 function createInstance(fields) {
   Object.assign(fields, { itmodel: fields.model.id, rack: fields.rack.id });
   delete fields.model;
-  return Axios.post(createURL(`InstanceCreate`), fields);
+  return Axios.post(createURL(`InstanceCreate`), fields).catch(displayError);
 }
 
 function mockedCreateInstance(fields) {
@@ -149,7 +158,9 @@ function updateInstance(id, updates) {
     updates.rack ? { rack: updates.rack.id } : {}
   );
   delete updates.model;
-  return Axios.patch(createURL(`InstanceUpdate/${id}`), updates);
+  return Axios.patch(createURL(`InstanceUpdate/${id}`), updates).catch(
+    displayError
+  );
 }
 
 function mockedUpdateInstance(id, updates) {
@@ -163,7 +174,7 @@ function mockedUpdateInstance(id, updates) {
 }
 
 function deleteInstance(id) {
-  return Axios.delete(createURL(`InstanceDestroy/${id}`));
+  return Axios.delete(createURL(`InstanceDestroy/${id}`)).catch(displayError);
 }
 
 function mockedDeleteInstance(id) {
@@ -174,7 +185,7 @@ function mockedDeleteInstance(id) {
 
 // Rack APIs
 function getRacks() {
-  return Axios.get(createURL("RackList"));
+  return Axios.get(createURL("RackList")).catch(displayError);
 }
 
 function mockedGetRacks() {
@@ -182,7 +193,7 @@ function mockedGetRacks() {
 }
 
 function createRack(rack) {
-  return Axios.post(createURL("RackCreate"), rack);
+  return Axios.post(createURL("RackCreate"), rack).catch(displayError);
 }
 
 function createRacks(fromRow, toRow, fromNumber, toNumber) {
@@ -220,7 +231,9 @@ function mockedCreateRacks(fromRow, toRow, fromNumber, toNumber) {
 }
 
 function deleteRack(rackID) {
-  return Axios.delete(createURL(`RackDestroy/${rackID}`), rackIDs);
+  return Axios.delete(createURL(`RackDestroy/${rackID}`), rackIDs).catch(
+    displayError
+  );
 }
 
 function deleteRacks(rackIDs) {
