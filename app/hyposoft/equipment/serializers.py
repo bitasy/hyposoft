@@ -11,6 +11,7 @@ class ITModelSerializer(serializers.ModelSerializer):
 class InstanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instance
+        depth = 2
         fields = '__all__'
 
 

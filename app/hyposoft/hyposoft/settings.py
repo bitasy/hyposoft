@@ -25,7 +25,7 @@ SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", True)
 
-ALLOWED_HOSTS = ["brian.bitasy.me", "carter.bitasy.me", "amber.bitasy.me",
+ALLOWED_HOSTS = ["localhost", "brian.bitasy.me", "carter.bitasy.me", "amber.bitasy.me",
                  "inchan.bitasy.me", "dev.bitasy.me", "prod.bitasy.me"]
 
 
