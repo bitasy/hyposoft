@@ -1,7 +1,7 @@
-import Cookies from 'js-cookie';
-import * as Axios from 'axios';
+import Cookies from "js-cookie";
+import * as Axios from "axios";
 
-import { models, instances } from './simdb';
+import { models, instances } from "./simdb";
 
 const USE_MOCKED = true;
 
@@ -9,16 +9,16 @@ export const SESSION_COOKIE_NAME = Axios.defaults.xsrfCookieName; // maybe not
 
 // Auth APIs
 function login(username, password) {
-  return Axios.post('', { username, password });
+  return Axios.post("", { username, password });
 }
 
-function mockedLogin(username, password) {
-  Cookies.set(SESSION_COOKIE_NAME, 'mocked session cookie');
+function mockedLogin() {
+  Cookies.set(SESSION_COOKIE_NAME, "mocked session cookie");
   return Promise.resolve();
 }
 
 function logout() {
-  return Axios.post('');
+  return Axios.post("");
 }
 
 function mockedLogout() {
@@ -28,7 +28,7 @@ function mockedLogout() {
 
 // Model APIs
 function getModels() {
-  return Axios.get('');
+  return Axios.get("");
 }
 
 function mockedGetModels() {
@@ -44,7 +44,7 @@ function mockedGetModel(id) {
 }
 
 function createModel(fields) {
-  return Axios.post('', fields);
+  return Axios.post("", fields);
 }
 
 function mockedCreateModel(fields) {
@@ -68,19 +68,18 @@ function deleteModel(id) {
 
 function mockedDeleteModel(id) {
   const toRemove = models[id];
-  Object.keys(instances)
-    .forEach(instanceID => {
-      if(instances[instanceID].model.id == id) {
-        delete instances[instanceID];
-      }
-    });
+  Object.keys(instances).forEach(instanceID => {
+    if (instances[instanceID].model.id === id) {
+      delete instances[instanceID];
+    }
+  });
   delete models[id];
   return Promise.resolve(toRemove);
 }
 
 // Instance APIs
 function getInstances() {
-  return Axios.get('');
+  return Axios.get("");
 }
 
 function mockedGetInstances() {
@@ -93,8 +92,7 @@ function getInstancesForRack(rackID) {
 
 function mockedGetInstancesForRack(rackID) {
   return Promise.resolve(
-    Object.values(instances)
-      .filter(instance => instance.rack === rackID)
+    Object.values(instances).filter(instance => instance.rack === rackID)
   );
 }
 
@@ -107,19 +105,20 @@ function mockedGetInstance(id) {
 }
 
 function createInstance(fields) {
-  return Axios.post('', fields);
+  return Axios.post("", fields);
 }
 
 function mockedCreateInstance(fields) {
   const newID = Object.keys(instances).length;
-  instances[newID] = { 
-    id: newID, 
-    ...fields,
-    model: models[fields.model],
+  instances[newID] = {
+    id: newID,
+    ...fields
   };
   return Promise.resolve(newID);
 }
 
+// updates has the whole model by itself rather than just model_id.
+// so we'll have to double check that here
 function updateInstance(id, updates) {
   return Axios.patch(`${id}`, updates);
 }
@@ -141,42 +140,42 @@ function mockedDeleteInstance(id) {
 
 // Rack APIs
 function getRacks() {
-  return Axios.get('');
+  return Axios.get("");
 }
 
 function mockedGetRacks() {
   return Promise.resolve(
-    Object.values(instances)
-      .reduce((acc, instance) => {
-        const arr = acc[instance.rack] || [];
-        arr.push(instance);
-        acc[instance.rack] = arr;
-        return acc;
-      }, {})
+    Object.values(instances).reduce((acc, instance) => {
+      const arr = acc[instance.rack] || [];
+      arr.push(instance);
+      acc[instance.rack] = arr;
+      return acc;
+    }, {})
   );
 }
 
 const RealAPI = {
-  login, logout,
+  login,
+  logout,
 
-  getModels, 
-  getModel, 
-  createModel, 
-  updateModel, 
+  getModels,
+  getModel,
+  createModel,
+  updateModel,
   deleteModel,
 
-  getInstances, 
-  getInstancesForRack, 
-  getInstance, 
-  createInstance, 
-  updateInstance, 
+  getInstances,
+  getInstancesForRack,
+  getInstance,
+  createInstance,
+  updateInstance,
   deleteInstance,
 
-  getRacks,
+  getRacks
 };
 
 const MockedAPI = {
-  login: mockedLogin, 
+  login: mockedLogin,
   logout: mockedLogout,
 
   getModels: mockedGetModels,
@@ -192,7 +191,7 @@ const MockedAPI = {
   updateInstance: mockedUpdateInstance,
   deleteInstance: mockedDeleteInstance,
 
-  getRacks: mockedGetRacks,
-}
+  getRacks: mockedGetRacks
+};
 
 export default USE_MOCKED ? MockedAPI : RealAPI;
