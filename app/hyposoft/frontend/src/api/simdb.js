@@ -21,26 +21,39 @@ export const models = {
   2: {
     id: 2,
     vendor: "Delli",
-    model_number: "R100",
-    height: 2
+    model_number: "R1000",
+    height: 30
   }
 };
 
 export const instances = {
   0: {
     id: 0,
-    model: models[0],
+    model: 0,
     hostname: "server9",
-    rack: "B12",
+    rack: 0,
     rack_u: 5,
     owner: "some_owner",
     comment: "Some\nMultiline\nComment"
   },
   1: {
     id: 1,
-    model: models[1],
+    model: 1,
     hostname: "server10",
-    rack: "B12",
+    rack: 1,
     rack_u: 12
+  }
+};
+
+export const racks = {
+  0: {
+    id: 0,
+    row: "A",
+    number: 12
+  },
+  1: {
+    id: 1,
+    row: "B",
+    number: 12
   }
 };

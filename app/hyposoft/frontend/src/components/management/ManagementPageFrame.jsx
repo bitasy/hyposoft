@@ -68,6 +68,11 @@ function Sidebar() {
         <span>Instances</span>
       </Menu.Item>
 
+      <Menu.Item key="/racks">
+        <Icon type="table" />
+        <span>Racks</span>
+      </Menu.Item>
+
       <Menu.Item key="/tools">
         <Icon type="tool" />
         <span>Tools</span>

@@ -1,14 +1,21 @@
+import {
+  modelKeywordMatch,
+  modelToString,
+  modelToDataSource
+} from "../ModelManagement/ModelSchema";
+import API from "../../../api/API";
+
 function strcmp(a, b) {
   if (a === b) return 0;
   else return a < b ? -1 : 1;
 }
 
-function modelToString(model) {
-  return model.vendor + " · " + model.model_number;
+export function rackToString({ row, number }) {
+  return row + number;
 }
 
 function instanceToLocation(instance) {
-  return instance.rack + " U" + instance.rack_u;
+  return `${rackToString(instance.rack)} U${instance.rack_u}`;
 }
 
 export const instanceSchema = [
@@ -16,6 +23,11 @@ export const instanceSchema = [
     displayName: "Model",
     fieldName: "model",
     type: "model",
+    autocomplete: s => {
+      return API.getModels()
+        .then(models => models.filter(m => modelKeywordMatch(s, m)))
+        .then(models => models.map(modelToDataSource));
+    },
     required: true,
     defaultValue: null
   },
@@ -29,16 +41,16 @@ export const instanceSchema = [
   {
     displayName: "Rack",
     fieldName: "rack",
-    type: "string",
+    type: "rack",
     required: true,
-    defaultValue: ""
+    defaultValue: null
   },
   {
     displayName: "Rack U",
     fieldName: "rack_u",
     type: "rack_u",
     required: true,
-    defaultValue: 0
+    defaultValue: null
   },
   {
     displayName: "Owner",
@@ -78,5 +90,52 @@ export const instanceColumns = [
     sorter: (a, b) => strcmp(instanceToLocation(a) - instanceToLocation(b)),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
+  }
+];
+
+function instanceKeywordMatch(value, record) {
+  const lowercase = value.toLowerCase();
+  return instanceSchema
+    .filter(frag => frag.type === "string" && record[frag.fieldName])
+    .map(frag => record[frag.fieldName].toLowerCase())
+    .some(str => str.includes(lowercase));
+}
+
+export const instanceFilters = [
+  {
+    title: "Keyword Search (Ignoring case)",
+    fieldName: "keyword",
+    type: "text",
+    extractDefaultValue: () => "",
+    shouldInclude: (value, record) => {
+      return (
+        modelKeywordMatch(value, record.model) ||
+        instanceKeywordMatch(value, record)
+      );
+    }
+  },
+  {
+    title: "Rack",
+    fieldName: "rack",
+    type: "select",
+    extractOptions: records =>
+      Array.from(new Set(records.map(r => rackToString(r.rack)))),
+    extractDefaultValue: records =>
+      Array.from(new Set(records.map(r => rackToString(r.rack)))),
+    shouldInclude: (value, record) => value.includes(rackToString(record.rack))
+  },
+  {
+    title: "Rack U",
+    fieldName: "rack_u",
+    type: "range",
+    min: 1,
+    max: 42,
+    marks: { 1: "1", 42: "42" },
+    step: 1,
+    extractDefaultValue: records => [
+      Math.min(...records.map(r => r.rack_u)),
+      Math.max(...records.map(r => r.rack_u))
+    ],
+    shouldInclude: ([l, r], record) => l <= record.rack_u && record.rack_u <= r
   }
 ];

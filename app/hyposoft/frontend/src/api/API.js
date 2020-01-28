@@ -1,15 +1,24 @@
 import Cookies from "js-cookie";
-import * as Axios from "axios";
+import Axios from "axios";
+import { message } from "antd";
 
-import { models, instances } from "./simdb";
+import { models, instances, racks } from "./simdb";
 
-const USE_MOCKED = true;
+function displayError(error) {
+  message.error(error.message);
+}
 
-export const SESSION_COOKIE_NAME = Axios.defaults.xsrfCookieName; // maybe not
+const USE_MOCKED = false;
+
+export const SESSION_COOKIE_NAME = "whatever_for_now"; // maybe not
+
+function createURL(path) {
+  return `api/equipment/${path}`;
+}
 
 // Auth APIs
 function login(username, password) {
-  return Axios.post("", { username, password });
+  return Axios.post(createURL(""), { username, password }).catch(displayError);
 }
 
 function mockedLogin() {
@@ -18,7 +27,7 @@ function mockedLogin() {
 }
 
 function logout() {
-  return Axios.post("");
+  return Axios.post(createURL("")).catch(displayError);
 }
 
 function mockedLogout() {
@@ -28,7 +37,7 @@ function mockedLogout() {
 
 // Model APIs
 function getModels() {
-  return Axios.get("");
+  return Axios.get(createURL("ITModelList")).catch(displayError);
 }
 
 function mockedGetModels() {
@@ -36,7 +45,7 @@ function mockedGetModels() {
 }
 
 function getModel(id) {
-  return Axios.get(`${id}`);
+  return Axios.get(createURL(`ITModelRetrieve/${id}`)).catch(displayError);
 }
 
 function mockedGetModel(id) {
@@ -44,7 +53,7 @@ function mockedGetModel(id) {
 }
 
 function createModel(fields) {
-  return Axios.post("", fields);
+  return Axios.post(createURL(`ITModelCreate`), fields).catch(displayError);
 }
 
 function mockedCreateModel(fields) {
@@ -54,7 +63,9 @@ function mockedCreateModel(fields) {
 }
 
 function updateModel(id, updates) {
-  return Axios.patch(`${id}`, updates);
+  return Axios.patch(createURL(`ITModelUpdate/${id}`), updates).catch(
+    displayError
+  );
 }
 
 function mockedUpdateModel(id, updates) {
@@ -63,7 +74,7 @@ function mockedUpdateModel(id, updates) {
 }
 
 function deleteModel(id) {
-  return Axios.delete(`${id}`);
+  return Axios.delete(createURL(`ITModelDestroy/${id}`)).catch(displayError);
 }
 
 function mockedDeleteModel(id) {
@@ -78,58 +89,92 @@ function mockedDeleteModel(id) {
 }
 
 // Instance APIs
+function itModel2Model(m) {
+  Object.assign(m, { model: m.itmodel });
+  delete m.itmodel;
+  return m;
+}
+
 function getInstances() {
-  return Axios.get("");
+  return Axios.get(createURL("InstanceList"))
+    .then(instances => instances.map(itModel2Model))
+    .catch(displayError);
 }
 
 function mockedGetInstances() {
-  return Promise.resolve(Object.values(instances));
+  return Promise.all(Object.keys(instances).map(mockedGetInstance));
 }
 
+// ex) A12
 function getInstancesForRack(rackID) {
-  return Axios.get(`${rackID}`);
+  return getInstances()
+    .then(instances => instances.filter(inst => inst.rack.id === rackID))
+    .catch(displayError);
 }
 
 function mockedGetInstancesForRack(rackID) {
-  return Promise.resolve(
-    Object.values(instances).filter(instance => instance.rack === rackID)
+  return mockedGetInstances().then(instances =>
+    instances.filter(instance => instance.rack.id === rackID)
   );
 }
 
 function getInstance(id) {
-  return Axios.get(`${id}`);
+  return Axios.get(createURL(`InstanceRetrieve/${id}`))
+    .then(itModel2Model)
+    .catch(displayError);
 }
 
 function mockedGetInstance(id) {
-  return Promise.resolve(instances[id]);
+  return Promise.resolve({
+    ...instances[id],
+    model: models[instances[id].model],
+    rack: racks[instances[id].rack]
+  });
 }
 
 function createInstance(fields) {
-  return Axios.post("", fields);
+  Object.assign(fields, { itmodel: fields.model.id, rack: fields.rack.id });
+  delete fields.model;
+  return Axios.post(createURL(`InstanceCreate`), fields).catch(displayError);
 }
 
 function mockedCreateInstance(fields) {
   const newID = Object.keys(instances).length;
   instances[newID] = {
     id: newID,
-    ...fields
+    ...fields,
+    model: fields.model.id,
+    rack: fields.rack.id
   };
   return Promise.resolve(newID);
 }
 
-// updates has the whole model by itself rather than just model_id.
+// updates has the whole model/rack by itself rather than just model_id and rack_id.
 // so we'll have to double check that here
 function updateInstance(id, updates) {
-  return Axios.patch(`${id}`, updates);
+  Object.assign(
+    updates,
+    updates.model ? { itmodel: updates.model.id } : {},
+    updates.rack ? { rack: updates.rack.id } : {}
+  );
+  delete updates.model;
+  return Axios.patch(createURL(`InstanceUpdate/${id}`), updates).catch(
+    displayError
+  );
 }
 
 function mockedUpdateInstance(id, updates) {
-  Object.assign(instances[id], updates);
-  return Promise.resolve(instances[id]);
+  Object.assign(
+    instances[id],
+    updates,
+    updates.model ? { model: updates.model.id } : {},
+    updates.rack ? { rack: updates.rack.id } : {}
+  );
+  return mockedGetInstance(id);
 }
 
 function deleteInstance(id) {
-  return Axios.delete(`${id}`);
+  return Axios.delete(createURL(`InstanceDestroy/${id}`)).catch(displayError);
 }
 
 function mockedDeleteInstance(id) {
@@ -140,23 +185,77 @@ function mockedDeleteInstance(id) {
 
 // Rack APIs
 function getRacks() {
-  return Axios.get("");
+  return Axios.get(createURL("RackList")).catch(displayError);
 }
 
 function mockedGetRacks() {
-  return Promise.resolve(
-    Object.values(instances).reduce((acc, instance) => {
-      const arr = acc[instance.rack] || [];
-      arr.push(instance);
-      acc[instance.rack] = arr;
-      return acc;
-    }, {})
+  return Promise.resolve(Object.values(racks));
+}
+
+function createRack(rack) {
+  return Axios.post(createURL("RackCreate"), rack).catch(displayError);
+}
+
+function createRacks(fromRow, toRow, fromNumber, toNumber) {
+  const toCreate = [];
+  for (let i = fromRow.charCodeAt(0); i <= toRow.charCodeAt(0); i++) {
+    const row = String.fromCharCode(i);
+    for (let j = fromNumber; j <= toNumber; j++) {
+      toCreate.push({
+        row,
+        number: j
+      });
+    }
+  }
+
+  return Promise.all(toCreate.map(createRack));
+}
+
+function mockedCreateRacks(fromRow, toRow, fromNumber, toNumber) {
+  const createdIDs = [];
+
+  for (let i = fromRow.charCodeAt(0); i <= toRow.charCodeAt(0); i++) {
+    const row = String.fromCharCode(i);
+    for (let j = fromNumber; j <= toNumber; j++) {
+      const newID = Object.keys(racks).length;
+      racks[newID] = {
+        id: newID,
+        row,
+        number: j
+      };
+      createdIDs.push(newID);
+    }
+  }
+
+  return Promise.resolve(createdIDs);
+}
+
+function deleteRack(rackID) {
+  return Axios.delete(createURL(`RackDestroy/${rackID}`), rackIDs).catch(
+    displayError
   );
 }
 
+function deleteRacks(rackIDs) {
+  return Promise.all(rackIDs.map(deleteRack));
+}
+
+function mockedDeleteRacks(rackIDs) {
+  const deleted = [];
+
+  Object.keys(racks).map(id => {
+    if (rackIDs.includes(parseInt(id))) {
+      deleted.push(racks[id]);
+      delete racks[id];
+    }
+  });
+
+  return Promise.resolve(deleted);
+}
+
 const RealAPI = {
-  login,
-  logout,
+  login: mockedLogin,
+  logout: mockedLogout,
 
   getModels,
   getModel,
@@ -171,7 +270,9 @@ const RealAPI = {
   updateInstance,
   deleteInstance,
 
-  getRacks
+  getRacks,
+  createRacks,
+  deleteRacks
 };
 
 const MockedAPI = {
@@ -191,7 +292,9 @@ const MockedAPI = {
   updateInstance: mockedUpdateInstance,
   deleteInstance: mockedDeleteInstance,
 
-  getRacks: mockedGetRacks
+  getRacks: mockedGetRacks,
+  createRacks: mockedCreateRacks,
+  deleteRacks: mockedDeleteRacks
 };
 
 export default USE_MOCKED ? MockedAPI : RealAPI;

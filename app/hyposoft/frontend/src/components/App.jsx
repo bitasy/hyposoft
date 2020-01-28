@@ -15,6 +15,8 @@ import OverviewPage from "./management/Overview/OverviewPage";
 import InstanceDetailPage from "./management/InstanceManagement/InstanceDetailPage";
 import CreateModelPage from "./management/ModelManagement/CreateModelPage";
 import CreateInstancePage from "./management/InstanceManagement/CreateInstancePage";
+import RackManagementPage from "./management/RackManagement/RackManagementPage";
+import RackView from "./management/RackManagement/RackView";
 
 function App() {
   return (
@@ -29,39 +31,50 @@ function Routes() {
 
   return session.isLoggedIn ? (
     <Router>
-      <ManagementPageFrame>
-        <Switch>
-          <Route exact path="/models">
-            <ModelManagementPage />
-          </Route>
-          <Route exact path="/models/create">
-            <CreateModelPage />
-          </Route>
-          <Route exact path="/models/:id">
-            <ModelDetailPage />
-          </Route>
+      <Switch>
+        <Route exact path="/racks/print_view">
+          <RackView />
+        </Route>
+        <Route>
+          <ManagementPageFrame>
+            <Switch>
+              <Route exact path="/models">
+                <ModelManagementPage />
+              </Route>
+              <Route exact path="/models/create">
+                <CreateModelPage />
+              </Route>
+              <Route exact path="/models/:id">
+                <ModelDetailPage />
+              </Route>
 
-          <Route exact path="/instances">
-            <InstanceManagementPage />
-          </Route>
-          <Route exact path="/instances/create">
-            <CreateInstancePage />
-          </Route>
-          <Route exact path="/instances/:id">
-            <InstanceDetailPage />
-          </Route>
+              <Route exact path="/instances">
+                <InstanceManagementPage />
+              </Route>
+              <Route exact path="/instances/create">
+                <CreateInstancePage />
+              </Route>
+              <Route exact path="/instances/:id">
+                <InstanceDetailPage />
+              </Route>
 
-          <Route exact path="/tools">
-            <ToolingPage />
-          </Route>
-          <Route exact path="/help">
-            <HelpPage />
-          </Route>
-          <Route>
-            <OverviewPage />
-          </Route>
-        </Switch>
-      </ManagementPageFrame>
+              <Route exact path="/racks">
+                <RackManagementPage />
+              </Route>
+
+              <Route exact path="/tools">
+                <ToolingPage />
+              </Route>
+              <Route exact path="/help">
+                <HelpPage />
+              </Route>
+              <Route>
+                <OverviewPage />
+              </Route>
+            </Switch>
+          </ManagementPageFrame>
+        </Route>
+      </Switch>
     </Router>
   ) : (
     <LoginPage />
