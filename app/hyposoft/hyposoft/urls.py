@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from . import admin as _  # Run admin commands THIS IS A HACK but oh well
 
 urlpatterns = [
     path('admin/', admin.site.urls),
