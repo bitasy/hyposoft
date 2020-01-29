@@ -32,13 +32,13 @@ class ITModelResource(resources.ModelResource):
 
 
 class ITModelAdmin(ImportExportModelAdmin):
-    resource_class = ITModel
-
-    
-@admin.site.register(ITModel, ITModelAdmin)
+    resource_class = ITModelResource
 
 
-class InstanceModelResource(resources.ModelResource):
+admin.site.register(ITModel, ITModelAdmin)
+
+
+class InstanceResource(resources.ModelResource):
     # hostname– required always; RFC-1034-compliant string
     # rack– required for new instances, optional when modifying existing instances; string;the address of a rack is by a row letter (A-Z) and rack number (positive integer); thereis no separator between the row letter and rack number
     # rackposition–  required  for  new  instances,  optional  when  modifying  existing  in-stances; positive integer; refers to the vertical location (on a rack, measured in U) ofthe bottom of the equipment
@@ -52,12 +52,14 @@ class InstanceModelResource(resources.ModelResource):
     class Meta:
         model = Instance
         fields = ('itmodel', 'hostname', 'rack', 'rack_u', 'owner', 'comment')
-        export_order = ('hostname', 'rack', 'rack_u', 'itmodel.vendor', 'itmodel.model_number', 'owner', 'comment')
+        #export_order = ('hostname', 'rack', 'rack_u', 'itmodel.vendor', 'itmodel.model_number', 'owner', 'comment')
         skip_unchanged = True
         report_skipped = False
 
 
-@admin.register(Instance)
 class InstanceAdmin(ImportExportModelAdmin):
-    pass
+    resource_class = InstanceResource
+
+    
+admin.site.register(Instance, InstanceAdmin)
 
