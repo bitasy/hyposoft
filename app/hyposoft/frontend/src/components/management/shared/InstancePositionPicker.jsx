@@ -27,11 +27,13 @@ function InstancePositionPicker({
   rack,
   model,
   value,
+  hostname,
   onSelect,
   onValidation
 }) {
   const temporaryInstance = value && {
     rack_u: value,
+    hostname: hostname,
     model: model,
     isTmp: true
   };
