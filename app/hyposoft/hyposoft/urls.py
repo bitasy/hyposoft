@@ -20,5 +20,6 @@ from . import admin as _  # Run admin commands THIS IS A HACK but oh well
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('frontend.urls')),
-    path('api/equipment/', include('equipment.urls'))
+    path('api/equipment/', include('equipment.urls')),
+    path('auth/', include('django.contrib.auth.urls')),
 ]
