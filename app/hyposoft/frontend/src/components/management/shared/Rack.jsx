@@ -51,6 +51,8 @@ function Rack({ rack, onSelect }) {
     const isBottom = level === instance.rack_u;
     const isTop = level === instance.rack_u + model.height - 1;
 
+    console.log(instance);
+
     return (
       <tr
         style={{ backgroundColor: model.display_color || DEFAULT_COLOR_VALUE }}
@@ -69,7 +71,7 @@ function Rack({ rack, onSelect }) {
               "\t" +
               model.model_number +
               "\t" +
-              (model.hostname || "")
+              (instance.hostname || "")
             : ""}
         </td>
       </tr>
