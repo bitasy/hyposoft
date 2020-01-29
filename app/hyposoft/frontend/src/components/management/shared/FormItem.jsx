@@ -283,6 +283,7 @@ function RackUFormItem({
         <InstancePositionPicker
           rack={rack}
           model={currentRecord.model}
+          hostname={currentRecord.hostname}
           onSelect={(instance, level) => {
             onChange({
               [schemaFrag.fieldName]: level

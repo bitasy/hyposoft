@@ -4,21 +4,15 @@ import { message } from "antd";
 
 import { models, instances, racks } from "./simdb";
 
-function displayError(error) {
-  message.error(error.message);
-}
-
 const USE_MOCKED = false;
 
 export const SESSION_COOKIE_NAME = "whatever_for_now"; // maybe not
 
-function createURL(path) {
-  return `api/equipment/${path}`;
-}
-
 // Auth APIs
 function login(username, password) {
-  return Axios.post(createURL(""), { username, password }).catch(displayError);
+  return Axios.post(createURL(""), { username, password })
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedLogin() {
@@ -27,7 +21,9 @@ function mockedLogin() {
 }
 
 function logout() {
-  return Axios.post(createURL("")).catch(displayError);
+  return Axios.post(createURL(""))
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedLogout() {
@@ -37,7 +33,9 @@ function mockedLogout() {
 
 // Model APIs
 function getModels() {
-  return Axios.get(createURL("ITModelList")).catch(displayError);
+  return Axios.get(createURL("ITModelList"))
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedGetModels() {
@@ -45,7 +43,9 @@ function mockedGetModels() {
 }
 
 function getModel(id) {
-  return Axios.get(createURL(`ITModelRetrieve/${id}`)).catch(displayError);
+  return Axios.get(createURL(`ITModelRetrieve/${id}`))
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedGetModel(id) {
@@ -53,7 +53,9 @@ function mockedGetModel(id) {
 }
 
 function createModel(fields) {
-  return Axios.post(createURL(`ITModelCreate`), fields).catch(displayError);
+  return Axios.post(createURL(`ITModelCreate`), fields)
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedCreateModel(fields) {
@@ -63,9 +65,9 @@ function mockedCreateModel(fields) {
 }
 
 function updateModel(id, updates) {
-  return Axios.patch(createURL(`ITModelUpdate/${id}`), updates).catch(
-    displayError
-  );
+  return Axios.patch(createURL(`ITModelUpdate/${id}`), updates)
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedUpdateModel(id, updates) {
@@ -74,7 +76,9 @@ function mockedUpdateModel(id, updates) {
 }
 
 function deleteModel(id) {
-  return Axios.delete(createURL(`ITModelDestroy/${id}`)).catch(displayError);
+  return Axios.delete(createURL(`ITModelDestroy/${id}`))
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedDeleteModel(id) {
@@ -89,15 +93,17 @@ function mockedDeleteModel(id) {
 }
 
 // Instance APIs
-function itModel2Model(m) {
-  Object.assign(m, { model: m.itmodel });
-  delete m.itmodel;
-  return m;
+
+function translate(instance) {
+  Object.assign(instance, { model: instance.itmodel });
+  delete instance.itmodel;
+  return instance;
 }
 
 function getInstances() {
   return Axios.get(createURL("InstanceList"))
-    .then(instances => instances.map(itModel2Model))
+    .then(getData)
+    .then(instances => instances.map(translate))
     .catch(displayError);
 }
 
@@ -120,7 +126,8 @@ function mockedGetInstancesForRack(rackID) {
 
 function getInstance(id) {
   return Axios.get(createURL(`InstanceRetrieve/${id}`))
-    .then(itModel2Model)
+    .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -133,9 +140,15 @@ function mockedGetInstance(id) {
 }
 
 function createInstance(fields) {
-  Object.assign(fields, { itmodel: fields.model.id, rack: fields.rack.id });
+  Object.assign(fields, {
+    itmodel: fields.model.id,
+    rack: fields.rack.id
+  });
   delete fields.model;
-  return Axios.post(createURL(`InstanceCreate`), fields).catch(displayError);
+
+  return Axios.post(createURL(`InstanceCreate`), fields)
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedCreateInstance(fields) {
@@ -149,7 +162,7 @@ function mockedCreateInstance(fields) {
   return Promise.resolve(newID);
 }
 
-// updates has the whole model/rack by itself rather than just model_id and rack_id.
+// updates has the whole model/rack by itself rather than just model_id and rack.
 // so we'll have to double check that here
 function updateInstance(id, updates) {
   Object.assign(
@@ -158,9 +171,10 @@ function updateInstance(id, updates) {
     updates.rack ? { rack: updates.rack.id } : {}
   );
   delete updates.model;
-  return Axios.patch(createURL(`InstanceUpdate/${id}`), updates).catch(
-    displayError
-  );
+
+  return Axios.patch(createURL(`InstanceUpdate/${id}`), updates)
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedUpdateInstance(id, updates) {
@@ -174,7 +188,9 @@ function mockedUpdateInstance(id, updates) {
 }
 
 function deleteInstance(id) {
-  return Axios.delete(createURL(`InstanceDestroy/${id}`)).catch(displayError);
+  return Axios.delete(createURL(`InstanceDestroy/${id}`))
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedDeleteInstance(id) {
@@ -185,7 +201,9 @@ function mockedDeleteInstance(id) {
 
 // Rack APIs
 function getRacks() {
-  return Axios.get(createURL("RackList")).catch(displayError);
+  return Axios.get(createURL("RackList"))
+    .then(getData)
+    .catch(displayError);
 }
 
 function mockedGetRacks() {
@@ -193,7 +211,9 @@ function mockedGetRacks() {
 }
 
 function createRack(rack) {
-  return Axios.post(createURL("RackCreate"), rack).catch(displayError);
+  return Axios.post(createURL("RackCreate"), rack)
+    .then(getData)
+    .catch(displayError);
 }
 
 function createRacks(fromRow, toRow, fromNumber, toNumber) {
@@ -231,9 +251,9 @@ function mockedCreateRacks(fromRow, toRow, fromNumber, toNumber) {
 }
 
 function deleteRack(rackID) {
-  return Axios.delete(createURL(`RackDestroy/${rackID}`), rackIDs).catch(
-    displayError
-  );
+  return Axios.delete(createURL(`RackDestroy/${rackID}`))
+    .then(getData)
+    .catch(displayError);
 }
 
 function deleteRacks(rackIDs) {
@@ -251,6 +271,23 @@ function mockedDeleteRacks(rackIDs) {
   });
 
   return Promise.resolve(deleted);
+}
+
+function displayError(error) {
+  message.error(error.message);
+}
+
+function createURL(path) {
+  return `api/equipment/${path}`;
+}
+
+function getData(res) {
+  return res.data;
+}
+
+function probe(r) {
+  console.log(r);
+  return r;
 }
 
 const RealAPI = {

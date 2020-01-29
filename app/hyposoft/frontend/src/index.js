@@ -10,7 +10,7 @@ axios.interceptors.request.use(config => {
   }
   if (Cookies.get("csrftoken")) {
     if (
-      [
+      ![
         "get",
         "GET",
         "head",
