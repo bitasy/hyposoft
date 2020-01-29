@@ -31,9 +31,11 @@ class ITModelResource(resources.ModelResource):
         report_skipped = False
 
 
-@admin.register(ITModel)
 class ITModelAdmin(ImportExportModelAdmin):
-    pass
+    resource_class = ITModel
+
+    
+@admin.site.register(ITModel, ITModelAdmin)
 
 
 class InstanceModelResource(resources.ModelResource):
@@ -44,9 +46,13 @@ class InstanceModelResource(resources.ModelResource):
     # modelnumber–  required  for  new  instances,  optional  when  modifying  existing  in-stances;  string;  refers to the model number of the model with which this instance isassociated
     # owner– optional; string; refers to the username of an existing user in the system whoowns this equipment
     # comment– optional; string; must be enclosed by double quotes if value contains linebreaks
+    rack_u = Field(column_name='rackposition')
+    # FIX: How to map to foreign kep fields?
 
     class Meta:
         model = Instance
+        fields = ('itmodel', 'hostname', 'rack', 'rack_u', 'owner', 'comment')
+        export_order = ('hostname', 'rack', 'rack_u', 'itmodel.vendor', 'itmodel.model_number', 'owner', 'comment')
         skip_unchanged = True
         report_skipped = False
 
