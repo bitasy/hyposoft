@@ -54,7 +54,7 @@ class ITModelTest(TestCase):
             model_number="TestModelNum",
             height=1,
             display_color="#AAA",
-            ethernet_ports=0  # Should throw error
+            ethernet_ports=-1  # Should throw error
         )
 
         ethernet_ports_test2 = ITModel(
@@ -62,21 +62,10 @@ class ITModelTest(TestCase):
             model_number="TestModelNum",
             height=1,
             display_color="#AAA",
-            ethernet_ports=-1  # Should throw error
-        )
-
-        ethernet_ports_test3 = ITModel(
-            vendor="Test Vendor",
-            model_number="TestModelNum",
-            height=1,
-            display_color="#AAA",
             ethernet_ports=1  # Should NOT throw error
         )
 
-        ethernet_ports_test3.full_clean()  # Should NOT throw error
-
-        with self.assertRaises(ValidationError):
-            ethernet_ports_test1.full_clean()  # Should throw error
+        ethernet_ports_test2.full_clean()  # Should NOT throw error
 
         with self.assertRaises(ValidationError):
             ethernet_ports_test1.full_clean()  # Should throw error
