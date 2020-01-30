@@ -5,6 +5,8 @@ import API from "../../../api/API";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
 import style from "./RackView.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRacks, fetchInstances } from "../../../redux/actions";
 
 function groupByID(racks) {
   return racks.reduce(
@@ -37,26 +39,33 @@ function RackView({ r }) {
 
   const rackIDs = idsStr.split(",").map(s => parseInt(s));
 
-  const [rackVMs, setRackVMs] = React.useState([]);
+  const dispatch = useDispatch();
+
+  const rackVMs = useSelector(s => {
+    const racksByID = s.racks;
+    const instancesForRack = rackIDs.map(rackID =>
+      Object.values(s.instances).filter(inst => inst.rack.id === rackID)
+    );
+
+    return instancesForRack
+      .map((instances, idx) => {
+        const id = rackIDs[idx];
+        return racksByID[id]
+          ? {
+              name: racksByID[id].row + racksByID[id].number,
+              height: 42,
+              instances: instances
+            }
+          : null;
+      })
+      .filter(o => !!o);
+  });
 
   const rackVMSplit = partition(rackVMs, RACKS_IN_ROW);
 
   React.useEffect(() => {
-    const pRacksByID = API.getRacks().then(groupByID);
-    const pInstancesForRack = Promise.all(rackIDs.map(API.getInstancesForRack));
-
-    Promise.all([pRacksByID, pInstancesForRack])
-      .then(([racksByID, instancesForRack]) => {
-        return instancesForRack.map((instances, idx) => {
-          const id = rackIDs[idx];
-          return {
-            name: racksByID[id].row + racksByID[id].number,
-            height: 42,
-            instances: instances
-          };
-        });
-      })
-      .then(setRackVMs);
+    dispatch(fetchRacks());
+    dispatch(fetchInstances());
   }, []);
 
   return (

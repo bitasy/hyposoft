@@ -32,12 +32,8 @@ export const modelSchema = [
     displayName: "Vendor",
     fieldName: "vendor",
     type: "string",
-    autocomplete: s => {
-      return API.getModels()
-        .then(models => models.map(model => model.vendor))
-        .then(vendors => vendors.filter(v => v.includes(s)))
-        .then(removeDuplicates);
-    },
+    extractDataSource: state =>
+      removeDuplicates(Object.values(state.models).map(m => m.vendor)),
     required: true,
     defaultValue: ""
   },

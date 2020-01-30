@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
 
 import SessionProvider from "./SessionProvider";
@@ -18,7 +17,7 @@ import CreateInstancePage from "./management/InstanceManagement/CreateInstancePa
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 
-function App() {
+export default function App() {
   return (
     <SessionProvider>
       <Routes />
@@ -80,6 +79,3 @@ function Routes() {
     <LoginPage />
   );
 }
-
-/* eslint-env browser */
-ReactDOM.render(<App />, document.getElementById("app"));
