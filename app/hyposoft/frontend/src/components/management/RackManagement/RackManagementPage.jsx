@@ -4,6 +4,8 @@ import API from "../../../api/API";
 import { Typography, Button } from "antd";
 import GridRangeSelector from "./GridRangeSelector";
 import { toIndex, indexToRow, indexToCol } from "./GridUtils";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchRacks, createRacks } from "../../../redux/actions";
 
 function range(start, end) {
   return Array(end - start)
@@ -35,30 +37,29 @@ function groupByRowColumn(racks) {
 }
 
 function RackManagementPage() {
-  const [racks, setRacks] = React.useState([]);
-  const [rackGroup, setRackGroup] = React.useState({});
-  const [range, setRange] = React.useState(null);
+  const dispatch = useDispatch();
+  const racks = useSelector(s => Object.values(s.racks));
+  const rackGroup = useSelector(s => groupByRowColumn(Object.values(s.racks)));
 
-  const [racksOnModal, setRacksOnModal] = React.useState([]);
+  const [range, setRange] = React.useState(null);
 
   React.useEffect(() => {
     rehydrate();
   }, []);
 
   function rehydrate() {
-    API.getRacks().then(racks => {
-      setRacks(racks);
-      setRackGroup(groupByRowColumn(racks));
-    });
+    dispatch(fetchRacks());
   }
 
   function create([r1, r2, c1, c2]) {
-    API.createRacks(
-      indexToRow(r1),
-      indexToRow(r2),
-      indexToCol(c1),
-      indexToCol(c2)
-    ).then(() => rehydrate());
+    dispatch(
+      createRacks(
+        indexToRow(r1),
+        indexToRow(r2),
+        indexToCol(c1),
+        indexToCol(c2)
+      )
+    );
   }
 
   function remove(racks) {

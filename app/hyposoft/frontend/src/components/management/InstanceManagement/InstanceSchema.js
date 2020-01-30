@@ -23,11 +23,6 @@ export const instanceSchema = [
     displayName: "Model",
     fieldName: "model",
     type: "model",
-    autocomplete: s => {
-      return API.getModels()
-        .then(models => models.filter(m => modelKeywordMatch(s, m)))
-        .then(models => models.map(modelToDataSource));
-    },
     required: true,
     defaultValue: null
   },

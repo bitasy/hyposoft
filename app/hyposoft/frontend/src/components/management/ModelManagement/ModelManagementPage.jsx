@@ -1,16 +1,18 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import API from "../../../api/API";
 import { Typography } from "antd";
 import { modelColumns, modelFilters } from "./ModelSchema";
 import DataList from "../shared/DataList";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchModels } from "../../../redux/actions";
 
 function ModelManagementPage() {
-  const [models, setModels] = React.useState([]);
+  const models = useSelector(s => Object.values(s.models));
   const history = useHistory();
+  const dispatch = useDispatch();
 
   React.useEffect(() => {
-    API.getModels().then(setModels);
+    dispatch(fetchModels());
   }, []);
 
   return (

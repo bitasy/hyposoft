@@ -1,16 +1,18 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import API from "../../../api/API";
+import { useDispatch, useSelector } from "react-redux";
 import { Typography } from "antd";
 import { instanceColumns, instanceFilters } from "./InstanceSchema";
 import DataList from "../shared/DataList";
+import { fetchInstances } from "../../../redux/actions";
 
 function InstanceManagementPage() {
-  const [instances, setInstances] = React.useState([]);
+  const instances = useSelector(s => Object.values(s.instances));
   const history = useHistory();
+  const dispatch = useDispatch();
 
   React.useEffect(() => {
-    API.getInstances().then(setInstances);
+    dispatch(fetchInstances());
   }, []);
 
   return (

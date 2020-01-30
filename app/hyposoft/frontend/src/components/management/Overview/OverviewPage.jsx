@@ -2,9 +2,22 @@ import React from "react";
 
 import { Typography, Button, Icon, Row, Col } from "antd";
 import { useHistory } from "react-router-dom";
-import API from "../../../api/API";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchInstances,
+  fetchModels,
+  fetchRacks
+} from "../../../redux/actions";
 
 function OverviewPage() {
+  const dispatch = useDispatch();
+
+  React.useEffect(() => {
+    dispatch(fetchModels());
+    dispatch(fetchInstances());
+    dispatch(fetchRacks());
+  }, []);
+
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Overview</Typography.Title>
@@ -19,14 +32,10 @@ function OverviewPage() {
   );
 }
 
-function NavCard({ entity, link, iconType, fetchStats, size }) {
+function NavCard({ entity, link, iconType, statSelector, size }) {
   const history = useHistory();
 
-  const [stats, setStats] = React.useState(null);
-
-  React.useEffect(() => {
-    fetchStats().then(setStats);
-  }, []);
+  const stats = useSelector(statSelector);
 
   return (
     <Button
@@ -44,31 +53,27 @@ function NavCard({ entity, link, iconType, fetchStats, size }) {
   );
 }
 
-function length(arr) {
-  return arr.length;
-}
-
 const overviewSchema = [
   {
     entity: "Models",
     link: "/models",
     iconType: "inbox",
     size: 250,
-    fetchStats: () => API.getModels().then(length)
+    statSelector: s => Object.keys(s.models).length
   },
   {
     entity: "Instances",
     link: "/instances",
     iconType: "database",
     size: 250,
-    fetchStats: () => API.getInstances().then(length)
+    statSelector: s => Object.keys(s.instances).length
   },
   {
     entity: "Racks",
     link: "/racks",
     iconType: "table",
     size: 250,
-    fetchStats: () => API.getRacks().then(length)
+    statSelector: s => Object.keys(s.racks).length
   }
 ];
 

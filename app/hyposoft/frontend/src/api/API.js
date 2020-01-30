@@ -148,6 +148,7 @@ function createInstance(fields) {
 
   return Axios.post(createURL(`InstanceCreate`), fields)
     .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -174,6 +175,7 @@ function updateInstance(id, updates) {
 
   return Axios.patch(createURL(`InstanceUpdate/${id}`), updates)
     .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -190,6 +192,7 @@ function mockedUpdateInstance(id, updates) {
 function deleteInstance(id) {
   return Axios.delete(createURL(`InstanceDestroy/${id}`))
     .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -283,11 +286,6 @@ function createURL(path) {
 
 function getData(res) {
   return res.data;
-}
-
-function probe(r) {
-  console.log(r);
-  return r;
 }
 
 const RealAPI = {
