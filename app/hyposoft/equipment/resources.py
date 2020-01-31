@@ -3,21 +3,8 @@ from .models import ITModel, Instance
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 
+
 class ITModelResource(resources.ModelResource):
-    # vendor– required always; string
-    # modelnumber– required always; string
-    # height– required for new models, optional when modifying existing models; positiveinteger; refers to the height in U of the model
-    # displaycolor– optional; 6-digit, 3-byte hex triplet (RGB) preceded by a pound sign(#); e.g.#7FFFD4
-    # ethernetports– optional; non-negative integer
-    # powerports– optional; non-negative integer
-    # cpu– optional; string
-    # memory– optional; non-negative integer
-    # storage– optional; string
-    # comment– optional; string; must be enclosed by double quotes if value contains linebreaks
-    model_number = Field(column_name='modelnumber')
-    display_color = Field(column_name='displaycolor')
-    ethernet_ports = Field(column_name='ethernetports')
-    power_ports = Field(column_name='powerports')
 
     class Meta:
         model = ITModel
