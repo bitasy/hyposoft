@@ -50,7 +50,6 @@ class InstanceResource(resources.ModelResource):
         widget=ForeignKeyWidget(ITModel, 'model_number')
     )
 
-
     class Meta:
         model = Instance
         fields = ('vendor', 'model_number', 'hostname', 'rack', 'rack_u', 'owner', 'comment')
