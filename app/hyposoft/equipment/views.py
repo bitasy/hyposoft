@@ -1,7 +1,15 @@
 from rest_framework import generics
 from .models import ITModel, Instance, Rack
 from .serializers import ITModelSerializer, InstanceSerializer, RackSerializer
+from rest_framework.response import Response
+from rest_framework import status
 
+# This mixin makes the destroy view return the deleted item
+class DestroyWithPayloadMixin(object):
+    def destroy(self, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        super().destroy(*args, **kwargs)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # ITModel
 class ITModelCreateView(generics.CreateAPIView):
@@ -19,7 +27,7 @@ class ITModelUpdateView(generics.UpdateAPIView):
     serializer_class = ITModelSerializer
 
 
-class ITModelDestroyView(generics.DestroyAPIView):
+class ITModelDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
@@ -50,7 +58,7 @@ class InstanceDestroyView(generics.DestroyAPIView):
     serializer_class = InstanceSerializer
 
 
-class InstanceListView(generics.ListAPIView):
+class InstanceListView(DestroyWithPayloadMixin, generics.ListAPIView):
     queryset = Instance.objects.all()
     serializer_class = InstanceSerializer
 
@@ -71,7 +79,7 @@ class RackUpdateView(generics.UpdateAPIView):
     serializer_class = RackSerializer
 
 
-class RackDestroyView(generics.DestroyAPIView):
+class RackDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 

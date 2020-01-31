@@ -5,7 +5,7 @@ import { Typography, Button } from "antd";
 import GridRangeSelector from "./GridRangeSelector";
 import { toIndex, indexToRow, indexToCol } from "./GridUtils";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchRacks, createRacks } from "../../../redux/actions";
+import { fetchRacks, createRacks, removeRacks } from "../../../redux/actions";
 
 function range(start, end) {
   return Array(end - start)
@@ -42,6 +42,10 @@ function RackManagementPage() {
   const rackGroup = useSelector(s => groupByRowColumn(Object.values(s.racks)));
 
   const [range, setRange] = React.useState(null);
+  const [clearTrigger, setClearTrigger] = React.useState(0);
+  function clear() {
+    setClearTrigger(1 - clearTrigger);
+  }
 
   React.useEffect(() => {
     rehydrate();
@@ -57,14 +61,22 @@ function RackManagementPage() {
         indexToRow(r1),
         indexToRow(r2),
         indexToCol(c1),
-        indexToCol(c2)
+        indexToCol(c2),
+        clear,
+        clear
       )
     );
   }
 
   function remove(racks) {
     if (confirm(`Removing ${racks.length} rack(s). Are you sure about this?`)) {
-      API.deleteRacks(racks.map(rack => rack.id)).then(() => rehydrate());
+      dispatch(
+        removeRacks(
+          racks.map(rack => rack.id),
+          clear,
+          clear
+        )
+      );
     }
   }
 
@@ -105,7 +117,7 @@ function RackManagementPage() {
       <Typography.Title level={4} style={{ marginTop: 16 }}>
         Select range
       </Typography.Title>
-      <GridRangeSelector onChange={setRange} />
+      <GridRangeSelector onChange={setRange} clearTrigger={clearTrigger} />
       <div style={{ marginTop: 16 }}>
         <Button
           disabled={!range}
