@@ -4,6 +4,8 @@ import {
   modelToDataSource
 } from "../ModelManagement/ModelSchema";
 import API from "../../../api/API";
+import { toIndex, indexToRow } from "../RackManagement/GridUtils";
+import { MAX_ROW, MAX_COL } from "../RackManagement/RackManagementPage";
 
 function strcmp(a, b) {
   if (a === b) return 0;
@@ -96,6 +98,11 @@ function instanceKeywordMatch(value, record) {
     .some(str => str.includes(lowercase));
 }
 
+function isInside([minR, maxR, minC, maxC], instance) {
+  const [r, c] = toIndex([instance.rack.row, instance.rack.number]);
+  return minR <= r && r <= maxR && minC <= c && c <= maxC;
+}
+
 export const instanceFilters = [
   {
     title: "Keyword Search (Ignoring case)",
@@ -112,12 +119,9 @@ export const instanceFilters = [
   {
     title: "Rack",
     fieldName: "rack",
-    type: "select",
-    extractOptions: records =>
-      Array.from(new Set(records.map(r => rackToString(r.rack)))),
-    extractDefaultValue: records =>
-      Array.from(new Set(records.map(r => rackToString(r.rack)))),
-    shouldInclude: (value, record) => value.includes(rackToString(record.rack))
+    type: "rack-range",
+    extractDefaultValue: records => null,
+    shouldInclude: (value, record) => isInside(value, record)
   },
   {
     title: "Rack U",
