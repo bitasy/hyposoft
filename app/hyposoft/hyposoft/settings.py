@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'equipment',
 ]
 
+IMPORT_EXPORT_USE_TRANSACTIONS = True
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
