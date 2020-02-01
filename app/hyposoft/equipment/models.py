@@ -96,6 +96,6 @@ class Instance(models.Model):
     )
     comment = models.TextField()
 
-    def clean(self, *args, **kwargs):
-        if self.itmodel.height < self.rack_u + self.itmodel.height - 1:
-            raise ValidationError("The instance does not fit on the specified rack.")
+    #def clean(self, *args, **kwargs):
+        #if self.itmodel.height < self.rack_u + self.itmodel.height - 1:
+            #raise ValidationError("The instance does not fit on the specified rack.")
