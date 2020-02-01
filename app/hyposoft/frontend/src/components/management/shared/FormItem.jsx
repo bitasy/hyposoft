@@ -16,6 +16,12 @@ import API from "../../../api/API";
 import InstancePositionPicker from "./InstancePositionPicker";
 import { rackToString } from "../InstanceManagement/InstanceSchema";
 import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchModels,
+  fetchRacks,
+  fetchInstances
+} from "../../../redux/actions";
 
 const formItemLayout = {
   labelCol: { span: 8 },
@@ -25,13 +31,8 @@ const formItemLayout = {
 function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
   const initialValue = originalValue || schemaFrag.defaultValue;
 
-  const [value, setValue] = React.useState(initialValue);
-  const [suggestions, setSuggestions] = React.useState([]);
-
-  React.useEffect(() => {
-    const ac = schemaFrag.autocomplete;
-    ac && ac(value).then(setSuggestions);
-  }, [value]);
+  const extractDS = schemaFrag.extractDataSource;
+  const dataSource = useSelector(s => (extractDS != null ? extractDS(s) : []));
 
   React.useEffect(() => {
     onChange({ [schemaFrag.fieldName]: initialValue });
@@ -43,13 +44,16 @@ function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
 
   return (
     <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
-      {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
+      {form.getFieldDecorator(schemaFrag.fieldName, {
+        rules,
+        initialValue: initialValue.toString()
+      })(
         <AutoComplete
           placeholder={schemaFrag.displayName}
-          dataSource={suggestions}
+          dataSource={dataSource}
+          filterOption={(input, option) => option.key.includes(input)}
           onChange={v => {
             onChange({ [schemaFrag.fieldName]: v });
-            setValue(v);
           }}
         />
       )}
@@ -142,14 +146,11 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
     ? [{ required: true, message: "This field is required" }]
     : [];
 
-  const [rackList, setRackList] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
+  const dispatch = useDispatch();
+  const rackList = useSelector(s => Object.values(s.racks));
 
   React.useEffect(() => {
-    API.getRacks().then(racks => {
-      setRackList(racks);
-      setLoading(false);
-    });
+    dispatch(fetchRacks());
   }, []);
 
   return (
@@ -159,7 +160,6 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
         initialValue: originalValue && originalValue.id
       })(
         <Select
-          loading={loading}
           onChange={v =>
             onChange({
               [schemaFrag.fieldName]: rackList.filter(m => m.id === v)[0]
@@ -187,19 +187,15 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
     : [];
 
   const history = useHistory();
+  const dispatch = useDispatch();
 
   const initialValue = originalValue && originalValue.id;
 
-  const [modelList, setModelList] = React.useState([]);
-  const [modelsByID, setModelsByID] = React.useState({});
-  const [loading, setLoading] = React.useState(true);
+  const modelList = useSelector(s => Object.values(s.models));
+  const modelsByID = useSelector(s => groupByID(Object.values(s.models)));
 
   React.useEffect(() => {
-    API.getModels().then(models => {
-      setModelList(models);
-      setModelsByID(groupByID(models));
-      setLoading(false);
-    });
+    dispatch(fetchModels());
   }, []);
 
   const selectedModelID = form.getFieldValue(schemaFrag.fieldName);
@@ -214,7 +210,6 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
           })(
             <Select
               showSearch
-              loading={loading}
               onChange={v => {
                 onChange({ [schemaFrag.fieldName]: modelsByID[v] });
               }}
@@ -258,15 +253,11 @@ function RackUFormItem({
     ? [{ required: true, message: "This field is required" }]
     : [];
 
-  const [instances, setInstances] = React.useState([]);
-
-  React.useEffect(() => {
-    if (currentRecord.rack) {
-      API.getInstancesForRack(currentRecord.rack.id).then(instances =>
-        setInstances(instances.filter(i => i.id !== currentRecord.id))
-      );
-    }
-  }, [currentRecord.rack]);
+  const instances = useSelector(s =>
+    currentRecord.rack
+      ? Object.values(s.instances).filter(i => i.id !== currentRecord.id)
+      : []
+  );
 
   const rack = {
     height: 42, // fixed for now
@@ -293,10 +284,11 @@ function RackUFormItem({
             });
           }}
           onValidation={isValid => {
-            !isValid &&
+            if (!isValid) {
               form.setFieldsValue({
                 [schemaFrag.fieldName]: null
               });
+            }
           }}
         />
       )}

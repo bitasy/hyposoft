@@ -148,6 +148,7 @@ function createInstance(fields) {
 
   return Axios.post(createURL(`InstanceCreate`), fields)
     .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -174,6 +175,7 @@ function updateInstance(id, updates) {
 
   return Axios.patch(createURL(`InstanceUpdate/${id}`), updates)
     .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -190,6 +192,7 @@ function mockedUpdateInstance(id, updates) {
 function deleteInstance(id) {
   return Axios.delete(createURL(`InstanceDestroy/${id}`))
     .then(getData)
+    .then(translate)
     .catch(displayError);
 }
 
@@ -220,7 +223,7 @@ function createRacks(fromRow, toRow, fromNumber, toNumber) {
   const toCreate = [];
   for (let i = fromRow.charCodeAt(0); i <= toRow.charCodeAt(0); i++) {
     const row = String.fromCharCode(i);
-    for (let j = fromNumber; j <= toNumber; j++) {
+    for (let j = parseInt(fromNumber); j <= parseInt(toNumber); j++) {
       toCreate.push({
         row,
         number: j
@@ -228,7 +231,7 @@ function createRacks(fromRow, toRow, fromNumber, toNumber) {
     }
   }
 
-  return Promise.all(toCreate.map(createRack));
+  return Promise.all(toCreate.map(createRack)).then(removeNulls);
 }
 
 function mockedCreateRacks(fromRow, toRow, fromNumber, toNumber) {
@@ -257,7 +260,7 @@ function deleteRack(rackID) {
 }
 
 function deleteRacks(rackIDs) {
-  return Promise.all(rackIDs.map(deleteRack));
+  return Promise.all(rackIDs.map(deleteRack)).then(removeNulls);
 }
 
 function mockedDeleteRacks(rackIDs) {
@@ -277,17 +280,16 @@ function displayError(error) {
   message.error(error.message);
 }
 
+function removeNulls(arr) {
+  return arr.filter(a => a != null);
+}
+
 function createURL(path) {
   return `api/equipment/${path}`;
 }
 
 function getData(res) {
   return res.data;
-}
-
-function probe(r) {
-  console.log(r);
-  return r;
 }
 
 const RealAPI = {

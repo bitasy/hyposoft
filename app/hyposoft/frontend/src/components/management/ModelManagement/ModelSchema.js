@@ -32,12 +32,8 @@ export const modelSchema = [
     displayName: "Vendor",
     fieldName: "vendor",
     type: "string",
-    autocomplete: s => {
-      return API.getModels()
-        .then(models => models.map(model => model.vendor))
-        .then(vendors => vendors.filter(v => v.includes(s)))
-        .then(removeDuplicates);
-    },
+    extractDataSource: state =>
+      removeDuplicates(Object.values(state.models).map(m => m.vendor)),
     required: true,
     defaultValue: ""
   },
@@ -143,6 +139,10 @@ export function modelKeywordMatch(value, record) {
     .some(str => str.includes(lowercase));
 }
 
+function handleWeirdInf(num, fallback) {
+  return isFinite(num) ? num : fallback;
+}
+
 export const modelFilters = [
   {
     title: "Keyword Search (Ignoring case)",
@@ -175,8 +175,8 @@ export const modelFilters = [
     step: 1,
     extractDefaultValue: records => [
       [
-        Math.min(...collect(records, r => r.ethernet_ports)),
-        Math.max(...collect(records, r => r.ethernet_ports))
+        handleWeirdInf(Math.min(...collect(records, r => r.ethernet_ports)), 0),
+        handleWeirdInf(Math.max(...collect(records, r => r.ethernet_ports)), 99)
       ],
       true
     ],
@@ -195,8 +195,8 @@ export const modelFilters = [
     step: 1,
     extractDefaultValue: records => [
       [
-        Math.min(...collect(records, r => r.power_ports)),
-        Math.max(...collect(records, r => r.power_ports))
+        handleWeirdInf(Math.min(...collect(records, r => r.power_ports)), 0),
+        handleWeirdInf(Math.max(...collect(records, r => r.power_ports)), 10)
       ],
       true
     ],

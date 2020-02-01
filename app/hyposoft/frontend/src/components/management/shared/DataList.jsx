@@ -36,9 +36,9 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
     total: data.length
   };
 
-  const [filterValues, setFilterValues] = React.useState(
-    getDefaults(data, filters)
-  );
+  const defaults = getDefaults(data, filters);
+
+  const [filterValues, setFilterValues] = React.useState(defaults);
 
   React.useEffect(() => {
     setFilterValues(getDefaults(data, filters));
@@ -47,7 +47,9 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
   const filteredData = filters.reduce(
     (remaining, filterDef) =>
       remaining.filter(r =>
-        filterDef.shouldInclude(filterValues[filterDef.fieldName], r)
+        filterValues[filterDef.fieldName]
+          ? filterDef.shouldInclude(filterValues[filterDef.fieldName], r)
+          : remaining
       ),
     data
   );
@@ -63,6 +65,7 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
                 <Filter
                   filterDef={filter}
                   data={data}
+                  defaultValue={defaults[filter.fieldName]}
                   onChange={changeSet =>
                     setFilterValues(Object.assign({}, filterValues, changeSet))
                   }
