@@ -12,7 +12,6 @@ import {
   AutoComplete
 } from "antd";
 import { ChromePicker } from "react-color";
-import API from "../../../api/API";
 import InstancePositionPicker from "./InstancePositionPicker";
 import { rackToString } from "../InstanceManagement/InstanceSchema";
 import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
@@ -253,16 +252,21 @@ function RackUFormItem({
     ? [{ required: true, message: "This field is required" }]
     : [];
 
-  const instances = useSelector(s =>
-    currentRecord.rack
-      ? Object.values(s.instances).filter(i => i.id !== currentRecord.id)
-      : []
-  );
+  const dispatch = useDispatch();
+  React.useEffect(() => {
+    dispatch(fetchInstances());
+  }, []);
+
+  const instances = useSelector(s => Object.values(s.instances));
+
+  const filteredInstances = currentRecord.rack
+    ? instances.filter(i => i.rack.id === currentRecord.rack.id)
+    : [];
 
   const rack = {
     height: 42, // fixed for now
     name: currentRecord.rack ? rackToString(currentRecord.rack) : "",
-    instances: instances
+    instances: filteredInstances
   };
 
   return currentRecord.model && currentRecord.rack ? (
@@ -272,6 +276,7 @@ function RackUFormItem({
         initialValue: initialValue
       })(
         <InstancePositionPicker
+          key={currentRecord.rack.id}
           rack={rack}
           model={currentRecord.model}
           hostname={currentRecord.hostname}

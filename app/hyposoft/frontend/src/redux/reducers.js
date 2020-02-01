@@ -36,7 +36,7 @@ function genFetchAllReducer(fetchAllActionType) {
   return genAsyncReducer(
     fetchAllActionType,
     s => s,
-    (s, res) => groupByID(res),
+    (s, res) => (res ? groupByID(res) : s),
     (s, err) => s
   );
 }
@@ -47,7 +47,9 @@ function genFetchReducer(fetchActionType) {
     s => s,
     (s, res) =>
       produce(s, ds => {
-        ds[res.id] = res;
+        if (res && res.id) {
+          ds[res.id] = res;
+        }
       }),
     (s, err) => s
   );
@@ -59,7 +61,9 @@ function genCreateReducer(createActionType) {
     s => s,
     (s, res) =>
       produce(s, ds => {
-        ds[res.id] = res;
+        if (res && res.id) {
+          ds[res.id] = res;
+        }
       }),
     (s, err) => s
   );
@@ -71,7 +75,9 @@ function genUpdateReducer(updateActionType) {
     s => s,
     (s, res) =>
       produce(s, ds => {
-        ds[res.id] = res;
+        if (res && res.id) {
+          ds[res.id] = res;
+        }
       }),
     (s, err) => s
   );
@@ -83,7 +89,9 @@ function genRemoveReducer(removeActionType) {
     s => s,
     (s, res) =>
       produce(s, ds => {
-        delete ds[res.id];
+        if (res && res.id) {
+          delete ds[res.id];
+        }
       }),
     (s, err) => s
   );
@@ -111,7 +119,9 @@ function createRacksReducer() {
     (s, res) =>
       produce(s, ds => {
         res.forEach(rack => {
-          ds[rack.id] = rack;
+          if (rack && rack.id) {
+            ds[rack.id] = rack;
+          }
         });
       }),
     (s, err) => s
@@ -125,7 +135,9 @@ function removeRacksReducer() {
     (s, res) =>
       produce(s, ds => {
         res.forEach(rack => {
-          delete ds[rack.id];
+          if (rack && rack.id) {
+            delete ds[rack.id];
+          }
         });
       }),
     (s, err) => s

@@ -32,6 +32,13 @@ axios.interceptors.request.use(config => {
   return config;
 });
 
+axios.defaults.validateStatus = statusCode => statusCode < 300;
+
+axios.interceptors.response.use(
+  response => response,
+  error => Promise.reject(error)
+);
+
 /* eslint-env browser */
 ReactDOM.render(
   <Provider store={store}>

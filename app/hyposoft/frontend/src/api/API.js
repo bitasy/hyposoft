@@ -2,6 +2,7 @@ import Axios from "axios";
 import { message } from "antd";
 
 import { models, instances, racks } from "./simdb";
+import produce from "immer";
 
 const USE_MOCKED = false;
 
@@ -137,13 +138,13 @@ function mockedGetInstance(id) {
 }
 
 function createInstance(fields) {
-  Object.assign(fields, {
-    itmodel: fields.model.id,
-    rack: fields.rack.id
+  const toCreate = produce(fields, draft => {
+    draft.itmodel = draft.model.id;
+    draft.rack = draft.rack.id;
+    delete draft.model;
   });
-  delete fields.model;
 
-  return Axios.post(createURL(`InstanceCreate`), fields)
+  return Axios.post(createURL(`InstanceCreate`), toCreate)
     .then(getData)
     .then(translate)
     .catch(displayError);
@@ -163,14 +164,17 @@ function mockedCreateInstance(fields) {
 // updates has the whole model/rack by itself rather than just model_id and rack.
 // so we'll have to double check that here
 function updateInstance(id, updates) {
-  Object.assign(
-    updates,
-    updates.model ? { itmodel: updates.model.id } : {},
-    updates.rack ? { rack: updates.rack.id } : {}
-  );
-  delete updates.model;
+  const patch = produce(updates, draft => {
+    if (draft.model) {
+      draft.itmodel = updates.model.id;
+      delete draft.model;
+    }
+    if (draft.rack) {
+      draft.rack = draft.rack.id;
+    }
+  });
 
-  return Axios.patch(createURL(`InstanceUpdate/${id}`), updates)
+  return Axios.patch(createURL(`InstanceUpdate/${id}`), patch)
     .then(getData)
     .then(translate)
     .catch(displayError);
@@ -275,6 +279,11 @@ function mockedDeleteRacks(rackIDs) {
 
 function displayError(error) {
   message.error(error.message);
+  return Promise.reject(error); // but still pass this on
+}
+
+function displayRawError(str) {
+  message.error(str);
 }
 
 function displayRawError(str) {
