@@ -28,7 +28,7 @@ export default function App() {
 function Routes() {
   const session = React.useContext(Session);
 
-  return session.isLoggedIn ? (
+  return session.token ? (
     <Router>
       <Switch>
         <Route exact path="/racks/print_view">

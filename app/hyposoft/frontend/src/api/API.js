@@ -1,4 +1,3 @@
-import Cookies from "js-cookie";
 import Axios from "axios";
 import { message } from "antd";
 
@@ -6,28 +5,26 @@ import { models, instances, racks } from "./simdb";
 
 const USE_MOCKED = false;
 
-export const SESSION_COOKIE_NAME = "whatever_for_now"; // maybe not
+export const TOKEN_KEY = "auth-token";
+const FAKE_TOKEN = "qwerasdfzxv";
 
 // Auth APIs
 function login(username, password) {
-  return Axios.post(createURL(""), { username, password })
-    .then(getData)
-    .catch(displayError);
+  return Axios.post("api/auth/token/", { username, password })
+    .then(res => res.data.token)
+    .catch(() => displayRawError("Login Failed!"));
 }
 
 function mockedLogin() {
-  Cookies.set(SESSION_COOKIE_NAME, "mocked session cookie");
-  return Promise.resolve();
+  return Promise.resolve(FAKE_TOKEN);
 }
 
 function logout() {
-  return Axios.post(createURL(""))
-    .then(getData)
-    .catch(displayError);
+  // we don't really send out api calls (for now)
+  return Promise.resolve();
 }
 
 function mockedLogout() {
-  Cookies.remove(SESSION_COOKIE_NAME);
   return Promise.resolve();
 }
 
@@ -280,6 +277,10 @@ function displayError(error) {
   message.error(error.message);
 }
 
+function displayRawError(str) {
+  message.error(str);
+}
+
 function removeNulls(arr) {
   return arr.filter(a => a != null);
 }
@@ -293,7 +294,7 @@ function getData(res) {
 }
 
 const RealAPI = {
-  login: mockedLogin,
+  login,
   logout: mockedLogout,
 
   getModels,
