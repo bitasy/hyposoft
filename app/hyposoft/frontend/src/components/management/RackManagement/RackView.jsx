@@ -1,19 +1,10 @@
 import React from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import Rack from "../shared/Rack";
-import API from "../../../api/API";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
-import style from "./RackView.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRacks, fetchInstances } from "../../../redux/actions";
-
-function groupByID(racks) {
-  return racks.reduce(
-    (acc, rack) => Object.assign(acc, { [rack.id]: rack }),
-    {}
-  );
-}
 
 const RACKS_IN_ROW = 4;
 
@@ -76,10 +67,15 @@ function RackView({ r }) {
           type="flex"
           justify="center"
           gutter={16}
-          style={{ height: "27.9cm", padding: 24 }}
+          style={{
+            pageBreakAfter: "always",
+            paddingTop: 16,
+            paddingBottom: 16,
+            height: "100%"
+          }}
         >
           {row.map((rackVM, idx) => (
-            <Col key={idx} span={5}>
+            <Col key={idx} style={{ marginTop: "auto", marginBottom: "auto" }}>
               <Rack
                 rack={rackVM}
                 onSelect={instance => {

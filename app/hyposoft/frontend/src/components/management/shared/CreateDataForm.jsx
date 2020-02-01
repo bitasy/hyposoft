@@ -18,6 +18,8 @@ function CreateDataForm({ form, createRecord, schema }) {
     });
   }
 
+  console.log(newRecord);
+
   return (
     <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
       {schema.map(schemaFrag => (
