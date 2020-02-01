@@ -286,10 +286,6 @@ function displayRawError(str) {
   message.error(str);
 }
 
-function displayRawError(str) {
-  message.error(str);
-}
-
 function removeNulls(arr) {
   return arr.filter(a => a != null);
 }
