@@ -174,7 +174,7 @@ class RackTest(TestCase):
         with self.assertRaises(ValidationError):
             number_test3.full_clean()  # Should throw error
 
-
+"""
 class InstanceTest(TestCase):
 
     # Test cases for the Instance param, hostname
@@ -213,13 +213,16 @@ class InstanceTest(TestCase):
         rack_u_test1.full_clean()  # Should NOT throw error
 
         rack_u_test2 = Instance(
-            itmodel=example_itmodel,
+            itmodel=ITModel(vendor="Test Vendor",
+                            model_number="TestModelNum",
+                            height=1),
             hostname="test",
-            rack=example_rack,
+            rack=Rack(row="A",
+                      number=1),
             rack_u=-1  # Should throw error
         )
         with self.assertRaises(ValidationError):
             rack_u_test2.full_clean()  # Should throw error
+"""
 
-        
 
