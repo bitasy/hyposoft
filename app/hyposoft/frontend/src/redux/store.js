@@ -6,7 +6,8 @@ import thunk from "redux-thunk";
 const initialState = {
   models: {},
   instances: {},
-  racks: {}
+  racks: {},
+  users: {}
 };
 
 const store = createStore(HyposoftApp, initialState, applyMiddleware(thunk));

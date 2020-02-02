@@ -2,7 +2,8 @@ import {
   genAsyncActionTypes,
   FETCH_ALL_RACKS,
   CREATE_RACKS,
-  REMOVE_RACKS
+  REMOVE_RACKS,
+  FETCH_ALL_USERS
 } from "./actions";
 import produce from "immer";
 import { modelCRUDActionTypes, instanceCRUDActionTypes } from "./actions";
@@ -152,14 +153,20 @@ function genRackReducer() {
   ]);
 }
 
+function genUserReducer() {
+  return applyAll([genFetchAllReducer(FETCH_ALL_USERS)]);
+}
+
 const modelReducer = genCrudReducer(modelCRUDActionTypes);
 const instanceReducer = genCrudReducer(instanceCRUDActionTypes);
 const rackReducer = genRackReducer();
+const userReducer = genUserReducer();
 
 const HyposoftApp = combineReducers({
   models: modelReducer,
   instances: instanceReducer,
-  racks: rackReducer
+  racks: rackReducer,
+  users: userReducer
 });
 
 export default HyposoftApp;

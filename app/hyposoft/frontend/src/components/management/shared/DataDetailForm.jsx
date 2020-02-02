@@ -30,6 +30,8 @@ function DataDetailForm({
 
   const canUpdate = !objectEquals(record, newRecord);
 
+  console.log(record, newRecord);
+
   function handleSubmit(e) {
     e.preventDefault();
     form.validateFields((err, values) => {

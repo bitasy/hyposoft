@@ -52,7 +52,7 @@ export const instanceSchema = [
   {
     displayName: "Owner",
     fieldName: "owner",
-    type: "string",
+    type: "user",
     required: false,
     defaultValue: ""
   },

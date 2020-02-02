@@ -19,7 +19,8 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchModels,
   fetchRacks,
-  fetchInstances
+  fetchInstances,
+  fetchUsers
 } from "../../../redux/actions";
 
 const formItemLayout = {
@@ -176,10 +177,6 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
-function groupByID(arr) {
-  return arr.reduce((acc, elm) => Object.assign(acc, { [elm.id]: elm }), {});
-}
-
 function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
   const rules = schemaFrag.required
     ? [{ required: true, message: "This field is required" }]
@@ -191,7 +188,7 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
   const initialValue = originalValue && originalValue.id;
 
   const modelList = useSelector(s => Object.values(s.models));
-  const modelsByID = useSelector(s => groupByID(Object.values(s.models)));
+  const modelsByID = useSelector(s => s.models);
 
   React.useEffect(() => {
     dispatch(fetchModels());
@@ -260,7 +257,9 @@ function RackUFormItem({
   const instances = useSelector(s => Object.values(s.instances));
 
   const filteredInstances = currentRecord.rack
-    ? instances.filter(i => i.rack.id === currentRecord.rack.id)
+    ? instances.filter(
+        i => i.rack.id === currentRecord.rack.id && i.id != currentRecord.id
+      )
     : [];
 
   const rack = {
@@ -301,6 +300,43 @@ function RackUFormItem({
   ) : null;
 }
 
+function UserFormItem({ form, schemaFrag, originalValue, onChange }) {
+  const dispatch = useDispatch();
+
+  const initialValue = originalValue;
+
+  const userList = useSelector(s => Object.values(s.users));
+  const usersByID = useSelector(s => s.users);
+
+  React.useEffect(() => {
+    dispatch(fetchUsers());
+  }, []);
+
+  return (
+    <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
+      {form.getFieldDecorator(schemaFrag.fieldName, {
+        initialValue: initialValue
+      })(
+        <Select
+          showSearch
+          onChange={v => {
+            onChange({ [schemaFrag.fieldName]: v });
+          }}
+          filterOption={(input, option) => {
+            return modelKeywordMatch(input, usersByID[option.props.value]);
+          }}
+        >
+          {userList.map(user => (
+            <Select.Option key={user.id} value={user.id}>
+              {user.username}
+            </Select.Option>
+          ))}
+        </Select>
+      )}
+    </Form.Item>
+  );
+}
+
 function FormItem(props) {
   return props.schemaFrag.type === "string" ? (
     <StringFormItem {...props} />
@@ -316,6 +352,8 @@ function FormItem(props) {
     <RackFormItem {...props} />
   ) : props.schemaFrag.type === "rack_u" ? (
     <RackUFormItem {...props} />
+  ) : props.schemaFrag.type === "user" ? (
+    <UserFormItem {...props} />
   ) : null;
 }
 
