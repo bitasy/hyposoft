@@ -31,7 +31,7 @@ class InstanceResource(resources.ModelResource):
 
     class Meta:
         model = Instance
-        import_id_fields = 'hostname'
+        import_id_fields = ('hostname', 'vendor', 'model_number')
         export_order = ('hostname', 'rack', 'rack_position', 'vendor', 'model_number', 'owner', 'comment')
         exclude = ('id', 'itmodel')
         skip_unchanged = True

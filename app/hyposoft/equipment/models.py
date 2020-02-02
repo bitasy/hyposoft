@@ -103,7 +103,6 @@ class Instance(models.Model):
     )
     hostname = models.CharField(
         max_length=64,
-        unique=True,
         null=True,
         blank=False,
         # validators=[
@@ -150,6 +149,9 @@ class Instance(models.Model):
         ]
     )
 
-    # def clean(self, *args, **kwargs):
-    #     if self.itmodel.height < self.rack_position + self.itmodel.height - 1:
-    #         raise ValidationError("The instance does not fit on the specified rack.")
+    class Meta:
+        unique_together = ('hostname', 'itmodel')
+
+    def clean(self, *args, **kwargs):
+        if self.itmodel.height < self.rack_position + self.itmodel.height - 1:
+            raise ValidationError("The instance does not fit on the specified rack.")
