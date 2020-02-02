@@ -182,7 +182,9 @@ class InstanceTest(TestCase):
 
     def test_Instance_hostname(self):
         hostname_test1 = Instance(
-            itmodel=example_itmodel,
+            itmodel=ITModel(vendor="Test Vendor",
+                            model_number="TestModelNum",
+                            height=1),
             hostname="test",  # Should NOT throw error
             rack=example_rack,
             rack_u=1
@@ -223,6 +225,6 @@ class InstanceTest(TestCase):
         )
         with self.assertRaises(ValidationError):
             rack_u_test2.full_clean()  # Should throw error
-"""
 
+"""
 
