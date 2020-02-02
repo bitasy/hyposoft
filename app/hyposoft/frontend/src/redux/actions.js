@@ -1,4 +1,5 @@
 import API from "../api/API";
+import { storeToken, removeToken } from "../global/Session";
 
 const crud_prefixes = ["FETCH_ALL", "FETCH", "CREATE", "UPDATE", "REMOVE"];
 const async_suffixes = ["STARTED", "SUCCESS", "FAILURE"];
@@ -14,11 +15,11 @@ function genAsyncAction(actionType, op, args, onSuccess, onFailure) {
     return op(...args).then(
       res => {
         dispatch({ type: SUCCESS, res });
-        onSuccess();
+        onSuccess(res);
       },
       err => {
         dispatch({ type: FAILURE, err });
-        onFailure();
+        onFailure(err);
       }
     );
   };
@@ -123,3 +124,31 @@ export const FETCH_ALL_USERS = "FETCH_ALL_USERS";
 
 export const fetchUsers = (onSuccess = noOp, onFailure = noOp) =>
   genAsyncAction(FETCH_ALL_USERS, API.getUsers, [], onSuccess, onFailure);
+
+export const LOGIN = "LOGIN";
+
+export const login = (username, password, onSuccess = noOp, onFailure = noOp) =>
+  genAsyncAction(
+    LOGIN,
+    API.login,
+    [username, password],
+    res => {
+      onSuccess(res);
+      storeToken(res);
+    },
+    onFailure
+  );
+
+export const LOGOUT = "LOGOUT";
+
+export const logout = (onSuccess = noOp, onFailure = noOp) =>
+  genAsyncAction(
+    LOGOUT,
+    API.logout,
+    [],
+    res => {
+      onSuccess(res);
+      removeToken();
+    },
+    onFailure
+  );

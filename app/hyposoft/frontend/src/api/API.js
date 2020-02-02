@@ -1,15 +1,12 @@
 import Axios from "axios";
-import { message } from "antd";
 
 import produce from "immer";
 
-export const TOKEN_KEY = "auth-token";
-
 // Auth APIs
 function login(username, password) {
-  return Axios.post("api/auth/token/", { username, password })
-    .then(res => res.data.token)
-    .catch(() => displayRawError("Login Failed!"));
+  return Axios.post("api/auth/token/", { username, password }).then(
+    res => res.data.token
+  );
 }
 
 function logout() {
@@ -19,33 +16,25 @@ function logout() {
 
 // Model APIs
 function getModels() {
-  return Axios.get("api/equipment/ITModelList")
-    .then(getData)
-    .catch(displayError);
+  return Axios.get("api/equipment/ITModelList").then(getData);
 }
 
 function getModel(id) {
-  return Axios.get(`api/equipment/ITModelRetrieve/${id}`)
-    .then(getData)
-    .catch(displayError);
+  return Axios.get(`api/equipment/ITModelRetrieve/${id}`).then(getData);
 }
 
 function createModel(fields) {
-  return Axios.post(`api/equipment/ITModelCreate`, fields)
-    .then(getData)
-    .catch(displayError);
+  return Axios.post(`api/equipment/ITModelCreate`, fields).then(getData);
 }
 
 function updateModel(id, updates) {
-  return Axios.patch(`api/equipment/ITModelUpdate/${id}`, updates)
-    .then(getData)
-    .catch(displayError);
+  return Axios.patch(`api/equipment/ITModelUpdate/${id}`, updates).then(
+    getData
+  );
 }
 
 function deleteModel(id) {
-  return Axios.delete(`api/equipment/ITModelDestroy/${id}`)
-    .then(getData)
-    .catch(displayError);
+  return Axios.delete(`api/equipment/ITModelDestroy/${id}`).then(getData);
 }
 
 // Instance APIs
@@ -58,22 +47,20 @@ function translate(instance) {
 function getInstances() {
   return Axios.get("api/equipment/InstanceList")
     .then(getData)
-    .then(instances => instances.map(translate))
-    .catch(displayError);
+    .then(instances => instances.map(translate));
 }
 
 // ex) A12
 function getInstancesForRack(rackID) {
-  return getInstances()
-    .then(instances => instances.filter(inst => inst.rack.id === rackID))
-    .catch(displayError);
+  return getInstances().then(instances =>
+    instances.filter(inst => inst.rack.id === rackID)
+  );
 }
 
 function getInstance(id) {
   return Axios.get(`api/equipment/InstanceRetrieve/${id}`)
     .then(getData)
-    .then(translate)
-    .catch(displayError);
+    .then(translate);
 }
 
 function createInstance(fields) {
@@ -85,8 +72,7 @@ function createInstance(fields) {
 
   return Axios.post(`api/equipment/InstanceCreate`, toCreate)
     .then(getData)
-    .then(translate)
-    .catch(displayError);
+    .then(translate);
 }
 
 // updates has the whole model/rack by itself rather than just model_id and rack.
@@ -104,28 +90,22 @@ function updateInstance(id, updates) {
 
   return Axios.patch(`api/equipment/InstanceUpdate/${id}`, patch)
     .then(getData)
-    .then(translate)
-    .catch(displayError);
+    .then(translate);
 }
 
 function deleteInstance(id) {
   return Axios.delete(`api/equipment/InstanceDestroy/${id}`)
     .then(getData)
-    .then(translate)
-    .catch(displayError);
+    .then(translate);
 }
 
 // Rack APIs
 function getRacks() {
-  return Axios.get("api/equipment/RackList")
-    .then(getData)
-    .catch(displayError);
+  return Axios.get("api/equipment/RackList").then(getData);
 }
 
 function createRack(rack) {
-  return Axios.post("api/equipment/RackCreate", rack)
-    .then(getData)
-    .catch(displayError);
+  return Axios.post("api/equipment/RackCreate", rack).then(getData);
 }
 
 function createRacks(fromRow, toRow, fromNumber, toNumber) {
@@ -144,9 +124,7 @@ function createRacks(fromRow, toRow, fromNumber, toNumber) {
 }
 
 function deleteRack(rackID) {
-  return Axios.delete(`api/equipment/RackDestroy/${rackID}`)
-    .then(getData)
-    .catch(displayError);
+  return Axios.delete(`api/equipment/RackDestroy/${rackID}`).then(getData);
 }
 
 function deleteRacks(rackIDs) {
@@ -155,20 +133,7 @@ function deleteRacks(rackIDs) {
 
 // User APIs
 function getUsers() {
-  return Axios.get("api/users/UserList")
-    .then(getData)
-    .catch(displayError);
-}
-
-// utilities
-function displayError(error) {
-  message.error(error.message);
-  return Promise.reject(error); // but still pass this on
-}
-
-function displayRawError(str) {
-  message.error(str);
-  return Promise.reject(new Error(str));
+  return Axios.get("api/users/UserList").then(getData);
 }
 
 function removeNulls(arr) {

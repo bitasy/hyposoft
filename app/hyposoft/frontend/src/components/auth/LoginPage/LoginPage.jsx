@@ -1,6 +1,8 @@
 import React from "react";
 import { Form, Icon, Input, Button, Row, Col, Typography } from "antd";
-import Session from "../../../contexts/Session";
+import { useDispatch } from "react-redux";
+import { login } from "../../../redux/actions";
+import { displayError } from "../../../global/ErrorMsg";
 
 const { Title, Paragraph } = Typography;
 
@@ -23,14 +25,14 @@ function LoginPage() {
 }
 
 function LoginForm({ form }) {
-  const session = React.useContext(Session);
+  const dispatch = useDispatch();
 
   function handleSubmit(e) {
     e.preventDefault();
     form.validateFields((err, values) => {
       if (!err) {
         const { username, password } = values;
-        session.login(username, password);
+        dispatch(login(username, password, () => {}, displayError));
       }
     });
   }
