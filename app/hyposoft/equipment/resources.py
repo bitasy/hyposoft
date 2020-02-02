@@ -1,6 +1,5 @@
 from import_export import resources, fields
 from .models import ITModel, Instance
-from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 
 
@@ -32,7 +31,7 @@ class InstanceResource(resources.ModelResource):
 
     class Meta:
         model = Instance
-        import_id_fields = ('vendor', 'model_number', 'hostname', 'rack', 'rack_position', 'owner', 'comment')
+        import_id_fields = 'hostname'
         export_order = ('hostname', 'rack', 'rack_position', 'vendor', 'model_number', 'owner', 'comment')
         exclude = ('id', 'itmodel')
         skip_unchanged = True

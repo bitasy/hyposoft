@@ -1,8 +1,7 @@
 from django.urls import path
 from .views import ITModelCreateView, ITModelRetrieveView, ITModelUpdateView, ITModelDestroyView, ITModelListView, \
                    InstanceCreateView, InstanceRetrieveView, InstanceUpdateView, InstanceDestroyView, InstanceListView, \
-                   RackCreateView, RackRetrieveView, RackUpdateView, RackDestroyView, RackListView, \
-                   itmodel_import, itmodel_export, instance_import, instance_export
+                   RackCreateView, RackRetrieveView, RackUpdateView, RackDestroyView, RackListView
 
 urlpatterns = [
     path('ITModelCreate', ITModelCreateView.as_view()),
@@ -20,8 +19,4 @@ urlpatterns = [
     path('RackUpdate/<int:pk>', RackUpdateView.as_view()),
     path('RackDestroy/<int:pk>', RackDestroyView.as_view()),
     path('RackList', RackListView.as_view()),
-    path('ImportITModel', itmodel_import),
-    path('ExportITModel', itmodel_export),
-    path('ImportInstance', instance_import),
-    path('ImportInstance', instance_export),
 ]
