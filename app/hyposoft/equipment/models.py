@@ -88,14 +88,27 @@ class Instance(models.Model):
         Rack,
         on_delete=models.PROTECT
     )
-    rack_u = models.IntegerField()
+    rack_u = models.IntegerField(
+        validators=[
+            MinValueValidator(1,
+                              message="Rack units must be at least 1.")
+        ]
+    )
     owner = models.ForeignKey(
         User,
         null=True,
+        blank=True,
         on_delete=models.SET(None)
     )
-    comment = models.TextField()
+    comment = models.TextField(
+        blank=True
+    )
 
+    # causes error when running tests.py
+    # can we put this somewhere else?
+    """
     def clean(self, *args, **kwargs):
-        if self.itmodel.height < self.rack_u + self.itmodel.height - 1:
+        if self.itmodel.height.astype(str).astype(int) < \
+                (self.rack_u + self.itmodel.height.astype(str).astype(int) - 1):
             raise ValidationError("The instance does not fit on the specified rack.")
+    """
