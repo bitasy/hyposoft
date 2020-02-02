@@ -4,9 +4,9 @@ import produce from "immer";
 
 // Auth APIs
 function login(username, password) {
-  return Axios.post("api/auth/token/", { username, password }).then(
-    res => res.data.token
-  );
+  return Axios.post("api/auth/token/", { username, password })
+    .then(getData)
+    .then(r => r.token);
 }
 
 function logout() {
@@ -141,7 +141,7 @@ function removeNulls(arr) {
 }
 
 function getData(res) {
-  return res.data;
+  return res.status < 300 ? res.data : Promise.reject(res.data);
 }
 
 const RealAPI = {

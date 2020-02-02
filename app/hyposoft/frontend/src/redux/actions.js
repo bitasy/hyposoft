@@ -1,5 +1,6 @@
 import API from "../api/API";
 import { storeToken, removeToken } from "../global/Session";
+import { displayError } from "../global/message";
 
 const crud_prefixes = ["FETCH_ALL", "FETCH", "CREATE", "UPDATE", "REMOVE"];
 const async_suffixes = ["STARTED", "SUCCESS", "FAILURE"];
@@ -19,6 +20,7 @@ function genAsyncAction(actionType, op, args, onSuccess, onFailure) {
       },
       err => {
         dispatch({ type: FAILURE, err });
+        displayError(err);
         onFailure(err);
       }
     );

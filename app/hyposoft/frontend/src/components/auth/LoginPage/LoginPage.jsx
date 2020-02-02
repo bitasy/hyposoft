@@ -2,7 +2,6 @@ import React from "react";
 import { Form, Icon, Input, Button, Row, Col, Typography } from "antd";
 import { useDispatch } from "react-redux";
 import { login } from "../../../redux/actions";
-import { displayError } from "../../../global/ErrorMsg";
 
 const { Title, Paragraph } = Typography;
 
@@ -32,7 +31,7 @@ function LoginForm({ form }) {
     form.validateFields((err, values) => {
       if (!err) {
         const { username, password } = values;
-        dispatch(login(username, password, () => {}, displayError));
+        dispatch(login(username, password));
       }
     });
   }
