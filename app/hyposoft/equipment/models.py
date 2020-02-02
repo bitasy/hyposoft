@@ -6,19 +6,32 @@ from django.contrib.auth.models import User
 
 class ITModel(models.Model):
     vendor = models.CharField(
-        max_length=64
+        max_length=64,
+        null=True,
+        blank=False
     )
     model_number = models.CharField(
-        max_length=64
+        max_length=64,
+        null=True,
+        blank=False
     )
-    height = models.IntegerField()
+    height = models.IntegerField(
+        null=False,
+        blank=False,
+        validators=[
+            MinValueValidator(1,
+                              message="Height must be at least 1.")
+        ]
+    )
     display_color = models.CharField(
         max_length=10,
+        null=True,
+        blank=True,
         validators=[
             RegexValidator("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
                            message="Please enter a valid color code.")  # Color code
         ],
-        default="#ddd",
+        default="#ddd"
     )
     ethernet_ports = models.IntegerField(
         null=True,
@@ -38,6 +51,7 @@ class ITModel(models.Model):
     )
     cpu = models.CharField(
         max_length=64,
+        null=True,
         blank=True
     )
     memory = models.IntegerField(
@@ -50,10 +64,16 @@ class ITModel(models.Model):
     )
     storage = models.CharField(
         max_length=64,
+        null=True,
         blank=True
     )
     comment = models.TextField(
-        blank=True
+        null=True,
+        blank=True,
+        validators=[
+                   RegexValidator("(?m)""(?![ \t]*(,|$))",
+                                  message="Comments must be enclosed by double quotes if value contains line breaks.")
+        ]
     )
 
     class Meta:
@@ -82,20 +102,54 @@ class Instance(models.Model):
         on_delete=models.PROTECT
     )
     hostname = models.CharField(
-        max_length=64
-    )
-    rack = models.ForeignKey(
-        Rack,
-        on_delete=models.PROTECT
-    )
-    rack_u = models.IntegerField()
-    owner = models.ForeignKey(
-        User,
+        max_length=64,
+        unique=True,
         null=True,
-        on_delete=models.SET(None)
+        blank=False,
+        # validators=[
+        #     RegexValidator("",
+        #                    message="Hostname must be compliant with RFC 1034.")
+        # ]
     )
-    comment = models.TextField()
+    # rack = models.ForeignKey(
+    #     Rack,
+    #     null=True,
+    #     blank=False,
+    #     on_delete=models.PROTECT
+    # )
+    rack = models.CharField(
+        max_length=5,
+        null=True,
+        blank=False
+    )
+    rack_position = models.IntegerField(
+        null=True,
+        blank=False,
+        validators=[
+            MinValueValidator(1,
+                              message="Rack position must be at least 1.")
+        ]
+    )
+    # owner = models.ForeignKey(
+    #     User,
+    #     null=True,
+    #     blank=True,
+    #     on_delete=models.SET(None)
+    # )
+    owner = models.CharField(
+        max_length=64,
+        null=True,
+        blank=False
+    )
+    comment = models.TextField(
+        null=True,
+        blank=True,
+        validators=[
+            RegexValidator("(?m)""(?![ \t]*(,|$))",
+                           message="Comments must be enclosed by double quotes if value contains line breaks.")
+        ]
+    )
 
-    #def clean(self, *args, **kwargs):
-        #if self.itmodel.height < self.rack_u + self.itmodel.height - 1:
-            #raise ValidationError("The instance does not fit on the specified rack.")
+    # def clean(self, *args, **kwargs):
+    #     if self.itmodel.height < self.rack_position + self.itmodel.height - 1:
+    #         raise ValidationError("The instance does not fit on the specified rack.")

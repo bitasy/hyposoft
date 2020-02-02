@@ -9,8 +9,7 @@ class ITModelResource(resources.ModelResource):
     class Meta:
         model = ITModel
         exclude = ('id',)
-        import_id_fields = ('vendor', 'model_number', 'height', 'display_color', 'ethernet_ports',
-                  'power_ports', 'cpu', 'memory', 'storage', 'comment')
+        import_id_fields = ('vendor', 'model_number')
         export_order = ('vendor', 'model_number', 'height', 'display_color', 'ethernet_ports',
                         'power_ports', 'cpu', 'memory', 'storage', 'comment')
         skip_unchanged = True
@@ -20,7 +19,6 @@ class ITModelResource(resources.ModelResource):
 
 class InstanceResource(resources.ModelResource):
 
-    rack_u = Field(column_name='rack_position')
     vendor = fields.Field(
         column_name='vendor',
         attribute='itmodel',
@@ -34,9 +32,9 @@ class InstanceResource(resources.ModelResource):
 
     class Meta:
         model = Instance
-        exclude = ('id',)
-        import_id_fields = ('vendor', 'model_number', 'hostname', 'rack', 'rack_u', 'owner', 'comment')
-        export_order = ('hostname', 'rack', 'rack_u', 'vendor', 'model_number', 'owner', 'comment')
+        import_id_fields = ('vendor', 'model_number', 'hostname', 'rack', 'rack_position', 'owner', 'comment')
+        export_order = ('hostname', 'rack', 'rack_position', 'vendor', 'model_number', 'owner', 'comment')
+        exclude = ('id', 'itmodel')
         skip_unchanged = True
         report_skipped = True
         clean_model_instances = True
