@@ -88,3 +88,7 @@ class RackListView(generics.ListAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
+
+
+
+
