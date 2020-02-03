@@ -67,6 +67,7 @@ function createInstance(fields) {
   const toCreate = produce(fields, draft => {
     draft.itmodel = draft.model.id;
     draft.rack = draft.rack.id;
+    draft.owner = draft.owner.id;
     delete draft.model;
   });
 
@@ -85,6 +86,9 @@ function updateInstance(id, updates) {
     }
     if (draft.rack) {
       draft.rack = draft.rack.id;
+    }
+    if (draft.owner) {
+      draft.owner = draft.owner.id;
     }
   });
 

@@ -303,7 +303,7 @@ function RackUFormItem({
 function UserFormItem({ form, schemaFrag, originalValue, onChange }) {
   const dispatch = useDispatch();
 
-  const initialValue = originalValue;
+  const initialValue = originalValue && originalValue.id;
 
   const userList = useSelector(s => Object.values(s.users));
   const usersByID = useSelector(s => s.users);
@@ -318,9 +318,11 @@ function UserFormItem({ form, schemaFrag, originalValue, onChange }) {
         initialValue: initialValue
       })(
         <Select
+          allowClear
           showSearch
           onChange={v => {
-            onChange({ [schemaFrag.fieldName]: v });
+            if (v === undefined) v = null;
+            onChange({ [schemaFrag.fieldName]: v && usersByID[v] });
           }}
           filterOption={(input, option) => {
             return modelKeywordMatch(input, usersByID[option.props.value]);

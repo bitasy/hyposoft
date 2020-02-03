@@ -87,6 +87,13 @@ export const instanceColumns = [
     sorter: (a, b) => strcmp(instanceToLocation(a) - instanceToLocation(b)),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Owner",
+    key: "owner",
+    toString: r => r.owner.username,
+    sorter: (a, b) => strcmp(a.owner.username - b.owner.username),
+    sortDirections: ["ascend", "descend"]
   }
 ];
 

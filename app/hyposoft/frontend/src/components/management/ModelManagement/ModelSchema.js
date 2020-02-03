@@ -128,6 +128,48 @@ export const modelColumns = [
     toString: s => s.height,
     sorter: (a, b) => a.height - b.height,
     sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Display Color",
+    key: "display_color",
+    toString: s => s.display_color,
+    sorter: (a, b) => strcmp(a.display_color, b.display_color),
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Ethernet Ports",
+    key: "ethernet_ports",
+    toString: s => s.ethernet_ports.toString(),
+    sorter: (a, b) => a.ethernet_ports - b.ethernet_ports,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Power Ports",
+    key: "power_ports",
+    toString: s => s.power_ports.toString(),
+    sorter: (a, b) => a.power_ports - b.power_ports,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "CPU",
+    key: "cpu",
+    toString: s => s.cpu,
+    sorter: (a, b) => a.cpu - b.cpu,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Memory",
+    key: "memory",
+    toString: s => s.memory.toString(),
+    sorter: (a, b) => a.memory - b.memory,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Storage",
+    key: "storage",
+    toString: s => s.storage,
+    sorter: (a, b) => a.storage - b.storage,
+    sortDirections: ["ascend", "descend"]
   }
 ];
 
