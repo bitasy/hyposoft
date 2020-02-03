@@ -2,7 +2,7 @@ from import_export.admin import ImportExportModelAdmin
 from .resources import ITModelResource, InstanceResource
 from django.contrib import admin
 from import_export.formats import base_formats
-from .models import ITModel, Instance
+from .models import ITModel, Instance, Rack
 
 
 class ITModelAdmin(ImportExportModelAdmin):
@@ -19,3 +19,5 @@ class InstanceAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(Instance, InstanceAdmin)
+
+admin.site.register(Rack)

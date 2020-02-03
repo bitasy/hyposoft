@@ -81,17 +81,13 @@ class ITModel(models.Model):
 
 
 class Rack(models.Model):
-    row = models.CharField(
+    rack = models.CharField(
         max_length=2,
+        null=True,
+        blank=False,
         validators=[
-            RegexValidator("^[A-Z]{1,2}$",
+            RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
-        ]
-    )
-    number = models.IntegerField(
-        validators=[
-            MinValueValidator(0,
-                              message="Rack number must be at least 0.")
         ]
     )
 
@@ -105,21 +101,16 @@ class Instance(models.Model):
         max_length=64,
         null=True,
         blank=False,
-        # validators=[
-        #     RegexValidator("",
-        #                    message="Hostname must be compliant with RFC 1034.")
-        # ]
+        validators=[
+            RegexValidator("[a-z0-9][a-z0-9-]{0,62}",
+                           message="Hostname must be compliant with RFC 1034.")
+        ]
     )
-    # rack = models.ForeignKey(
-    #     Rack,
-    #     null=True,
-    #     blank=False,
-    #     on_delete=models.PROTECT
-    # )
-    rack = models.CharField(
-        max_length=5,
+    rack = models.ForeignKey(
+        Rack,
         null=True,
-        blank=False
+        blank=False,
+        on_delete=models.PROTECT
     )
     rack_position = models.IntegerField(
         null=True,
@@ -129,16 +120,11 @@ class Instance(models.Model):
                               message="Rack position must be at least 1.")
         ]
     )
-    # owner = models.ForeignKey(
-    #     User,
-    #     null=True,
-    #     blank=True,
-    #     on_delete=models.SET(None)
-    # )
-    owner = models.CharField(
-        max_length=64,
+    owner = models.ForeignKey(
+        User,
         null=True,
-        blank=False
+        blank=True,
+        on_delete=models.SET(None)
     )
     comment = models.TextField(
         null=True,

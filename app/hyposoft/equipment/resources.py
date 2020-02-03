@@ -1,5 +1,6 @@
+from django.contrib.auth.models import User
 from import_export import resources, fields
-from .models import ITModel, Instance
+from .models import ITModel, Instance, Rack
 from import_export.widgets import ForeignKeyWidget
 
 
@@ -18,6 +19,11 @@ class ITModelResource(resources.ModelResource):
 
 class InstanceResource(resources.ModelResource):
 
+    rack = fields.Field(
+        column_name='rack',
+        attribute='rack',
+        widget=ForeignKeyWidget(Rack, 'rack')
+    )
     vendor = fields.Field(
         column_name='vendor',
         attribute='itmodel',
@@ -27,6 +33,11 @@ class InstanceResource(resources.ModelResource):
         column_name='model_number',
         attribute='itmodel',
         widget=ForeignKeyWidget(ITModel, 'model_number')
+    )
+    owner = fields.Field(
+        column_name='owner',
+        attribute='owner',
+        widget=ForeignKeyWidget(User, 'username')
     )
 
     class Meta:
