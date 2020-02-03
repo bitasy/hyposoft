@@ -94,7 +94,9 @@ class Instance(models.Model):
         null=True,
         on_delete=models.SET(None)
     )
-    comment = models.TextField()
+    comment = models.TextField(
+        blank=True
+    )
 
     def clean(self, *args, **kwargs):
         if self.itmodel.height < self.rack_u + self.itmodel.height - 1:
