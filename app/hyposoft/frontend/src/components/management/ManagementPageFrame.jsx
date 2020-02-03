@@ -19,6 +19,10 @@ function ManagementPageFrame({ children }) {
           </h1>
         </Col>
         <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
+          <Button ghost style={{ marginRight: 8 }} href="admin">
+            <Icon type="eye" />
+            Admin page
+          </Button>
           <Button ghost onClick={() => dispatch(logout())}>
             <Icon type="logout" />
             Logout
