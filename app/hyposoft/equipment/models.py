@@ -6,18 +6,12 @@ from django.contrib.auth.models import User
 
 class ITModel(models.Model):
     vendor = models.CharField(
-        max_length=64,
-        null=True,
-        blank=False
+        max_length=64
     )
     model_number = models.CharField(
         max_length=64,
-        null=True,
-        blank=False
     )
     height = models.IntegerField(
-        null=False,
-        blank=False,
         validators=[
             MinValueValidator(1,
                               message="Height must be at least 1.")
@@ -25,7 +19,6 @@ class ITModel(models.Model):
     )
     display_color = models.CharField(
         max_length=10,
-        null=True,
         blank=True,
         validators=[
             RegexValidator("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
@@ -45,13 +38,12 @@ class ITModel(models.Model):
         null=True,
         blank=True,
         validators=[
-            MinValueValidator(0,
-                              message="Number of power ports must be at least 0.")
+            MinValueValidator(1,
+                              message="Number of power ports must be at least 1.")
         ]
     )
     cpu = models.CharField(
         max_length=64,
-        null=True,
         blank=True
     )
     memory = models.IntegerField(
@@ -63,12 +55,10 @@ class ITModel(models.Model):
         ]
     )
     storage = models.CharField(
-        max_length=64,
-        null=True,
+        max_length=128,
         blank=True
     )
     comment = models.TextField(
-        null=True,
         blank=True,
         validators=[
                    RegexValidator("(?m)""(?![ \t]*(,|$))",
@@ -83,8 +73,6 @@ class ITModel(models.Model):
 class Rack(models.Model):
     rack = models.CharField(
         max_length=2,
-        null=True,
-        blank=False,
         validators=[
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
@@ -99,8 +87,6 @@ class Instance(models.Model):
     )
     hostname = models.CharField(
         max_length=64,
-        null=True,
-        blank=False,
         validators=[
             RegexValidator("[a-z0-9][a-z0-9-]{0,62}",
                            message="Hostname must be compliant with RFC 1034.")
@@ -108,13 +94,9 @@ class Instance(models.Model):
     )
     rack = models.ForeignKey(
         Rack,
-        null=True,
-        blank=False,
         on_delete=models.PROTECT
     )
     rack_position = models.IntegerField(
-        null=True,
-        blank=False,
         validators=[
             MinValueValidator(1,
                               message="Rack position must be at least 1.")
@@ -127,7 +109,6 @@ class Instance(models.Model):
         on_delete=models.SET(None)
     )
     comment = models.TextField(
-        null=True,
         blank=True,
         validators=[
             RegexValidator("(?m)""(?![ \t]*(,|$))",
