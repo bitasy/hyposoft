@@ -42,7 +42,8 @@ function Rack({ rack, onSelect }) {
           className={join([style.noBorderBottom, style.noBorderTop])}
         >
           <td className={style.numberColumn}>{level}</td>
-          <td className={style.infoColumn} />
+          <td className={style.infoColumnLeft} />
+          <td className={style.infoColumnRight} />
         </tr>
       );
     }
@@ -62,15 +63,12 @@ function Rack({ rack, onSelect }) {
         key={level}
       >
         <td className={style.numberColumn}>{level}</td>
-        <td className={style.infoColumn}>
+        <td className={style.infoColumnLeft}>
           {isBottom && instance.isTmp ? "*" : ""}
-          {isBottom
-            ? model.vendor +
-              "\t" +
-              model.model_number +
-              "\t" +
-              (instance.hostname || "")
-            : ""}
+          {isBottom ? model.vendor + "\t" + model.model_number : ""}
+        </td>
+        <td className={style.infoColumnRight}>
+          {isBottom ? instance.hostname || "" : ""}
         </td>
       </tr>
     );
@@ -84,7 +82,9 @@ function Rack({ rack, onSelect }) {
       <thead>
         <tr className={style.borders}>
           <th className={style.numberColumn}>#</th>
-          <th className={style.infoColumn}>{rack.name}</th>
+          <th className={style.infoColumn} colSpan={2}>
+            {rack.name}
+          </th>
         </tr>
       </thead>
       <tbody>

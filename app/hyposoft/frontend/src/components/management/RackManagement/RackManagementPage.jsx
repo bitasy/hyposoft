@@ -36,6 +36,32 @@ function groupByRowColumn(racks) {
   return grouped;
 }
 
+function LegendItem({ color, text }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <div
+        style={{
+          width: 20,
+          height: 20,
+          backgroundColor: color,
+          display: "inline-block"
+        }}
+      />
+      <span style={{ marginLeft: 5 }}>{text}</span>
+    </div>
+  );
+}
+
+function Legend() {
+  return (
+    <div style={{ margin: 5 }}>
+      <LegendItem color="darkred" text="Selected racks" />
+      <LegendItem color="gray" text="Racks" />
+      <LegendItem color="red" text="Selection" />
+    </div>
+  );
+}
+
 function RackManagementPage() {
   const dispatch = useDispatch();
   const racks = useSelector(s => Object.values(s.racks));
@@ -113,6 +139,7 @@ function RackManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
+      <Legend />
       <Grid rows={ROWS} columns={COLS} renderCell={renderCell} />
       <Typography.Title level={4} style={{ marginTop: 16 }}>
         Select range
