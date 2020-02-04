@@ -1,6 +1,6 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import { Typography } from "antd";
+import { Typography, Button, Icon } from "antd";
 import { modelColumns, modelFilters } from "./ModelSchema";
 import DataList from "../shared/DataList";
 import { useSelector, useDispatch } from "react-redux";
@@ -18,6 +18,26 @@ function ModelManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Models</Typography.Title>
+      <Button
+        shape="round"
+        style={{ marginBottom: 8, marginRight: 8 }}
+        href="admin/equipment/itmodel/import/"
+      >
+        Import
+      </Button>
+      <Button
+        shape="round"
+        style={{ marginBottom: 8, marginRight: 8 }}
+        href="admin/equipment/itmodel/export/"
+      >
+        Export
+      </Button>
+      <a
+        href="https://d1b10bmlvqabco.cloudfront.net/attach/k4u27qnccr45oo/is4xdnkb8px4ee/k5zjop579k59/ECE458__Bulk_Format_Proposal3.pdf"
+        target="_blank"
+      >
+        Import/Export Specs
+      </a>
       <DataList
         columns={modelColumns}
         filters={modelFilters}
