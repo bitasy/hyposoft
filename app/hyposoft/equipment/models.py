@@ -125,6 +125,9 @@ class Instance(models.Model):
     class Meta:
         unique_together = ('hostname', 'itmodel')
 
+    # causes error when running tests.py
+    # can we put this somewhere else?
+
     def clean(self, *args, **kwargs):
         if self.itmodel.height < self.rack_position + self.itmodel.height - 1:
             raise ValidationError("The instance does not fit on the specified rack.")
