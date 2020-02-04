@@ -40,8 +40,6 @@ django_test:
   stage: test
   script:
   - python3 app/hyposoft/manage.py test
-  except:
-  - master
   tags:
   - dev
 
