@@ -68,6 +68,11 @@ class ITModel(models.Model):
 
     class Meta:
         unique_together = ('vendor', 'model_number')
+        verbose_name = "Model"
+        verbose_name_plural = "Models"
+
+    def __str__(self):
+        return '{} by {}'.format(self.model_number, self.vendor)
 
 
 class Rack(models.Model):
@@ -77,19 +82,24 @@ class Rack(models.Model):
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
         ]
-    ),
+    )
     row = models.CharField(
+        max_length=2,
         default='A'
-    ),
+    )
     number = models.IntegerField(
         default=1
     )
+
+    def __str__(self):
+        return "Rack {}".format(self.rack)
 
 
 class Instance(models.Model):
     itmodel = models.ForeignKey(
         ITModel,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        verbose_name="Model"
     )
     hostname = models.CharField(
         max_length=64,
@@ -124,6 +134,9 @@ class Instance(models.Model):
 
     class Meta:
         unique_together = ('hostname', 'itmodel')
+
+    def __str__(self):
+        return "{}: Rack {} U{}".format(self.hostname, self.rack.rack, self.rack_position)
 
     # causes error when running tests.py
     # can we put this somewhere else?
