@@ -197,7 +197,7 @@ class InstanceTest(TestCase):
     # Test cases for the Instance param, rack_u
     # Reqs: required always; positive integer; refers to the vertical location
     # (on a rack, measured in U) of the bottom of the equipment
-    
+
     def test_Instance_rack_u(self):
         model = ITModel.objects.get(id=0)
         rack = Rack.objects.get(id=0)
