@@ -70,9 +70,10 @@ deploy_dev:
     DB_NAME: dev
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
-  - mv -f /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
+  - cp -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
   - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py migrate
   - sudo uwsgi --reload /home/gitlab-runner/uwsgi.pid
+  - rm -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging"
   only:
   - dev
   tags:
