@@ -32,12 +32,8 @@ export const modelSchema = [
     displayName: "Vendor",
     fieldName: "vendor",
     type: "string",
-    autocomplete: s => {
-      return API.getModels()
-        .then(models => models.map(model => model.vendor))
-        .then(vendors => vendors.filter(v => v.includes(s)))
-        .then(removeDuplicates);
-    },
+    extractDataSource: state =>
+      removeDuplicates(Object.values(state.models).map(m => m.vendor)),
     required: true,
     defaultValue: ""
   },
@@ -132,6 +128,48 @@ export const modelColumns = [
     toString: s => s.height,
     sorter: (a, b) => a.height - b.height,
     sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Display Color",
+    key: "display_color",
+    toString: s => s.display_color,
+    sorter: (a, b) => strcmp(a.display_color, b.display_color),
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Ethernet Ports",
+    key: "ethernet_ports",
+    toString: s => s.ethernet_ports.toString(),
+    sorter: (a, b) => a.ethernet_ports - b.ethernet_ports,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Power Ports",
+    key: "power_ports",
+    toString: s => s.power_ports.toString(),
+    sorter: (a, b) => a.power_ports - b.power_ports,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "CPU",
+    key: "cpu",
+    toString: s => s.cpu,
+    sorter: (a, b) => a.cpu - b.cpu,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Memory",
+    key: "memory",
+    toString: s => s.memory.toString(),
+    sorter: (a, b) => a.memory - b.memory,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Storage",
+    key: "storage",
+    toString: s => s.storage,
+    sorter: (a, b) => a.storage - b.storage,
+    sortDirections: ["ascend", "descend"]
   }
 ];
 
@@ -141,6 +179,10 @@ export function modelKeywordMatch(value, record) {
     .filter(frag => frag.type === "string" && record[frag.fieldName])
     .map(frag => record[frag.fieldName].toLowerCase())
     .some(str => str.includes(lowercase));
+}
+
+function handleWeirdInf(num, fallback) {
+  return isFinite(num) ? num : fallback;
 }
 
 export const modelFilters = [
@@ -175,8 +217,8 @@ export const modelFilters = [
     step: 1,
     extractDefaultValue: records => [
       [
-        Math.min(...collect(records, r => r.ethernet_ports)),
-        Math.max(...collect(records, r => r.ethernet_ports))
+        handleWeirdInf(Math.min(...collect(records, r => r.ethernet_ports)), 0),
+        handleWeirdInf(Math.max(...collect(records, r => r.ethernet_ports)), 99)
       ],
       true
     ],
@@ -195,8 +237,8 @@ export const modelFilters = [
     step: 1,
     extractDefaultValue: records => [
       [
-        Math.min(...collect(records, r => r.power_ports)),
-        Math.max(...collect(records, r => r.power_ports))
+        handleWeirdInf(Math.min(...collect(records, r => r.power_ports)), 0),
+        handleWeirdInf(Math.max(...collect(records, r => r.power_ports)), 10)
       ],
       true
     ],

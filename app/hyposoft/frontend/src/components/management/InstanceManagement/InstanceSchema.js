@@ -4,6 +4,8 @@ import {
   modelToDataSource
 } from "../ModelManagement/ModelSchema";
 import API from "../../../api/API";
+import { toIndex, indexToRow } from "../RackManagement/GridUtils";
+import { MAX_ROW, MAX_COL } from "../RackManagement/RackManagementPage";
 
 function strcmp(a, b) {
   if (a === b) return 0;
@@ -23,11 +25,6 @@ export const instanceSchema = [
     displayName: "Model",
     fieldName: "model",
     type: "model",
-    autocomplete: s => {
-      return API.getModels()
-        .then(models => models.filter(m => modelKeywordMatch(s, m)))
-        .then(models => models.map(modelToDataSource));
-    },
     required: true,
     defaultValue: null
   },
@@ -55,7 +52,7 @@ export const instanceSchema = [
   {
     displayName: "Owner",
     fieldName: "owner",
-    type: "string",
+    type: "user",
     required: false,
     defaultValue: ""
   },
@@ -90,6 +87,13 @@ export const instanceColumns = [
     sorter: (a, b) => strcmp(instanceToLocation(a) - instanceToLocation(b)),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Owner",
+    key: "owner",
+    toString: r => r.owner.username,
+    sorter: (a, b) => strcmp(a.owner.username - b.owner.username),
+    sortDirections: ["ascend", "descend"]
   }
 ];
 
@@ -99,6 +103,11 @@ function instanceKeywordMatch(value, record) {
     .filter(frag => frag.type === "string" && record[frag.fieldName])
     .map(frag => record[frag.fieldName].toLowerCase())
     .some(str => str.includes(lowercase));
+}
+
+function isInside([minR, maxR, minC, maxC], instance) {
+  const [r, c] = toIndex([instance.rack.row, instance.rack.number]);
+  return minR <= r && r <= maxR && minC <= c && c <= maxC;
 }
 
 export const instanceFilters = [
@@ -117,12 +126,9 @@ export const instanceFilters = [
   {
     title: "Rack",
     fieldName: "rack",
-    type: "select",
-    extractOptions: records =>
-      Array.from(new Set(records.map(r => rackToString(r.rack)))),
-    extractDefaultValue: records =>
-      Array.from(new Set(records.map(r => rackToString(r.rack)))),
-    shouldInclude: (value, record) => value.includes(rackToString(record.rack))
+    type: "rack-range",
+    extractDefaultValue: records => null,
+    shouldInclude: (value, record) => isInside(value, record)
   },
   {
     title: "Rack U",

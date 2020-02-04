@@ -5,11 +5,7 @@ from contextlib import contextmanager
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 
 """Used in class InstanceTest(TestCase)"""
-example_itmodel=ITModel(vendor="Test Vendor",
-                model_number="TestModelNum",
-                height=1)
-example_rack=Rack(row="A",
-                  number=1)
+
 
 class ITModelTest(TestCase):
     """
@@ -126,77 +122,73 @@ class RackTest(TestCase):
     Reqs: required always; string; the address of a rack is by a row letter (A-Z) and
     rack number (positive integer); there is no separator between the row letter and rack number
     """
-    def test_Rack_row(self):
-        row_test1 = Rack(
-            row="A",  # Should NOT throw error
-            number=1
+    def test_Rack(self):
+        rack_test1 = Rack(
+            rack="A1"
         )
-        row_test1.full_clean()  # Should NOT throw error
+        rack_test1.full_clean()  # Should NOT throw error
 
-        row_test2 = Rack(
-            row="AA",  # Should NOT throw error
-            number="1"
+        rack_test2 = Rack(
+            rack="AA1"
         )
-        row_test2.full_clean()  # Should NOT throw error
+        with self.assertRaises(ValidationError):
+            rack_test2.full_clean()  # Should throw error
 
         row_test3 = Rack(
-            row="A A",  # Should throw error
-            number=1
+            rack="A A1"
         )
         with self.assertRaises(ValidationError):
             row_test3.full_clean()  # Should throw error
 
-        row_test4 = Rack(
-            row=1,  # Should throw error
-            number=1
+        rack_test4 = Rack(
+            rack="11"
         )
         with self.assertRaises(ValidationError):
-            row_test4.full_clean()  # Should throw error
+            rack_test4.full_clean()  # Should throw error
 
-    def test_Rack_number(self):
-        number_test1 = Rack(
-            row="A",
-            number=1  # Should NOT throw error
-        )
-        number_test1.full_clean()  # Should NOT throw error
-
-        number_test2 = Rack(
-            row="A",
-            number=-1  # Should throw error
+        rack_test5 = Rack(
+            rack="A-1"
         )
         with self.assertRaises(ValidationError):
-            number_test2.full_clean()  # Should throw error
+            rack_test5.full_clean()  # Should throw error
 
-        number_test3 = Rack(
-            row="A",
-            number="A"  # Should throw error
+        rack_test6 = Rack(
+            rack="AA"
         )
         with self.assertRaises(ValidationError):
-            number_test3.full_clean()  # Should throw error
+            rack_test6.full_clean()  # Should throw error
 
 
 class InstanceTest(TestCase):
+    def setUp(self):
+        ITModel.objects.create(
+            id=0,
+            vendor="Test Vendor",
+            model_number="TestModelNum",
+            height=1)
+
+        Rack.objects.create(id=0, rack="A1")
 
     # Test cases for the Instance param, hostname
     # Reqs:  required always; RFC-1034-compliant string
 
     def test_Instance_hostname(self):
+        model = ITModel.objects.get(id=0)
+        rack = Rack.objects.get(id=0)
+
         hostname_test1 = Instance(
-            itmodel=ITModel(vendor="Test Vendor",
-                            model_number="TestModelNum",
-                            height=1),
+            itmodel=model,
             hostname="test",  # Should NOT throw error
-            rack=Rack(row="A",
-                      number=1),
-            rack_u=1
+            rack=rack,
+            rack_position=1
         )
         hostname_test1.full_clean()  # Should NOT throw error
 
         hostname_test2 = Instance(
-            itmodel=example_itmodel,
-            hostname="test",  # Should NOT throw error
-            rack=example_rack,
-            rack_u=1
+            itmodel=model,
+            hostname="!",  # Should throw error
+            rack=rack,
+            rack_position=1
         )
         with self.assertRaises(ValidationError):
             hostname_test2.full_clean()  # Should throw error
@@ -207,25 +199,22 @@ class InstanceTest(TestCase):
     # (on a rack, measured in U) of the bottom of the equipment
     
     def test_Instance_rack_u(self):
-        rack_u_test1 = Instance(
-            itmodel=example_itmodel,
-            hostname="test",
-            rack=example_rack,
-            rack_u=1  # Should NOT throw error
-        )
-        rack_u_test1.full_clean()  # Should NOT throw error
+        model = ITModel.objects.get(id=0)
+        rack = Rack.objects.get(id=0)
 
-        rack_u_test2 = Instance(
-            itmodel=ITModel(vendor="Test Vendor",
-                            model_number="TestModelNum",
-                            height=1),
+        rack_pos_test1 = Instance(
+            itmodel=model,
             hostname="test",
-            rack=Rack(row="A",
-                      number=1),
-            rack_u=-1  # Should throw error
+            rack=rack,
+            rack_position=1  # Should NOT throw error
+        )
+        rack_pos_test1.full_clean()  # Should NOT throw error
+
+        rack_pos_test2 = Instance(
+            itmodel=model,
+            hostname="test",
+            rack=rack,
+            rack_position=-1  # Should throw error
         )
         with self.assertRaises(ValidationError):
-            rack_u_test2.full_clean()  # Should throw error
-
-
-
+            rack_pos_test2.full_clean()  # Should throw error

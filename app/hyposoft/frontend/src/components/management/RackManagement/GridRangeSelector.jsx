@@ -1,17 +1,42 @@
 import React from "react";
 import { Form, Input } from "antd";
 import { MAX_ROW, MAX_COL } from "./RackManagementPage";
-import { split, rowToIndex, toIndex } from "./GridUtils";
+import {
+  split,
+  rowToIndex,
+  toIndex,
+  indexToRow,
+  indexToCol
+} from "./GridUtils";
 
+// initialValue: [r1, r2, c1, c2]
 // onChange: ([r1, r2, c1, c2] | null) => ()
-function GridRangeSelector({ onChange }) {
-  const [p1, setP1] = React.useState("");
-  const [p2, setP2] = React.useState("");
-  const [p1ErrMsg, setP1ErrMsg] = React.useState("");
-  const [p2ErrMsg, setP2ErrMsg] = React.useState("");
+// clearTrigger: 0 | 1
+function GridRangeSelector({ initialValue, onChange, clearTrigger }) {
+  const initialP1 = initialValue
+    ? indexToRow(initialValue[0]) + indexToCol(initialValue[2])
+    : "";
 
-  const p1Error = validate(p1);
-  const p2Error = validate(p2);
+  const initialP2 = initialValue
+    ? indexToRow(initialValue[1]) + indexToCol(initialValue[3])
+    : "";
+
+  const [p1, setP1] = React.useState(initialP1);
+  const [p2, setP2] = React.useState(initialP2);
+
+  const firstTime = React.useRef(true);
+  React.useEffect(() => {
+    if (!firstTime.current) {
+      setP1("");
+      setP2("");
+    }
+    firstTime.current = false;
+  }, [clearTrigger]);
+
+  React.useEffect(() => {
+    setP1(initialP1);
+    setP2(initialP2);
+  }, [initialP1, initialP2]);
 
   React.useEffect(() => {
     if (p1Error == null && p2Error == null) {
@@ -21,8 +46,14 @@ function GridRangeSelector({ onChange }) {
     }
   }, [p1, p2]);
 
+  const [p1ErrMsg, setP1ErrMsg] = React.useState("");
+  const [p2ErrMsg, setP2ErrMsg] = React.useState("");
+
+  const p1Error = validate(p1);
+  const p2Error = validate(p2);
+
   return (
-    <Form style={{ width: 200 }}>
+    <Form style={{ width: 350 }}>
       <Form.Item
         extra={p1ErrMsg}
         validateStatus={p1ErrMsg.length > 0 ? "error" : "success"}

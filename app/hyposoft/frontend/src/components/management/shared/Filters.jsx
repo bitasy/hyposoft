@@ -1,9 +1,8 @@
 import React from "react";
 import { Slider, Select, Checkbox, Input } from "antd";
+import GridRangeSelector from "../RackManagement/GridRangeSelector";
 
-function NullableRangeFilter({ filterDef, onChange, data }) {
-  const defaultValue = filterDef.extractDefaultValue(data);
-
+function NullableRangeFilter({ filterDef, defaultValue, onChange, data }) {
   const [filterValue, setFilterValue] = React.useState(defaultValue);
   React.useEffect(() => {
     setFilterValue(defaultValue);
@@ -14,10 +13,9 @@ function NullableRangeFilter({ filterDef, onChange, data }) {
   return (
     <div>
       <Slider
-        key={range}
         range
         {...filterDef}
-        defaultValue={range}
+        defaultValue={defaultValue[0]}
         onAfterChange={v => {
           setFilterValue([v, includeNull]);
           onChange({ [filterDef.fieldName]: [v, includeNull] });
@@ -25,7 +23,7 @@ function NullableRangeFilter({ filterDef, onChange, data }) {
       />
       <span style={{ marginRight: 5 }}>Include Null?</span>
       <Checkbox
-        defaultChecked={includeNull}
+        defaultChecked={defaultValue[1]}
         onChange={e => {
           setFilterValue([range, e.target.checked]);
           onChange({ [filterDef.fieldName]: [range, e.target.checked] });
@@ -35,26 +33,26 @@ function NullableRangeFilter({ filterDef, onChange, data }) {
   );
 }
 
-function RangeFilter({ filterDef, onChange, data }) {
+function RangeFilter({ defaultValue, filterDef, onChange, data }) {
   return (
     <Slider
       key={data}
       range
       {...filterDef}
-      defaultValue={filterDef.extractDefaultValue(data)}
+      defaultValue={defaultValue}
       onAfterChange={v => onChange({ [filterDef.fieldName]: v })}
     />
   );
 }
 
-function SelectFilter({ filterDef, onChange, data }) {
+function SelectFilter({ defaultValue, filterDef, onChange, data }) {
   return (
     <Select
       key={data}
       mode="multiple"
       style={{ width: "100%" }}
       onChange={v => onChange({ [filterDef.fieldName]: v })}
-      defaultValue={filterDef.extractDefaultValue(data)}
+      defaultValue={defaultValue}
     >
       {filterDef.extractOptions(data).map(option => (
         <Select.Option key={option} value={option}>
@@ -62,6 +60,15 @@ function SelectFilter({ filterDef, onChange, data }) {
         </Select.Option>
       ))}
     </Select>
+  );
+}
+
+function RackRangeFilter({ defaultValue, filterDef, onChange, data }) {
+  return (
+    <GridRangeSelector
+      initialValue={defaultValue}
+      onChange={r => onChange({ [filterDef.fieldName]: r })}
+    />
   );
 }
 
@@ -83,6 +90,8 @@ function Filter(props) {
     <NullableRangeFilter {...props} />
   ) : type === "text" ? (
     <TextFilter {...props} />
+  ) : type === "rack-range" ? (
+    <RackRangeFilter {...props} />
   ) : null;
 }
 

@@ -1,9 +1,6 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
 
-import SessionProvider from "./SessionProvider";
-import Session from "../contexts/Session";
 import LoginPage from "./auth/LoginPage/LoginPage";
 import ManagementPageFrame from "./management/ManagementPageFrame";
 import ModelManagementPage from "./management/ModelManagement/ModelManagementPage";
@@ -17,19 +14,16 @@ import CreateModelPage from "./management/ModelManagement/CreateModelPage";
 import CreateInstancePage from "./management/InstanceManagement/CreateInstancePage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
+import { useSelector } from "react-redux";
 
-function App() {
-  return (
-    <SessionProvider>
-      <Routes />
-    </SessionProvider>
-  );
+export default function App() {
+  return <Routes />;
 }
 
 function Routes() {
-  const session = React.useContext(Session);
+  const sessionToken = useSelector(s => s.sessionToken);
 
-  return session.isLoggedIn ? (
+  return sessionToken ? (
     <Router>
       <Switch>
         <Route exact path="/racks/print_view">
@@ -80,6 +74,3 @@ function Routes() {
     <LoginPage />
   );
 }
-
-/* eslint-env browser */
-ReactDOM.render(<App />, document.getElementById("app"));

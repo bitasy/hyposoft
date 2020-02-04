@@ -9,16 +9,22 @@ class ITModel(models.Model):
         max_length=64
     )
     model_number = models.CharField(
-        max_length=64
+        max_length=64,
     )
-    height = models.IntegerField()
+    height = models.IntegerField(
+        validators=[
+            MinValueValidator(1,
+                              message="Height must be at least 1.")
+        ]
+    )
     display_color = models.CharField(
         max_length=10,
+        blank=True,
         validators=[
             RegexValidator("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
                            message="Please enter a valid color code.")  # Color code
         ],
-        default="#ddd",
+        default="#ddd"
     )
     ethernet_ports = models.IntegerField(
         null=True,
@@ -32,8 +38,8 @@ class ITModel(models.Model):
         null=True,
         blank=True,
         validators=[
-            MinValueValidator(0,
-                              message="Number of power ports must be at least 0.")
+            MinValueValidator(1,
+                              message="Number of power ports must be at least 1.")
         ]
     )
     cpu = models.CharField(
@@ -49,11 +55,15 @@ class ITModel(models.Model):
         ]
     )
     storage = models.CharField(
-        max_length=64,
+        max_length=128,
         blank=True
     )
     comment = models.TextField(
-        blank=True
+        blank=True,
+        validators=[
+                   RegexValidator("(?m)""(?![ \t]*(,|$))",
+                                  message="Comments must be enclosed by double quotes if value contains line breaks.")
+        ]
     )
 
     class Meta:
@@ -61,17 +71,11 @@ class ITModel(models.Model):
 
 
 class Rack(models.Model):
-    row = models.CharField(
+    rack = models.CharField(
         max_length=2,
         validators=[
-            RegexValidator("^[A-Z]{1,2}$",
+            RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
-        ]
-    )
-    number = models.IntegerField(
-        validators=[
-            MinValueValidator(0,
-                              message="Rack number must be at least 0.")
         ]
     )
 
@@ -82,16 +86,20 @@ class Instance(models.Model):
         on_delete=models.PROTECT
     )
     hostname = models.CharField(
-        max_length=64
+        max_length=64,
+        validators=[
+            RegexValidator("[a-z0-9][a-z0-9-]{0,62}",
+                           message="Hostname must be compliant with RFC 1034.")
+        ]
     )
     rack = models.ForeignKey(
         Rack,
         on_delete=models.PROTECT
     )
-    rack_u = models.IntegerField(
+    rack_position = models.IntegerField(
         validators=[
             MinValueValidator(1,
-                              message="Rack units must be at least 1.")
+                              message="Rack position must be at least 1.")
         ]
     )
     owner = models.ForeignKey(
@@ -101,14 +109,19 @@ class Instance(models.Model):
         on_delete=models.SET(None)
     )
     comment = models.TextField(
-        blank=True
+        blank=True,
+        validators=[
+            RegexValidator("(?m)""(?![ \t]*(,|$))",
+                           message="Comments must be enclosed by double quotes if value contains line breaks.")
+        ]
     )
+
+    class Meta:
+        unique_together = ('hostname', 'itmodel')
 
     # causes error when running tests.py
     # can we put this somewhere else?
-    """
+
     def clean(self, *args, **kwargs):
-        if self.itmodel.height.astype(str).astype(int) < \
-                (self.rack_u + self.itmodel.height.astype(str).astype(int) - 1):
+        if self.itmodel.height < self.rack_position + self.itmodel.height - 1:
             raise ValidationError("The instance does not fit on the specified rack.")
-    """

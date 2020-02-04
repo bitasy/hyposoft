@@ -2,12 +2,13 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Layout, Menu, Icon, Col, Button } from "antd";
-import Session from "../../contexts/Session";
+import { logout } from "../../redux/actions";
+import { useDispatch } from "react-redux";
 
 const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
-  const session = React.useContext(Session);
+  const dispatch = useDispatch();
 
   return (
     <Layout>
@@ -18,7 +19,11 @@ function ManagementPageFrame({ children }) {
           </h1>
         </Col>
         <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
-          <Button ghost onClick={session.logout}>
+          <Button ghost style={{ marginRight: 8 }} href="admin">
+            <Icon type="eye" />
+            Admin page
+          </Button>
+          <Button ghost onClick={() => dispatch(logout())}>
             <Icon type="logout" />
             Logout
           </Button>

@@ -2,16 +2,18 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import { Form, Button } from "antd";
 import FormItem from "./FormItem";
+import { useDispatch } from "react-redux";
 
 function CreateDataForm({ form, createRecord, schema }) {
-  const [newRecord, setNewRecord] = React.useState({});
+  const dispatch = useDispatch();
   const history = useHistory();
+  const [newRecord, setNewRecord] = React.useState({});
 
   function handleSubmit(e) {
     e.preventDefault();
     form.validateFields((err, values) => {
       if (!err) {
-        createRecord(newRecord).then(history.goBack());
+        dispatch(createRecord(newRecord, () => history.goBack()));
       }
     });
   }

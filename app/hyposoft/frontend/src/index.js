@@ -1,7 +1,11 @@
-import "./index.css";
-
+import React from "react";
+import ReactDOM from "react-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
+import App from "./components/App";
+import store from "./redux/store";
+import { Provider } from "react-redux";
+import "./index.css";
 
 axios.interceptors.request.use(config => {
   if (!config) return config;
@@ -28,6 +32,12 @@ axios.interceptors.request.use(config => {
   return config;
 });
 
-// down here since this component might fire off axios requests before the above configuration
+axios.defaults.validateStatus = statusCode => statusCode <= 500;
 
-import "./components/App";
+/* eslint-env browser */
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById("app")
+);

@@ -1,17 +1,10 @@
 import React from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import Rack from "../shared/Rack";
-import API from "../../../api/API";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
-import style from "./RackView.module.css";
-
-function groupByID(racks) {
-  return racks.reduce(
-    (acc, rack) => Object.assign(acc, { [rack.id]: rack }),
-    {}
-  );
-}
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRacks, fetchInstances } from "../../../redux/actions";
 
 const RACKS_IN_ROW = 4;
 
@@ -37,26 +30,33 @@ function RackView({ r }) {
 
   const rackIDs = idsStr.split(",").map(s => parseInt(s));
 
-  const [rackVMs, setRackVMs] = React.useState([]);
+  const dispatch = useDispatch();
+
+  const rackVMs = useSelector(s => {
+    const racksByID = s.racks;
+    const instancesForRack = rackIDs.map(rackID =>
+      Object.values(s.instances).filter(inst => inst.rack.id === rackID)
+    );
+
+    return instancesForRack
+      .map((instances, idx) => {
+        const id = rackIDs[idx];
+        return racksByID[id]
+          ? {
+              name: racksByID[id].row + racksByID[id].number,
+              height: 42,
+              instances: instances
+            }
+          : null;
+      })
+      .filter(o => !!o);
+  });
 
   const rackVMSplit = partition(rackVMs, RACKS_IN_ROW);
 
   React.useEffect(() => {
-    const pRacksByID = API.getRacks().then(groupByID);
-    const pInstancesForRack = Promise.all(rackIDs.map(API.getInstancesForRack));
-
-    Promise.all([pRacksByID, pInstancesForRack])
-      .then(([racksByID, instancesForRack]) => {
-        return instancesForRack.map((instances, idx) => {
-          const id = rackIDs[idx];
-          return {
-            name: racksByID[id].row + racksByID[id].number,
-            height: 42,
-            instances: instances
-          };
-        });
-      })
-      .then(setRackVMs);
+    dispatch(fetchRacks());
+    dispatch(fetchInstances());
   }, []);
 
   return (
@@ -67,10 +67,15 @@ function RackView({ r }) {
           type="flex"
           justify="center"
           gutter={16}
-          style={{ height: "27.9cm", padding: 24 }}
+          style={{
+            pageBreakAfter: "always",
+            paddingTop: 16,
+            paddingBottom: 16,
+            height: "100%"
+          }}
         >
           {row.map((rackVM, idx) => (
-            <Col key={idx} span={5}>
+            <Col key={idx} style={{ marginTop: "auto", marginBottom: "auto" }}>
               <Rack
                 rack={rackVM}
                 onSelect={instance => {
