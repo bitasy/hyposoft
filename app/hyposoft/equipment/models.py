@@ -72,11 +72,17 @@ class ITModel(models.Model):
 
 class Rack(models.Model):
     rack = models.CharField(
-        max_length=2,
+        max_length=4,
         validators=[
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
         ]
+    ),
+    row = models.CharField(
+        default='A'
+    ),
+    number = models.IntegerField(
+        default=1
     )
 
 
