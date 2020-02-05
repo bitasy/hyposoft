@@ -1,6 +1,6 @@
 django
 djangorestframework
-tablib
+tablib==0.14.0
 django-import-export
 --no-binary=psycopg2
 psycopg2
