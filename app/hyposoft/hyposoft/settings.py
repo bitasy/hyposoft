@@ -26,7 +26,8 @@ SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = ["localhost", "brian.bitasy.me", "carter.bitasy.me", "amber.bitasy.me",
-                 "inchan.bitasy.me", "dev.bitasy.me", "prod.bitasy.me", "hyposoft.tech"]
+                 "inchan.bitasy.me", "dev.bitasy.me", "prod.bitasy.me", "hyposoft.tech",
+                 "prod.hyposoft.tech"]
 
 
 # Application definition
