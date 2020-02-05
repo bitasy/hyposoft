@@ -1,6 +1,5 @@
 import React from "react";
 import Grid from "../RackManagement/Grid";
-import API from "../../../api/API";
 import { Typography, Button } from "antd";
 import GridRangeSelector from "./GridRangeSelector";
 import { toIndex, indexToRow, indexToCol } from "./GridUtils";
@@ -28,8 +27,7 @@ const full = { width: "100%", height: "100%" };
 function groupByRowColumn(racks) {
   const grouped = {};
   racks.forEach(rack => {
-    const r = rack.row;
-    const c = rack.number.toString();
+    const [r, c] = toIndex(rack.rack);
     if (!grouped[r]) grouped[r] = {};
     grouped[r][c] = rack;
   });
@@ -89,7 +87,10 @@ function RackManagementPage() {
         indexToCol(c1),
         indexToCol(c2),
         clear,
-        clear
+        () => {
+          rehydrate();
+          clear();
+        }
       )
     );
   }
@@ -100,7 +101,10 @@ function RackManagementPage() {
         removeRacks(
           racks.map(rack => rack.id),
           clear,
-          clear
+          () => {
+            rehydrate();
+            clear();
+          }
         )
       );
     }
@@ -112,16 +116,11 @@ function RackManagementPage() {
   }
 
   const selectedRacks = range
-    ? racks.filter(rack =>
-        isInside(range, ...toIndex([rack.row, rack.number.toString()]))
-      )
+    ? racks.filter(rack => isInside(range, ...toIndex(rack.rack)))
     : [];
 
   function renderCell(r, c) {
-    const rStr = ROWS[r];
-    const cStr = COLS[c];
-
-    const existing = rackGroup[rStr] && rackGroup[rStr][cStr];
+    const existing = rackGroup[r] && rackGroup[r][c];
     const inRange = range && isInside(range, r, c);
 
     let color =
