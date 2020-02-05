@@ -352,7 +352,7 @@ function FormItem(props) {
     <ModelFormItem {...props} />
   ) : props.schemaFrag.type === "rack" ? (
     <RackFormItem {...props} />
-  ) : props.schemaFrag.type === "rack_u" ? (
+  ) : props.schemaFrag.type === "rack_position" ? (
     <RackUFormItem {...props} />
   ) : props.schemaFrag.type === "user" ? (
     <UserFormItem {...props} />
