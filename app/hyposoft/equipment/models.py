@@ -38,8 +38,8 @@ class ITModel(models.Model):
         null=True,
         blank=True,
         validators=[
-            MinValueValidator(1,
-                              message="Number of power ports must be at least 1.")
+            MinValueValidator(0,
+                              message="Number of power ports must be at least 0.")
         ]
     )
     cpu = models.CharField(
@@ -62,7 +62,7 @@ class ITModel(models.Model):
         blank=True,
         validators=[
                    RegexValidator("(?m)""(?![ \t]*(,|$))",
-                                  message="Comments must be enclosed by double quotes if value contains line breaks.")
+                                  message="Comments must be enclosed by double quotes if comment contains line breaks.")
         ]
     )
 
@@ -77,18 +77,12 @@ class ITModel(models.Model):
 
 class Rack(models.Model):
     rack = models.CharField(
+        unique=True,
         max_length=4,
         validators=[
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
         ]
-    )
-    row = models.CharField(
-        max_length=2,
-        default='A'
-    )
-    number = models.IntegerField(
-        default=1
     )
 
     def __str__(self):
@@ -102,6 +96,7 @@ class Instance(models.Model):
         verbose_name="Model"
     )
     hostname = models.CharField(
+        unique=True,
         max_length=64,
         validators=[
             RegexValidator("[a-z0-9][a-z0-9-]{0,62}",
@@ -137,9 +132,6 @@ class Instance(models.Model):
 
     def __str__(self):
         return "{}: Rack {} U{}".format(self.hostname, self.rack.rack, self.rack_position)
-
-    # causes error when running tests.py
-    # can we put this somewhere else?
 
     def clean(self, *args, **kwargs):
         if 42 < self.rack_position + self.itmodel.height - 1:
