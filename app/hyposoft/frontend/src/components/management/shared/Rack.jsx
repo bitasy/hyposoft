@@ -6,8 +6,8 @@ function byLevel(rackHeight, instances) {
   const rack = Array(rackHeight + 1).fill(null);
   instances.forEach(instance => {
     for (
-      let i = instance.rack_u;
-      i < instance.rack_u + instance.model.height;
+      let i = instance.rack_position;
+      i < instance.rack_position + instance.model.height;
       i++
     ) {
       rack[i] = instance;
@@ -49,8 +49,8 @@ function Rack({ rack, onSelect }) {
     }
 
     const model = instance.model;
-    const isBottom = level === instance.rack_u;
-    const isTop = level === instance.rack_u + model.height - 1;
+    const isBottom = level === instance.rack_position;
+    const isTop = level === instance.rack_position + model.height - 1;
 
     return (
       <tr
