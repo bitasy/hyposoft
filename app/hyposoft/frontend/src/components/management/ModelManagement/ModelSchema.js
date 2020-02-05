@@ -1,5 +1,3 @@
-import API from "../../../api/API";
-
 function strcmp(a, b) {
   if (a === b) return 0;
   else return a < b ? -1 : 1;
@@ -64,7 +62,7 @@ export const modelSchema = [
     fieldName: "ethernet_ports",
     type: "number",
     required: false,
-    defaultValue: 0,
+    defaultValue: null,
     min: 0
   },
   {
@@ -72,7 +70,7 @@ export const modelSchema = [
     fieldName: "power_ports",
     type: "number",
     required: false,
-    defaultValue: 0,
+    defaultValue: null,
     min: 0
   },
   {
@@ -87,7 +85,7 @@ export const modelSchema = [
     fieldName: "memory",
     type: "number",
     required: false,
-    defaultValue: 1,
+    defaultValue: null,
     min: 0
   },
   {
@@ -139,36 +137,36 @@ export const modelColumns = [
   {
     title: "Ethernet Ports",
     key: "ethernet_ports",
-    toString: s => s.ethernet_ports.toString(),
-    sorter: (a, b) => a.ethernet_ports - b.ethernet_ports,
+    toString: s => (s.ethernet_ports || "").toString(),
+    sorter: (a, b) => (a.ethernet_ports || 0) - (b.ethernet_ports || 0),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Power Ports",
     key: "power_ports",
-    toString: s => s.power_ports.toString(),
-    sorter: (a, b) => a.power_ports - b.power_ports,
+    toString: s => (s.power_ports || "").toString(),
+    sorter: (a, b) => (a.power_ports || 0) - (b.power_ports || 0),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "CPU",
     key: "cpu",
     toString: s => s.cpu,
-    sorter: (a, b) => a.cpu - b.cpu,
+    sorter: (a, b) => strcmp(a.cpu, b.cpu),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Memory",
     key: "memory",
-    toString: s => s.memory.toString(),
-    sorter: (a, b) => a.memory - b.memory,
+    toString: s => (s.memory || "").toString(),
+    sorter: (a, b) => (a.memory || 0) - (b.memory || 0),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Storage",
     key: "storage",
     toString: s => s.storage,
-    sorter: (a, b) => a.storage - b.storage,
+    sorter: (a, b) => strcmp(a.storage, b.storage),
     sortDirections: ["ascend", "descend"]
   }
 ];

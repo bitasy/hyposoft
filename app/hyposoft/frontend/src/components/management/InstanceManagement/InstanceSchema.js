@@ -1,23 +1,16 @@
 import {
   modelKeywordMatch,
-  modelToString,
-  modelToDataSource
+  modelToString
 } from "../ModelManagement/ModelSchema";
-import API from "../../../api/API";
-import { toIndex, indexToRow } from "../RackManagement/GridUtils";
-import { MAX_ROW, MAX_COL } from "../RackManagement/RackManagementPage";
+import { toIndex } from "../RackManagement/GridUtils";
 
 function strcmp(a, b) {
   if (a === b) return 0;
   else return a < b ? -1 : 1;
 }
 
-export function rackToString({ row, number }) {
-  return row + number;
-}
-
 function instanceToLocation(instance) {
-  return `${rackToString(instance.rack)} U${instance.rack_u}`;
+  return `${instance.rack.rack} U${instance.rack_position}`;
 }
 
 export const instanceSchema = [
@@ -43,9 +36,9 @@ export const instanceSchema = [
     defaultValue: null
   },
   {
-    displayName: "Rack U",
-    fieldName: "rack_u",
-    type: "rack_u",
+    displayName: "Rack position",
+    fieldName: "rack_position",
+    type: "rack_position",
     required: true,
     defaultValue: null
   },
@@ -101,12 +94,12 @@ function instanceKeywordMatch(value, record) {
   const lowercase = value.toLowerCase();
   return instanceSchema
     .filter(frag => frag.type === "string" && record[frag.fieldName])
-    .map(frag => record[frag.fieldName].toLowerCase())
+    .map(frag => (record[frag.fieldName] || "").toLowerCase())
     .some(str => str.includes(lowercase));
 }
 
 function isInside([minR, maxR, minC, maxC], instance) {
-  const [r, c] = toIndex([instance.rack.row, instance.rack.number]);
+  const [r, c] = toIndex(instance.rack.rack);
   return minR <= r && r <= maxR && minC <= c && c <= maxC;
 }
 
@@ -131,17 +124,18 @@ export const instanceFilters = [
     shouldInclude: (value, record) => isInside(value, record)
   },
   {
-    title: "Rack U",
-    fieldName: "rack_u",
+    title: "Rack Position",
+    fieldName: "rack_position",
     type: "range",
     min: 1,
     max: 42,
     marks: { 1: "1", 42: "42" },
     step: 1,
     extractDefaultValue: records => [
-      Math.min(...records.map(r => r.rack_u)),
-      Math.max(...records.map(r => r.rack_u))
+      Math.min(...records.map(r => r.rack_position)),
+      Math.max(...records.map(r => r.rack_position))
     ],
-    shouldInclude: ([l, r], record) => l <= record.rack_u && record.rack_u <= r
+    shouldInclude: ([l, r], record) =>
+      l <= record.rack_position && record.rack_position <= r
   }
 ];

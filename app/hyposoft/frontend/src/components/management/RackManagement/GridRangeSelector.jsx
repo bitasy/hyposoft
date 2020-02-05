@@ -103,7 +103,7 @@ function validate(s) {
 
   if (isNaN(cStr)) return "Use numbers to represent columns";
 
-  const [r, c] = toIndex([rStr, cStr]);
+  const [r, c] = toIndex(rStr + cStr);
 
   if (r < 0 || r >= MAX_ROW) return "Row out of bounds";
   if (c < 0 || c >= MAX_COL) return "Column out of bounds";
@@ -126,8 +126,8 @@ function isValidSubstr(s) {
 }
 
 function destructure(p1, p2) {
-  const [r1, c1] = toIndex(split(p1, 1));
-  const [r2, c2] = toIndex(split(p2, 1));
+  const [r1, c1] = toIndex(p1);
+  const [r2, c2] = toIndex(p2);
 
   return [
     Math.min(r1, r2),

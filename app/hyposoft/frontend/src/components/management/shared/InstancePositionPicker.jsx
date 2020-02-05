@@ -16,7 +16,7 @@ function validateLevel(model, level, rack) {
   return (
     rack.instances != null &&
     rack.instances.every(inst => {
-      const interval2 = toInterval(inst.rack_u, inst.model.height);
+      const interval2 = toInterval(inst.rack_position, inst.model.height);
       return !isOverlapping(interval1, interval2);
     }) &&
     level + model.height - 1 <= rack.height
@@ -32,7 +32,7 @@ function InstancePositionPicker({
   onValidation
 }) {
   const temporaryInstance = value && {
-    rack_u: value,
+    rack_position: value,
     hostname: hostname,
     model: model,
     isTmp: true
