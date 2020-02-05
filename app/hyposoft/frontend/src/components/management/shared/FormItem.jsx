@@ -13,7 +13,6 @@ import {
 } from "antd";
 import { ChromePicker } from "react-color";
 import InstancePositionPicker from "./InstancePositionPicker";
-import { rackToString } from "../InstanceManagement/InstanceSchema";
 import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -168,7 +167,7 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
         >
           {rackList.map(rack => (
             <Select.Option key={rack.id} value={rack.id}>
-              {rack.row + rack.number}
+              {rack.rack}
             </Select.Option>
           ))}
         </Select>
@@ -264,7 +263,7 @@ function RackUFormItem({
 
   const rack = {
     height: 42, // fixed for now
-    name: currentRecord.rack ? rackToString(currentRecord.rack) : "",
+    name: currentRecord.rack ? currentRecord.rack.rack : "",
     instances: filteredInstances
   };
 

@@ -20,6 +20,7 @@ export function indexToCol(idx) {
   return (idx + 1).toString();
 }
 
-export function toIndex([row, col]) {
+export function toIndex(rack) {
+  const [row, col] = split(rack, 1);
   return [rowToIndex(row), colToIndex(col)];
 }
