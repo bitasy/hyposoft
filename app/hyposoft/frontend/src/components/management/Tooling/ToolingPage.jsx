@@ -68,17 +68,15 @@ function RackUsage(rackSpace, instances) {
   }
 
   //calculate rack usage percentages
-  let percentUsed = Number.parseFloat(
-    (100 * usedSpace) / rackSpace
-  ).toPrecision(2);
+  let percentUsed = Number.parseFloat((100 * usedSpace) / rackSpace);
   let percentFree = 100 - percentUsed;
 
   //add row data to array, props passed to CreateTable.jsx
   return [
     {
       category: "All racks",
-      used: percentUsed,
-      free: percentFree
+      used: percentUsed.toFixed(2),
+      free: percentFree.toFixed(2)
     }
   ];
 }
@@ -107,7 +105,7 @@ function RackUsageByModel(rackSpace, instances, models) {
 
   //calculate rack usage percentages by model
   for (let i = 0; i < models.length; i++) {
-    percentUsed.push(((100 * modelUsedSpace[i]) / rackSpace).toPrecision(2));
+    percentUsed.push(((100 * modelUsedSpace[i]) / rackSpace).toFixed(2));
     percentFree = percentFree - percentUsed[i];
   }
 
@@ -118,7 +116,7 @@ function RackUsageByModel(rackSpace, instances, models) {
     modelUsage.push({
       category: modelToString(models[i]),
       used: percentUsed[i],
-      free: percentFree
+      free: percentFree.toFixed(2)
     });
   }
 
@@ -151,7 +149,7 @@ function RackUsageByOwner(rackSpace, instances, users) {
 
   //calculate rack usage percentages by owner
   for (let i = 0; i < uniqueOwners.length; i++) {
-    percentUsed[i] = ((100 * ownerUsedSpace[i]) / rackSpace).toPrecision(2);
+    percentUsed[i] = ((100 * ownerUsedSpace[i]) / rackSpace).toFixed(2);
     percentFree = percentFree - percentUsed[i];
   }
 
@@ -162,7 +160,7 @@ function RackUsageByOwner(rackSpace, instances, users) {
     ownerUsage[i] = {
       category: uniqueOwners[i].username,
       used: percentUsed[i],
-      free: percentFree
+      free: percentFree.toFixed(2)
     };
   }
 
@@ -195,7 +193,7 @@ function RackUsageByVendor(rackSpace, instances, models) {
 
   //calculate rack usage percentages by vendor
   for (let i = 0; i < uniqueVendors.length; i++) {
-    percentUsed[i] = ((100 * vendorUsedSpace[i]) / rackSpace).toPrecision(2);
+    percentUsed[i] = ((100 * vendorUsedSpace[i]) / rackSpace).toFixed(2);
     percentFree = percentFree - percentUsed[i];
   }
 
@@ -206,7 +204,7 @@ function RackUsageByVendor(rackSpace, instances, models) {
     vendorUsage[i] = {
       category: uniqueVendors[i],
       used: percentUsed[i],
-      free: percentFree
+      free: percentFree.toFixed(2)
     };
   }
 
@@ -254,7 +252,7 @@ function RackUsageByVendor(rackSpace, instances, models) {
 //     let percentUsed = [];
 //     let percentFree = 100;
 //     for (let i = 0; i < uniqueVendors.length; i++) {
-//         percentUsed[i] = Number.parseFloat(100 * vendorUsedSpace[i] / rackSpace).toPrecision(2);
+//         percentUsed[i] = Number.parseFloat(100 * vendorUsedSpace[i] / rackSpace).toFixed(2);
 //         percentFree = percentFree - percentUsed[i];
 //     }
 //     console.log("percentUsed", percentUsed);

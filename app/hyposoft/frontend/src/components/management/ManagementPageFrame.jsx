@@ -3,12 +3,14 @@ import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Layout, Menu, Icon, Col, Button } from "antd";
 import { logout } from "../../redux/actions";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const dispatch = useDispatch();
+
+  const username = useSelector(s => s.sessionInfo.username);
 
   return (
     <Layout>
@@ -19,10 +21,12 @@ function ManagementPageFrame({ children }) {
           </h1>
         </Col>
         <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
-          <Button ghost style={{ marginRight: 8 }} href="admin">
-            <Icon type="eye" />
-            Admin page
-          </Button>
+          {username === "admin" ? (
+            <Button ghost style={{ marginRight: 8 }} href="admin">
+              <Icon type="eye" />
+              Admin page
+            </Button>
+          ) : null}
           <Button ghost onClick={() => dispatch(logout())}>
             <Icon type="logout" />
             Logout
@@ -49,11 +53,25 @@ function ManagementPageFrame({ children }) {
   );
 }
 
+const EXTERNAL_LINKS = {
+  "/user": "admin/auth/user/",
+  "/import": "/static/bulk_format_proposal.pdf"
+};
+
 function Sidebar() {
   const history = useHistory();
 
+  const username = useSelector(s => s.sessionInfo.username);
+  const isAdmin = username === "admin";
+
   function handleClick(e) {
-    history.push(e.key);
+    const key = e.key;
+    const ext = EXTERNAL_LINKS[key];
+    if (ext) {
+      window.open(ext, "_blank");
+    } else {
+      history.push(e.key);
+    }
   }
 
   return (
@@ -78,15 +96,24 @@ function Sidebar() {
         <span>Racks</span>
       </Menu.Item>
 
-      <Menu.Item key="/tools">
+      <Menu.Item key="/reports">
         <Icon type="tool" />
-        <span>Tools</span>
+        <span>Reports</span>
       </Menu.Item>
 
-      <Menu.Item key="/help">
-        <Icon type="question-circle" />
-        <span>Help</span>
-      </Menu.Item>
+      {isAdmin ? (
+        <Menu.Item key="/user">
+          <Icon type="user" />
+          Users
+        </Menu.Item>
+      ) : null}
+
+      {isAdmin ? (
+        <Menu.Item key="/import">
+          <Icon type="import" />
+          Bulk format
+        </Menu.Item>
+      ) : null}
     </Menu>
   );
 }

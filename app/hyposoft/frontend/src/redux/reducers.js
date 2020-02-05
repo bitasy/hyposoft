@@ -188,7 +188,7 @@ const rackReducer = genRackReducer();
 const userReducer = genUserReducer();
 
 const HyposoftApp = combineReducers({
-  sessionToken: sessionReducer,
+  sessionInfo: sessionReducer,
   models: modelReducer,
   instances: instanceReducer,
   racks: rackReducer,

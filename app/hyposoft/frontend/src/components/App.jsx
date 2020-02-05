@@ -7,7 +7,6 @@ import ModelManagementPage from "./management/ModelManagement/ModelManagementPag
 import ModelDetailPage from "./management/ModelManagement/ModelDetailPage";
 import InstanceManagementPage from "./management/InstanceManagement/InstanceManagementPage";
 import ToolingPage from "./management/Tooling/ToolingPage";
-import HelpPage from "./management/Help/HelpPage";
 import OverviewPage from "./management/Overview/OverviewPage";
 import InstanceDetailPage from "./management/InstanceManagement/InstanceDetailPage";
 import CreateModelPage from "./management/ModelManagement/CreateModelPage";
@@ -21,9 +20,11 @@ export default function App() {
 }
 
 function Routes() {
-  const sessionToken = useSelector(s => s.sessionToken);
+  const sessionInfo = useSelector(s => s.sessionInfo);
 
-  return sessionToken ? (
+  console.log(sessionInfo);
+
+  return sessionInfo ? (
     <Router>
       <Switch>
         <Route exact path="/racks/print_view">
@@ -56,12 +57,10 @@ function Routes() {
                 <RackManagementPage />
               </Route>
 
-              <Route exact path="/tools">
+              <Route exact path="/reports">
                 <ToolingPage />
               </Route>
-              <Route exact path="/help">
-                <HelpPage />
-              </Route>
+
               <Route>
                 <OverviewPage />
               </Route>

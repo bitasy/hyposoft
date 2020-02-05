@@ -6,7 +6,9 @@ import produce from "immer";
 function login(username, password) {
   return Axios.post("api/auth/token/", { username, password })
     .then(getData)
-    .then(r => r.token);
+    .then(r => {
+      return { token: r.token, username };
+    });
 }
 
 function logout() {
@@ -67,7 +69,7 @@ function createInstance(fields) {
   const toCreate = produce(fields, draft => {
     draft.itmodel = draft.model.id;
     draft.rack = draft.rack.id;
-    draft.owner = draft.owner.id;
+    draft.owner = draft.owner && draft.owner.id;
     delete draft.model;
   });
 

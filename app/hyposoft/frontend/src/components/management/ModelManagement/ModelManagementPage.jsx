@@ -32,12 +32,6 @@ function ModelManagementPage() {
       >
         Export
       </Button>
-      <a
-        href="https://d1b10bmlvqabco.cloudfront.net/attach/k4u27qnccr45oo/is4xdnkb8px4ee/k5zjop579k59/ECE458__Bulk_Format_Proposal3.pdf"
-        target="_blank"
-      >
-        Import/Export Specs
-      </a>
       <DataList
         columns={modelColumns}
         filters={modelFilters}

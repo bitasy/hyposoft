@@ -5,7 +5,7 @@ import { getToken } from "../global/Session";
 
 // we take care of only the "big" states for now
 const initialState = {
-  sessionToken: getToken(),
+  sessionInfo: getToken(),
   models: {},
   instances: {},
   racks: {},
