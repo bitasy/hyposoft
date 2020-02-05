@@ -104,7 +104,7 @@ class Instance(models.Model):
     hostname = models.CharField(
         max_length=64,
         validators=[
-            RegexValidator("[a-z0-9][a-z0-9-]{0,62}",
+            RegexValidator(r"^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
                            message="Hostname must be compliant with RFC 1034.")
         ]
     )
