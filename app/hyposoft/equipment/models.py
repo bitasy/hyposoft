@@ -88,14 +88,26 @@ class Rack(models.Model):
     )
     row = models.CharField(
         max_length=2,
-        default='A'
+        validators=[
+            RegexValidator("^[A-Z]{1,2}$",
+                           message="Row number must be specified by one or two capital letters.")
+        ]
     )
     number = models.IntegerField(
-        default=1
+        validators=[
+            MinValueValidator(1,
+                              message="Rack number must be at least 1.")
+        ]
     )
 
     def __str__(self):
         return "Rack {}".format(self.rack)
+
+    def save(self, *args, **kwargs):
+        if self.rack == "Z99":
+            self.rack = self.row + str(self.number)
+
+        super().save(*args, **kwargs)
 
 
 class Instance(models.Model):
