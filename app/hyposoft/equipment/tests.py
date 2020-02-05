@@ -131,8 +131,7 @@ class RackTest(TestCase):
         rack_test2 = Rack(
             rack="AA1"
         )
-        with self.assertRaises(ValidationError):
-            rack_test2.full_clean()  # Should throw error
+        rack_test2.full_clean()  # Should NOT throw error
 
         row_test3 = Rack(
             rack="A A1"
@@ -194,11 +193,11 @@ class InstanceTest(TestCase):
             hostname_test2.full_clean()  # Should throw error
 
 
-    # Test cases for the Instance param, rack_u
+    # Test cases for the Instance param, rack_position
     # Reqs: required always; positive integer; refers to the vertical location
-    # (on a rack, measured in U) of the bottom of the equipment
+    # (on a rack, measured in U) from the bottom of the equipment
 
-    def test_Instance_rack_u(self):
+    def test_Instance_rack_position(self):
         model = ITModel.objects.get(id=0)
         rack = Rack.objects.get(id=0)
 
