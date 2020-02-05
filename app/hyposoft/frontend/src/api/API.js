@@ -118,8 +118,7 @@ function createRacks(fromRow, toRow, fromNumber, toNumber) {
     const row = String.fromCharCode(i);
     for (let j = parseInt(fromNumber); j <= parseInt(toNumber); j++) {
       toCreate.push({
-        row,
-        number: j
+        rack: row + j
       });
     }
   }
