@@ -77,6 +77,9 @@ class ITModel(models.Model):
 
 class Rack(models.Model):
     rack = models.CharField(
+        blank=True,
+        default="Z99",
+
         max_length=4,
         validators=[
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
