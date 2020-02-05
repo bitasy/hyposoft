@@ -43,7 +43,7 @@ function RackView({ r }) {
         const id = rackIDs[idx];
         return racksByID[id]
           ? {
-              name: racksByID[id].row + racksByID[id].number,
+              name: racksByID[id].rack,
               height: 42,
               instances: instances
             }
