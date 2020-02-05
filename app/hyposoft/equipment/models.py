@@ -77,9 +77,6 @@ class ITModel(models.Model):
 
 class Rack(models.Model):
     rack = models.CharField(
-        blank=True,
-        default="Z99",
-
         max_length=4,
         validators=[
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
@@ -88,26 +85,14 @@ class Rack(models.Model):
     )
     row = models.CharField(
         max_length=2,
-        validators=[
-            RegexValidator("^[A-Z]{1,2}$",
-                           message="Row number must be specified by one or two capital letters.")
-        ]
+        default='A'
     )
     number = models.IntegerField(
-        validators=[
-            MinValueValidator(1,
-                              message="Rack number must be at least 1.")
-        ]
+        default=1
     )
 
     def __str__(self):
         return "Rack {}".format(self.rack)
-
-    def save(self, *args, **kwargs):
-        if self.rack == "Z99":
-            self.rack = self.row + str(self.number)
-
-        super().save(*args, **kwargs)
 
 
 class Instance(models.Model):
@@ -157,5 +142,5 @@ class Instance(models.Model):
     # can we put this somewhere else?
 
     def clean(self, *args, **kwargs):
-        if self.itmodel.height < self.rack_position + self.itmodel.height - 1:
+        if 42 < self.rack_position + self.itmodel.height - 1:
             raise ValidationError("The instance does not fit on the specified rack.")
