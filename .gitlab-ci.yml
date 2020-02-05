@@ -84,19 +84,20 @@ stage_prod:
   script:
   - cd /home/gitlab-runner/
   - git clone git@gitlab.oit.duke.edu:ban20/hyposoft-group-8.git "$CI_COMMIT_SHORT_SHA-staging"
+  - cp -ra /home/gitlab-runner/hyposoft-deployed/app/hyposoft/frontend/node_modules /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging"/app/hyposoft/frontend
   - cd "$CI_COMMIT_SHORT_SHA-staging"
-  - git checkout dev
+  - git checkout master
   - cd app/hyposoft/frontend
   - npm install
   - npm run build
   - cd ..
-  - python3 manage.py collectstatic --no-input
   only:
   - master
   tags:
   - prod
   when:
     manual
+  cache: {}
 
 
 deploy_prod:
@@ -106,6 +107,8 @@ deploy_prod:
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
   - cp -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
+  - pip3 install -r /home/gitlab-runner/hyposoft-deployed/requirements.txt
+  - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py collectstatic --no-input
   - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py migrate
   - sudo uwsgi --reload /home/gitlab-runner/uwsgi.pid
   - rm -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging"
@@ -115,3 +118,4 @@ deploy_prod:
   - prod
   when:
     manual
+  cache: {}
