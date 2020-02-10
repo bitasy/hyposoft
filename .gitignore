@@ -6,3 +6,4 @@ main.js
 npm-debug.log
 .idea
 *.iml
+.DS_Store
