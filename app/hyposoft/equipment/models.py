@@ -49,6 +49,7 @@ class ITModel(models.Model):
     memory = models.IntegerField(
         null=True,
         blank=True,
+        verbose_name="Memory (GB)",
         validators=[
             MinValueValidator(0,
                               message="Number of GB of memory must be at least 0.")
