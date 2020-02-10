@@ -4,3 +4,5 @@ __pycache__/
 .vscode
 main.js
 npm-debug.log
+.idea
+*.iml
