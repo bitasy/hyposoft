@@ -5,3 +5,5 @@ __pycache__/
 main.js
 npm-debug.log
 .DS_Store
+.idea
+*.iml
