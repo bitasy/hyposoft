@@ -77,6 +77,23 @@ class ITModel(models.Model):
 
 
 class Rack(models.Model):
+    class RackManager(models.Manager):
+        def in_racks(self, start_rack, end_rack):
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, rack
+                    FROM equipment_rack
+                    WHERE rack BETWEEN '{}' AND '{}';
+                    """.format(start_rack, end_rack))
+                result_list = []
+                for row in cursor.fetchall():
+                    r = self.model(id=row[0], rack=row[1])
+                    result_list.append(r)
+                return result_list
+
+    objects = RackManager()
+
     rack = models.CharField(
         unique=True,
         max_length=4,

@@ -23,5 +23,6 @@ urlpatterns = [
 
 # Custom Views
 urlpatterns += [
-    path('ITModelFilter', ITModelFilterList.as_view())
+    path('ITModelFilter', ITModelFilterView.as_view()),
+    path('InstanceFilter', InstanceFilterView.as_view())
 ]
