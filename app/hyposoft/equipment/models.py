@@ -4,6 +4,14 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 
+class Datacenter(models.Model):
+    abbr = models.CharField(
+        max_length=6
+    )
+    name = models.CharField(
+        max_length=64
+    )
+
 class ITModel(models.Model):
     vendor = models.CharField(
         max_length=64
@@ -84,6 +92,10 @@ class Rack(models.Model):
                            message="Row number must be specified by one or two capital letters.")
         ]
     )
+    datacenter = models.ForeignKey(
+        Datacenter,
+        on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "Rack {}".format(self.rack)
@@ -97,6 +109,7 @@ class Asset(models.Model):
     )
     hostname = models.CharField(
         unique=True,
+        null=True,
         max_length=64,
         validators=[
             RegexValidator(r"^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
@@ -106,6 +119,12 @@ class Asset(models.Model):
     rack = models.ForeignKey(
         Rack,
         on_delete=models.PROTECT
+    )
+
+    datacenter = models.ForeignKey(
+        Datacenter,
+        blank=True,
+        on_delete=models.PROTECT,
     )
     rack_position = models.IntegerField(
         validators=[
@@ -126,12 +145,26 @@ class Asset(models.Model):
                            message="Comments must be enclosed by double quotes if value contains line breaks.")
         ]
     )
+    mac_address = models.CharField(
+        unique=True,
+        max_length=17,
+        validators=[
+            RegexValidator("^([0-9a-f]{2}:){5}[0-9a-f]{2}$",
+                           message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
+        ]
+    )
+
+    asset_number = models.IntegerField(
+        max_length=6,
+        blank=True,
+        unique=True,
+    )
 
     class Meta:
         unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
-        return "{}: Rack {} U{}".format(self.hostname, self.rack.rack, self.rack_position)
+        return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
 
     def clean(self, *args, **kwargs):
         if 42 < self.rack_position + self.itmodel.height - 1:
