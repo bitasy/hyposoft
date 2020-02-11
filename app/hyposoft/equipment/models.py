@@ -35,14 +35,6 @@ class ITModel(models.Model):
         ],
         default="#ddd"
     )
-    ethernet_ports = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(0,
-                              message="Number of ethernet ports must be at least 0.")
-        ]
-    )
     power_ports = models.IntegerField(
         null=True,
         blank=True,
@@ -107,13 +99,13 @@ class Rack(models.Model):
     left_pdu = models.OneToOneField(
         PDU,
         related_name="left_for_rack",
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         null=True
     )
     right_pdu = models.OneToOneField(
         PDU,
         related_name="right_for_rack",
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         null=True
     )
 
@@ -188,6 +180,37 @@ class Asset(models.Model):
     def clean(self, *args, **kwargs):
         if 42 < self.rack_position + self.itmodel.height - 1:
             raise ValidationError("The asset does not fit on the specified rack.")
+
+
+class NetworkPortLabel(models.Model):
+    name = models.CharField(
+        max_length=16,
+        blank=True
+    )
+    itmodel = models.ForeignKey(
+        ITModel,
+        on_delete=models.CASCADE
+    )
+
+    unique_together = ['name', 'itmodel']
+
+
+class NetworkPort(models.Model):
+    label = models.ForeignKey(
+        NetworkPortLabel,
+        on_delete=models.PROTECT
+    )
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.CASCADE
+    )
+    connection = models.OneToOneField(
+        "self",
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    unique_together = ['label', 'asset']
 
 
 class Powered(models.Model):
