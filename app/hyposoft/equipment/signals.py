@@ -1,9 +1,16 @@
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
-from .models import Asset
+from .models import Asset, Powered
+from django.core.exceptions import ValidationError
 
 
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
     instance.datacenter = instance.rack.datacenter
     instance.asset_number = instance.id + 100000
+
+
+@receiver(pre_save, sender=Powered)
+def check_pdu(sender, instance, *args, **kwargs):
+    if instance.pdu.assets.count() > 24:
+        raise ValidationError("This PDU is already full.")

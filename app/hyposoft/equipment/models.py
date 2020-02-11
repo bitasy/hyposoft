@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
@@ -11,6 +11,7 @@ class Datacenter(models.Model):
     name = models.CharField(
         max_length=64
     )
+
 
 class ITModel(models.Model):
     vendor = models.CharField(
@@ -83,6 +84,13 @@ class ITModel(models.Model):
         return '{} by {}'.format(self.model_number, self.vendor)
 
 
+class PDU(models.Model):
+    assets = models.ManyToManyField(
+        "Asset",
+        through='Powered'
+    )
+
+
 class Rack(models.Model):
     rack = models.CharField(
         unique=True,
@@ -95,6 +103,18 @@ class Rack(models.Model):
     datacenter = models.ForeignKey(
         Datacenter,
         on_delete=models.PROTECT
+    )
+    left_pdu = models.OneToOneField(
+        PDU,
+        related_name="left_for_rack",
+        on_delete=models.PROTECT,
+        null=True
+    )
+    right_pdu = models.OneToOneField(
+        PDU,
+        related_name="right_for_rack",
+        on_delete=models.PROTECT,
+        null=True
     )
 
     def __str__(self):
@@ -155,7 +175,6 @@ class Asset(models.Model):
     )
 
     asset_number = models.IntegerField(
-        max_length=6,
         blank=True,
         unique=True,
     )
@@ -169,3 +188,27 @@ class Asset(models.Model):
     def clean(self, *args, **kwargs):
         if 42 < self.rack_position + self.itmodel.height - 1:
             raise ValidationError("The asset does not fit on the specified rack.")
+
+
+class Powered(models.Model):
+    plug_number = models.IntegerField(
+        validators=[
+            MinValueValidator(1,
+                              message="Asset must be plugged into a plug from 1 to 24 on this PDU."),
+            MaxValueValidator(24,
+                              message="Asset must be plugged into a plug from 1 to 24 on this PDU.")
+        ]
+    )
+    pdu = models.ForeignKey(
+        PDU,
+        on_delete=models.CASCADE
+    )
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.CASCADE
+    )
+    on = models.BooleanField(
+        default=False
+    )
+
+    unique_together = ['plug_number', 'pdu']
