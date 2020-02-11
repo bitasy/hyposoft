@@ -1,6 +1,6 @@
 from rest_framework import generics
-from .models import ITModel, Instance, Rack
-from .serializers import ITModelSerializer, InstanceSerializer, RackSerializer
+from .models import ITModel, Asset, Rack
+from .serializers import ITModelSerializer, AssetSerializer, RackSerializer
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -37,30 +37,30 @@ class ITModelListView(generics.ListAPIView):
     serializer_class = ITModelSerializer
 
 
-# Instance
-class InstanceCreateView(generics.CreateAPIView):
-    queryset = Instance.objects.all()
-    serializer_class = InstanceSerializer
+# Asset
+class AssetCreateView(generics.CreateAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
 
 
-class InstanceRetrieveView(generics.RetrieveAPIView):
-    queryset = Instance.objects.all()
-    serializer_class = InstanceSerializer
+class AssetRetrieveView(generics.RetrieveAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
 
 
-class InstanceUpdateView(generics.UpdateAPIView):
-    queryset = Instance.objects.all()
-    serializer_class = InstanceSerializer
+class AssetUpdateView(generics.UpdateAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
 
 
-class InstanceDestroyView(generics.DestroyAPIView):
-    queryset = Instance.objects.all()
-    serializer_class = InstanceSerializer
+class AssetDestroyView(generics.DestroyAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
 
 
-class InstanceListView(DestroyWithPayloadMixin, generics.ListAPIView):
-    queryset = Instance.objects.all()
-    serializer_class = InstanceSerializer
+class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
 
 
 # Rack

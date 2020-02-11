@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ITModel, Instance, Rack
+from .models import ITModel, Asset, Rack
 from django.contrib.auth.models import User
 
 class ITModelSerializer(serializers.ModelSerializer):
@@ -17,14 +17,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'id')
 
-class InstanceSerializer(serializers.ModelSerializer):
+class AssetSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Instance
+        model = Asset
         fields = '__all__'
 
-    def to_representation(self, instance):
-        response = super().to_representation(instance)
-        response['itmodel'] = ITModelSerializer(instance.itmodel).data
-        response['rack'] = RackSerializer(instance.rack).data
-        response['owner'] = UserSerializer(instance.owner).data
+    def to_representation(self, asset):
+        response = super().to_representation(asset)
+        response['itmodel'] = ITModelSerializer(asset.itmodel).data
+        response['rack'] = RackSerializer(asset.rack).data
+        response['owner'] = UserSerializer(asset.owner).data
         return response

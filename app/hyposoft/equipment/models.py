@@ -89,7 +89,7 @@ class Rack(models.Model):
         return "Rack {}".format(self.rack)
 
 
-class Instance(models.Model):
+class Asset(models.Model):
     itmodel = models.ForeignKey(
         ITModel,
         on_delete=models.PROTECT,
@@ -135,4 +135,4 @@ class Instance(models.Model):
 
     def clean(self, *args, **kwargs):
         if 42 < self.rack_position + self.itmodel.height - 1:
-            raise ValidationError("The instance does not fit on the specified rack.")
+            raise ValidationError("The asset does not fit on the specified rack.")
