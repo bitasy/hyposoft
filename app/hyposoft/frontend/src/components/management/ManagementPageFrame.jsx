@@ -10,7 +10,7 @@ const { Header, Content, Sider } = Layout;
 function ManagementPageFrame({ children }) {
   const dispatch = useDispatch();
 
-  const username = useSelector(s => s.currentUser.username);
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
 
   return (
     <Layout>
@@ -21,7 +21,7 @@ function ManagementPageFrame({ children }) {
           </h1>
         </Col>
         <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
-          {username === "admin" ? (
+          {isAdmin ? (
             <Button ghost style={{ marginRight: 8 }} href="admin">
               <Icon type="eye" />
               Admin page
@@ -61,8 +61,7 @@ const EXTERNAL_LINKS = {
 function Sidebar() {
   const history = useHistory();
 
-  const username = useSelector(s => s.currentUser.username);
-  const isAdmin = username === "admin";
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
 
   function handleClick(e) {
     const key = e.key;
