@@ -1,8 +1,9 @@
 from rest_framework import generics
-from .models import ITModel, Asset, Rack
-from .serializers import ITModelSerializer, AssetSerializer, RackSerializer
+from .models import *
+from .serializers import *
 from rest_framework.response import Response
 from rest_framework import status
+
 
 # This mixin makes the destroy view return the deleted item
 class DestroyWithPayloadMixin(object):
@@ -10,6 +11,33 @@ class DestroyWithPayloadMixin(object):
         serializer = self.get_serializer(self.get_object())
         super().destroy(*args, **kwargs)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# Datacenter
+class DatacenterCreateView(generics.CreateAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
+
+
+class DatacenterRetrieveView(generics.RetrieveAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
+
+
+class DatacenterUpdateView(generics.UpdateAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
+
+
+class DatacenterDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
+
+
+class DatacenterListView(generics.ListAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
+
 
 # ITModel
 class ITModelCreateView(generics.CreateAPIView):
@@ -89,3 +117,79 @@ class RackListView(generics.ListAPIView):
     serializer_class = RackSerializer
 
 
+# PDU
+class PDUCreateView(generics.CreateAPIView):
+    queryset = PDU.objects.all()
+    serializer_class = PDUSerializer
+
+
+class PDURetrieveView(generics.RetrieveAPIView):
+    queryset = PDU.objects.all()
+    serializer_class = PDUSerializer
+
+
+class PDUUpdateView(generics.UpdateAPIView):
+    queryset = PDU.objects.all()
+    serializer_class = PDUSerializer
+
+
+class PDUDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+    queryset = PDU.objects.all()
+    serializer_class = PDUSerializer
+
+
+class PDUListView(generics.ListAPIView):
+    queryset = PDU.objects.all()
+    serializer_class = PDUSerializer
+
+
+# NetworkPortLabel
+class NetworkPortLabelCreateView(generics.CreateAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelRetrieveView(generics.RetrieveAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelUpdateView(generics.UpdateAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelListView(generics.ListAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+# NetworkPort
+class NetworkPortCreateView(generics.CreateAPIView):
+    queryset = NetworkPort.objects.all()
+    serializer_class = NetworkPortSerializer
+
+
+class NetworkPortRetrieveView(generics.RetrieveAPIView):
+    queryset = NetworkPort.objects.all()
+    serializer_class = NetworkPortSerializer
+
+
+class NetworkPortUpdateView(generics.UpdateAPIView):
+    queryset = NetworkPort.objects.all()
+    serializer_class = NetworkPortSerializer
+
+
+class NetworkPortDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+    queryset = NetworkPort.objects.all()
+    serializer_class = NetworkPortSerializer
+
+
+class NetworkPortListView(generics.ListAPIView):
+    queryset = NetworkPort.objects.all()
+    serializer_class = NetworkPortSerializer
