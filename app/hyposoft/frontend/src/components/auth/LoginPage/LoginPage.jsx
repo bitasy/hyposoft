@@ -10,7 +10,7 @@ function LoginPage() {
     <Row type="flex" align="middle" justify="center" className="h100">
       <Col xs={22} lg={10} xl={6}>
         <Title className="center-text" level={2}>
-          HypoSoft
+          Hyposoft
         </Title>
         <Paragraph className="center-text">
           IT Asset Management System
