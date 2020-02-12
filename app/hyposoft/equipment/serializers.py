@@ -40,6 +40,12 @@ class AssetSerializer(serializers.ModelSerializer):
         return response
 
 
+class PDUSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PDU
+        fields = '__all__'
+
+
 class NetworkPortLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = NetworkPortLabel
