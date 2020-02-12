@@ -15,6 +15,8 @@ function ModelDetailPage() {
     Object.values(s.assets).filter(inst => inst.model.id === parseInt(id))
   );
 
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Model Details</Typography.Title>
@@ -25,6 +27,7 @@ function ModelDetailPage() {
         updateRecord={updateModel}
         deleteRecord={removeModel}
         schema={modelSchema}
+        disabled={!isAdmin}
       />
 
       <Typography.Title level={4}>Assets of this model</Typography.Title>

@@ -29,7 +29,8 @@ function AssetPositionPicker({
   value,
   hostname,
   onSelect,
-  onValidation
+  onValidation,
+  disabled
 }) {
   const temporaryAsset = value && {
     rack_position: value,
@@ -48,7 +49,7 @@ function AssetPositionPicker({
   };
 
   function validateAndSelect(asset, level) {
-    validateLevel(model, level, rack) && onSelect(asset, level);
+    !disabled && validateLevel(model, level, rack) && onSelect(asset, level);
   }
 
   return <Rack rack={newRack} onSelect={validateAndSelect} />;
