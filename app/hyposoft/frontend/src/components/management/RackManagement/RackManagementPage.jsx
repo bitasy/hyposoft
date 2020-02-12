@@ -13,7 +13,7 @@ function range(start, end) {
 }
 
 export const MAX_ROW = 26;
-export const MAX_COL = 39;
+export const MAX_COL = 99;
 
 const ROWS = range(0, MAX_ROW).map(indexToRow);
 const COLS = range(0, MAX_COL).map(v => (v + 1).toString());
