@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import ITModelCreateView, ITModelRetrieveView, ITModelUpdateView, ITModelDestroyView, ITModelListView, \
-                   AssetCreateView, AssetRetrieveView, AssetUpdateView, AssetDestroyView, AssetListView, \
-                   RackCreateView, RackRetrieveView, RackUpdateView, RackDestroyView, RackListView
+from .views import *
+from .generic_views import *
 
+# Generic Views
 urlpatterns = [
     path('ITModelCreate', ITModelCreateView.as_view()),
     path('ITModelRetrieve/<int:pk>', ITModelRetrieveView.as_view()),
@@ -19,4 +19,10 @@ urlpatterns = [
     path('RackUpdate/<int:pk>', RackUpdateView.as_view()),
     path('RackDestroy/<int:pk>', RackDestroyView.as_view()),
     path('RackList', RackListView.as_view()),
+]
+
+# Custom Views
+urlpatterns += [
+    path('ITModelFilter', ITModelFilterView.as_view()),
+    path('AssetFilter', AssetFilterView.as_view())
 ]

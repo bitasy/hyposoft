@@ -1,94 +1,47 @@
 from rest_framework import generics
-from .models import ITModel, Asset, Rack
 from .serializers import ITModelSerializer, AssetSerializer, RackSerializer
-from rest_framework.response import Response
-from rest_framework import status
+from .filters import ITModelFilter, AssetFilter
+from .models import ITModel, Asset, Rack
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
-# This mixin makes the destroy view return the deleted item
-class DestroyWithPayloadMixin(object):
-    def destroy(self, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object())
-        super().destroy(*args, **kwargs)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-# ITModel
-class ITModelCreateView(generics.CreateAPIView):
+class ITModelFilterView(generics.ListAPIView):
+    """
+    Class for returning ITModels after filtering criteria.
+    """
+
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['vendor', 'model_number', 'cpu', 'storage']
+
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
+    filterset_class = ITModelFilter
 
+class AssetFilterView(generics.ListAPIView):
+    """
+    Class for returning Instances after filtering criteria.
+    """
 
-class ITModelRetrieveView(generics.RetrieveAPIView):
-    queryset = ITModel.objects.all()
-    serializer_class = ITModelSerializer
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = [
+        'itmodel__vendor',
+        'itmodel__model_number',
+        'hostname',
+        'owner__username',
+        'owner__first_name',
+        'owner__last_name'
+    ]
 
-
-class ITModelUpdateView(generics.UpdateAPIView):
-    queryset = ITModel.objects.all()
-    serializer_class = ITModelSerializer
-
-
-class ITModelDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
-    queryset = ITModel.objects.all()
-    serializer_class = ITModelSerializer
-
-
-class ITModelListView(generics.ListAPIView):
-    queryset = ITModel.objects.all()
-    serializer_class = ITModelSerializer
-
-
-# Asset
-class AssetCreateView(generics.CreateAPIView):
-    queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+    filterset_class = AssetFilter
 
+    def get_queryset(self):
+        queryset = Asset.objects.all()
+        rack_min = self.request.query_params.get("rack_min", None)
+        rack_max = self.request.query_params.get("rack_max", None)
+        if rack_max is not None and rack_max is not None:
+            racks = Rack.objects.in_racks(rack_min, rack_max)
+            queryset = queryset.filter(rack__in=racks)
 
-class AssetRetrieveView(generics.RetrieveAPIView):
-    queryset = Asset.objects.all()
-    serializer_class = AssetSerializer
-
-
-class AssetUpdateView(generics.UpdateAPIView):
-    queryset = Asset.objects.all()
-    serializer_class = AssetSerializer
-
-
-class AssetDestroyView(generics.DestroyAPIView):
-    queryset = Asset.objects.all()
-    serializer_class = AssetSerializer
-
-
-class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView):
-    queryset = Asset.objects.all()
-    serializer_class = AssetSerializer
-
-
-# Rack
-class RackCreateView(generics.CreateAPIView):
-    queryset = Rack.objects.all()
-    serializer_class = RackSerializer
-
-
-class RackRetrieveView(generics.RetrieveAPIView):
-    queryset = Rack.objects.all()
-    serializer_class = RackSerializer
-
-
-class RackUpdateView(generics.UpdateAPIView):
-    queryset = Rack.objects.all()
-    serializer_class = RackSerializer
-
-
-class RackDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
-    queryset = Rack.objects.all()
-    serializer_class = RackSerializer
-
-
-class RackListView(generics.ListAPIView):
-    queryset = Rack.objects.all()
-    serializer_class = RackSerializer
-
-
-
-
-
+        return queryset
