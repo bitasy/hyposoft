@@ -1,21 +1,31 @@
 from rest_framework import serializers
-from .models import ITModel, Asset, Rack
+from .models import *
 from django.contrib.auth.models import User
+
+
+class DatacenterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Datacenter
+        fields = '__all__'
+
 
 class ITModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = ITModel
         fields = '__all__'
 
+
 class RackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rack
         fields = '__all__'
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'id')
+
 
 class AssetSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,3 +38,22 @@ class AssetSerializer(serializers.ModelSerializer):
         response['rack'] = RackSerializer(asset.rack).data
         response['owner'] = UserSerializer(asset.owner).data
         return response
+
+
+class NetworkPortLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NetworkPortLabel
+        fields = '__all__'
+
+
+class NetworkPortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NetworkPort
+        fields = '__all__'
+
+
+class PoweredSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Powered
+        fields = '__all__'
+
