@@ -11,10 +11,10 @@ function decorateColumns(columns) {
   });
 }
 
-function ListFooter({ onCreate }) {
+function ListFooter({ onCreate, createDisabled }) {
   return (
     <div>
-      <Button onClick={onCreate}>
+      <Button onClick={onCreate} disabled={createDisabled}>
         <Icon type="plus"></Icon>
       </Button>
     </div>
@@ -29,7 +29,15 @@ function getDefaults(data, filters) {
   }, {});
 }
 
-function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
+function DataList({
+  columns,
+  filters,
+  data,
+  onSelect,
+  onCreate,
+  noCreate,
+  createDisabled
+}) {
   const paginationConfig = {
     position: "top",
     defaultPageSize: 10,
@@ -86,7 +94,9 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
         }}
         pagination={paginationConfig}
         className="pointer-on-hover"
-        footer={() => (noCreate ? null : ListFooter({ onCreate }))}
+        footer={() =>
+          noCreate ? null : ListFooter({ onCreate, createDisabled })
+        }
       />
     </>
   );

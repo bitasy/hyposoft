@@ -27,7 +27,13 @@ const formItemLayout = {
   wrapperCol: { span: 16 }
 };
 
-function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
+function StringFormItem({
+  form,
+  schemaFrag,
+  originalValue,
+  onChange,
+  disabled
+}) {
   const initialValue = originalValue || schemaFrag.defaultValue;
 
   const extractDS = schemaFrag.extractDataSource;
@@ -48,6 +54,7 @@ function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
         initialValue: initialValue.toString()
       })(
         <AutoComplete
+          disabled={disabled}
           placeholder={schemaFrag.displayName}
           dataSource={dataSource}
           filterOption={(input, option) => option.key.includes(input)}
@@ -60,7 +67,13 @@ function StringFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
-function NumberFormItem({ form, schemaFrag, originalValue, onChange }) {
+function NumberFormItem({
+  form,
+  schemaFrag,
+  originalValue,
+  onChange,
+  disabled
+}) {
   const initialValue = originalValue || schemaFrag.defaultValue;
 
   React.useEffect(() => {
@@ -75,6 +88,7 @@ function NumberFormItem({ form, schemaFrag, originalValue, onChange }) {
     <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
       {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
         <InputNumber
+          disabled={disabled}
           placeholder={schemaFrag.displayName}
           min={schemaFrag.min}
           onChange={v => onChange({ [schemaFrag.fieldName]: v })}
@@ -85,7 +99,13 @@ function NumberFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
-function ColorFormItem({ form, schemaFrag, originalValue, onChange }) {
+function ColorFormItem({
+  form,
+  schemaFrag,
+  originalValue,
+  onChange,
+  disabled
+}) {
   const initialValue = originalValue || schemaFrag.defaultValue;
 
   React.useEffect(() => {
@@ -105,8 +125,10 @@ function ColorFormItem({ form, schemaFrag, originalValue, onChange }) {
         initialValue
       })(
         <ChromePicker
+          disableAlpha
           color={value}
           onChange={color => {
+            if (disabled) return;
             setValue(color);
             onChange({ [schemaFrag.fieldName]: color.hex });
           }}
@@ -116,7 +138,13 @@ function ColorFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
-function TextAreaFormItem({ form, schemaFrag, originalValue, onChange }) {
+function TextAreaFormItem({
+  form,
+  schemaFrag,
+  originalValue,
+  onChange,
+  disabled
+}) {
   const initialValue = originalValue || schemaFrag.defaultValue;
 
   React.useEffect(() => {
@@ -131,6 +159,7 @@ function TextAreaFormItem({ form, schemaFrag, originalValue, onChange }) {
     <Form.Item label={schemaFrag.displayName} {...formItemLayout}>
       {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
         <Input.TextArea
+          disabled={disabled}
           placeholder={schemaFrag.displayName}
           rows={5}
           onChange={e => onChange({ [schemaFrag.fieldName]: e.target.value })}
@@ -140,7 +169,7 @@ function TextAreaFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
-function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
+function RackFormItem({ form, schemaFrag, originalValue, onChange, disabled }) {
   const rules = schemaFrag.required
     ? [{ required: true, message: "This field is required" }]
     : [];
@@ -159,6 +188,7 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
         initialValue: originalValue && originalValue.id
       })(
         <Select
+          disabled={disabled}
           onChange={v =>
             onChange({
               [schemaFrag.fieldName]: rackList.filter(m => m.id === v)[0]
@@ -176,7 +206,13 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange }) {
   );
 }
 
-function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
+function ModelFormItem({
+  form,
+  schemaFrag,
+  originalValue,
+  onChange,
+  disabled
+}) {
   const rules = schemaFrag.required
     ? [{ required: true, message: "This field is required" }]
     : [];
@@ -205,6 +241,7 @@ function ModelFormItem({ form, schemaFrag, originalValue, onChange }) {
           })(
             <Select
               showSearch
+              disabled={disabled}
               onChange={v => {
                 onChange({ [schemaFrag.fieldName]: modelsByID[v] });
               }}
@@ -241,7 +278,8 @@ function RackUFormItem({
   schemaFrag,
   originalValue,
   currentRecord,
-  onChange
+  onChange,
+  disabled
 }) {
   const initialValue = originalValue || schemaFrag.defaultValue;
   const rules = schemaFrag.required
@@ -278,6 +316,7 @@ function RackUFormItem({
           rack={rack}
           model={currentRecord.model}
           hostname={currentRecord.hostname}
+          disabled={disabled}
           onSelect={(instance, level) => {
             onChange({
               [schemaFrag.fieldName]: level
@@ -299,7 +338,7 @@ function RackUFormItem({
   ) : null;
 }
 
-function UserFormItem({ form, schemaFrag, originalValue, onChange }) {
+function UserFormItem({ form, schemaFrag, originalValue, onChange, disabled }) {
   const dispatch = useDispatch();
 
   const initialValue = originalValue && originalValue.id;
@@ -319,6 +358,7 @@ function UserFormItem({ form, schemaFrag, originalValue, onChange }) {
         <Select
           allowClear
           showSearch
+          disabled={disabled}
           onChange={v => {
             if (v === undefined) v = null;
             onChange({ [schemaFrag.fieldName]: v && usersByID[v] });

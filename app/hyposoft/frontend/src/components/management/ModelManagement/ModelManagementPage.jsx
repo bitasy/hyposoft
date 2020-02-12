@@ -15,6 +15,8 @@ function ModelManagementPage() {
     dispatch(fetchModels());
   }, []);
 
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Models</Typography.Title>
@@ -38,6 +40,7 @@ function ModelManagementPage() {
         data={models}
         onSelect={id => history.push(`/models/${id}`)}
         onCreate={() => history.push("/models/create")}
+        createDisabled={!isAdmin}
       />
     </div>
   );

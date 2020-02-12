@@ -29,7 +29,8 @@ function InstancePositionPicker({
   value,
   hostname,
   onSelect,
-  onValidation
+  onValidation,
+  disabled
 }) {
   const temporaryInstance = value && {
     rack_position: value,
@@ -50,7 +51,7 @@ function InstancePositionPicker({
   };
 
   function validateAndSelect(instance, level) {
-    validateLevel(model, level, rack) && onSelect(instance, level);
+    !disabled && validateLevel(model, level, rack) && onSelect(instance, level);
   }
 
   return <Rack rack={newRack} onSelect={validateAndSelect} />;

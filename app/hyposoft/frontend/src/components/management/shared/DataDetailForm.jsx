@@ -12,7 +12,8 @@ function DataDetailForm({
   getRecord,
   updateRecord,
   deleteRecord,
-  schema
+  schema,
+  disabled
 }) {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -60,18 +61,24 @@ function DataDetailForm({
           onChange={changeSet => {
             setNewRecord(Object.assign(newRecord, changeSet));
           }}
+          disabled={disabled}
         />
       ))}
       <Form.Item>
         <Button.Group style={{ width: "100%", display: "flex" }}>
           <Button
             htmlType="submit"
-            disabled={!canUpdate}
+            disabled={disabled || !canUpdate}
             style={{ flexGrow: 8 }}
           >
             Update
           </Button>
-          <Button htmlType="button" type="danger" onClick={handleDelete}>
+          <Button
+            htmlType="button"
+            type="danger"
+            onClick={handleDelete}
+            disabled={disabled}
+          >
             <Icon type="delete" />
           </Button>
         </Button.Group>
