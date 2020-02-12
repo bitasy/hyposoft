@@ -81,7 +81,7 @@ export const modelSchema = [
     defaultValue: ""
   },
   {
-    displayName: "Memory",
+    displayName: "Memory (In GBs)",
     fieldName: "memory",
     type: "number",
     required: false,
