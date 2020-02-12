@@ -3,17 +3,17 @@ import Axios from "axios";
 import produce from "immer";
 
 // Auth APIs
+function fetchCurrentUser() {
+  return Axios.get("auth/current_user").then(getData);
+}
+
 function login(username, password) {
-  return Axios.post("api/auth/token/", { username, password })
-    .then(getData)
-    .then(r => {
-      return { token: r.token, username };
-    });
+  return Axios.post("auth/login", { username, password }).then(getData);
 }
 
 function logout() {
   // we don't really send out api calls (for now)
-  return Promise.resolve();
+  return Axios.post("auth/logout").then(getData);
 }
 
 // Model APIs
@@ -150,6 +150,7 @@ function getData(res) {
 }
 
 const RealAPI = {
+  fetchCurrentUser,
   login,
   logout,
 

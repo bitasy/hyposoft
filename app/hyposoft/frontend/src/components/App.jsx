@@ -13,18 +13,34 @@ import CreateModelPage from "./management/ModelManagement/CreateModelPage";
 import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchCurrentUser } from "../redux/actions";
 
 export default function App() {
   return <Routes />;
 }
 
 function Routes() {
-  const sessionInfo = useSelector(s => s.sessionInfo);
+  const dispatch = useDispatch();
 
-  console.log(sessionInfo);
+  const [loading, setLoading] = React.useState(true);
 
-  return sessionInfo ? (
+  React.useEffect(() => {
+    dispatch(
+      fetchCurrentUser(
+        () => setLoading(false),
+        () => setLoading(false)
+      )
+    );
+  }, []);
+
+  const currentUser = useSelector(s => s.currentUser);
+
+  if (loading) {
+    return <div />;
+  }
+
+  return currentUser ? (
     <Router>
       <Switch>
         <Route exact path="/racks/print_view">

@@ -5,7 +5,8 @@ import {
   REMOVE_RACKS,
   FETCH_ALL_USERS,
   LOGIN,
-  LOGOUT
+  LOGOUT,
+  FETCH_CURRENT_USER
 } from "./actions";
 import produce from "immer";
 import { modelCRUDActionTypes, assetCRUDActionTypes } from "./actions";
@@ -159,6 +160,15 @@ function genUserReducer() {
   return applyAll([genFetchAllReducer(FETCH_ALL_USERS)]);
 }
 
+function fetchCurrentUserReducer() {
+  return genAsyncReducer(
+    FETCH_CURRENT_USER,
+    s => s,
+    (s, res) => res,
+    (s, err) => s
+  );
+}
+
 function loginReducer() {
   return genAsyncReducer(
     LOGIN,
@@ -188,7 +198,7 @@ const rackReducer = genRackReducer();
 const userReducer = genUserReducer();
 
 const HyposoftApp = combineReducers({
-  sessionInfo: sessionReducer,
+  currentUser: sessionReducer,
   models: modelReducer,
   assets: assetReducer,
   racks: rackReducer,

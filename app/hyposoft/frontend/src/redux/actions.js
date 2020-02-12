@@ -1,5 +1,4 @@
 import API from "../api/API";
-import { storeToken, removeToken } from "../global/Session";
 import { displayError } from "../global/message";
 
 const crud_prefixes = ["FETCH_ALL", "FETCH", "CREATE", "UPDATE", "REMOVE"];
@@ -127,30 +126,17 @@ export const FETCH_ALL_USERS = "FETCH_ALL_USERS";
 export const fetchUsers = (onSuccess = noOp, onFailure = noOp) =>
   genAsyncAction(FETCH_ALL_USERS, API.getUsers, [], onSuccess, onFailure);
 
+export const FETCH_CURRENT_USER = "FETCH_CURRENT_USER";
+
+export const fetchCurrentUser = (onSuccess = noOp, onFailure = noOp) =>
+  genAsyncAction(LOGIN, API.fetchCurrentUser, [], onSuccess, onFailure);
+
 export const LOGIN = "LOGIN";
 
 export const login = (username, password, onSuccess = noOp, onFailure = noOp) =>
-  genAsyncAction(
-    LOGIN,
-    API.login,
-    [username, password],
-    res => {
-      onSuccess(res);
-      storeToken(res);
-    },
-    onFailure
-  );
+  genAsyncAction(LOGIN, API.login, [username, password], onSuccess, onFailure);
 
 export const LOGOUT = "LOGOUT";
 
 export const logout = (onSuccess = noOp, onFailure = noOp) =>
-  genAsyncAction(
-    LOGOUT,
-    API.logout,
-    [],
-    res => {
-      onSuccess(res);
-      removeToken();
-    },
-    onFailure
-  );
+  genAsyncAction(LOGOUT, API.logout, [], onSuccess, onFailure);

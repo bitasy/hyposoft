@@ -10,7 +10,7 @@ const { Header, Content, Sider } = Layout;
 function ManagementPageFrame({ children }) {
   const dispatch = useDispatch();
 
-  const username = useSelector(s => s.sessionInfo.username);
+  const username = useSelector(s => s.currentUser.username);
 
   return (
     <Layout>
@@ -61,7 +61,7 @@ const EXTERNAL_LINKS = {
 function Sidebar() {
   const history = useHistory();
 
-  const username = useSelector(s => s.sessionInfo.username);
+  const username = useSelector(s => s.currentUser.username);
   const isAdmin = username === "admin";
 
   function handleClick(e) {
