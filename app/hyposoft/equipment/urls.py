@@ -3,23 +3,16 @@ from .views import *
 from .generic_views import *
 
 # Generic Views
-urlpatterns = [
-    path('ITModelCreate', ITModelCreateView.as_view()),
-    path('ITModelRetrieve/<int:pk>', ITModelRetrieveView.as_view()),
-    path('ITModelUpdate/<int:pk>', ITModelUpdateView.as_view()),
-    path('ITModelDestroy/<int:pk>', ITModelDestroyView.as_view()),
-    path('ITModelList', ITModelListView.as_view()),
-    path('AssetCreate', AssetCreateView.as_view()),
-    path('AssetRetrieve/<int:pk>', AssetRetrieveView.as_view()),
-    path('AssetUpdate/<int:pk>', AssetUpdateView.as_view()),
-    path('AssetDestroy/<int:pk>', AssetDestroyView.as_view()),
-    path('AssetList', AssetListView.as_view()),
-    path('RackCreate', RackCreateView.as_view()),
-    path('RackRetrieve/<int:pk>', RackRetrieveView.as_view()),
-    path('RackUpdate/<int:pk>', RackUpdateView.as_view()),
-    path('RackDestroy/<int:pk>', RackDestroyView.as_view()),
-    path('RackList', RackListView.as_view()),
-]
+import inspect
+from . import generic_views
+views = [(name, cls) for name, cls in generic_views.__dict__.items() if isinstance(cls, type) and name[-4:] == "View"]
+
+urlpatterns = []
+
+for view in views:
+    urlpatterns.append(
+        path(view[0], view[1].as_view())
+    )
 
 # Custom Views
 urlpatterns += [
