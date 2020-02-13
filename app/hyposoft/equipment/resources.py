@@ -19,6 +19,13 @@ class ITModelResource(resources.ModelResource):
 
 class InstanceResource(resources.ModelResource):
 
+    class MyForeignKeyWidget(ForeignKeyWidget):
+        def clean(self, value, row):
+            return self.model.objects.get(
+                vendor__iexact=row["vendor"],
+                model_number__iexact=row["model_number"]
+            )
+
     rack = fields.Field(
         column_name='rack',
         attribute='rack',
@@ -27,12 +34,12 @@ class InstanceResource(resources.ModelResource):
     vendor = fields.Field(
         column_name='vendor',
         attribute='itmodel',
-        widget=ForeignKeyWidget(ITModel, 'vendor')
+        widget=MyForeignKeyWidget(ITModel, 'vendor')
     )
     model_number = fields.Field(
         column_name='model_number',
         attribute='itmodel',
-        widget=ForeignKeyWidget(ITModel, 'model_number')
+        widget=MyForeignKeyWidget(ITModel, 'model_number')
     )
     owner = fields.Field(
         column_name='owner',
@@ -44,7 +51,7 @@ class InstanceResource(resources.ModelResource):
         model = Instance
         import_id_fields = ('hostname', 'vendor', 'model_number')
         export_order = ('hostname', 'rack', 'rack_position', 'vendor', 'model_number', 'owner', 'comment')
-        exclude = ('id', 'itmodel')
+        exclude = ('id','itmodel')
         skip_unchanged = True
         report_skipped = True
         clean_model_instances = True
