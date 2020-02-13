@@ -377,7 +377,9 @@ function UserFormItem({ form, schemaFrag, originalValue, onChange, disabled }) {
             onChange({ [schemaFrag.fieldName]: v && usersByID[v] });
           }}
           filterOption={(input, option) => {
-            return modelKeywordMatch(input, usersByID[option.props.value]);
+            return usersByID[option.props.value].username
+              .toLowerCase()
+              .includes(input.toLowerCase());
           }}
         >
           {userList.map(user => (
