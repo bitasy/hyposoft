@@ -17,7 +17,8 @@ export function colToIndex(col) {
 }
 
 export function indexToCol(idx) {
-  return (idx + 1).toString();
+  const s = (idx + 1).toString();
+  return s.length > 1 ? s : "0" + s;
 }
 
 export function toIndex(rack) {

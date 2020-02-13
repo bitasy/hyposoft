@@ -13,7 +13,10 @@ import {
 } from "antd";
 import { ChromePicker } from "react-color";
 import InstancePositionPicker from "./InstancePositionPicker";
-import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
+import {
+  modelKeywordMatch,
+  modelToString
+} from "../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchModels,
@@ -175,7 +178,9 @@ function RackFormItem({ form, schemaFrag, originalValue, onChange, disabled }) {
     : [];
 
   const dispatch = useDispatch();
-  const rackList = useSelector(s => Object.values(s.racks));
+  const rackList = useSelector(s =>
+    Object.values(s.racks).sort((r1, r2) => r1.rack.localeCompare(r2.rack))
+  );
 
   React.useEffect(() => {
     dispatch(fetchRacks());
@@ -222,7 +227,11 @@ function ModelFormItem({
 
   const initialValue = originalValue && originalValue.id;
 
-  const modelList = useSelector(s => Object.values(s.models));
+  const modelList = useSelector(s =>
+    Object.values(s.models).sort((m1, m2) =>
+      modelToString(m1).localeCompare(modelToString(m2))
+    )
+  );
   const modelsByID = useSelector(s => s.models);
 
   React.useEffect(() => {
@@ -343,7 +352,11 @@ function UserFormItem({ form, schemaFrag, originalValue, onChange, disabled }) {
 
   const initialValue = originalValue && originalValue.id;
 
-  const userList = useSelector(s => Object.values(s.users));
+  const userList = useSelector(s =>
+    Object.values(s.users).sort((u1, u2) =>
+      u1.username.localeCompare(u2.username)
+    )
+  );
   const usersByID = useSelector(s => s.users);
 
   React.useEffect(() => {

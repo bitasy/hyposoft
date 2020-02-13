@@ -81,7 +81,7 @@ class Rack(models.Model):
         unique=True,
         max_length=4,
         validators=[
-            RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
+            RegexValidator("^[A-Z]{1,2}[0-9]{2}$",
                            message="Row number must be specified by one or two capital letters.")
         ]
     )

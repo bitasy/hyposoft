@@ -64,11 +64,8 @@ function GridRangeSelector({ initialValue, onChange, clearTrigger }) {
           value={p1}
           onChange={e => {
             const str = e.target.value;
-            const error = isValidSubstr(str);
-            if (error == null) {
-              setP1(str);
-              setP1ErrMsg("");
-            } else setP1ErrMsg(error);
+            setP1(str);
+            setP1ErrMsg("");
           }}
         />
       </Form.Item>
@@ -82,11 +79,8 @@ function GridRangeSelector({ initialValue, onChange, clearTrigger }) {
           value={p2}
           onChange={e => {
             const str = e.target.value;
-            const error = isValidSubstr(str);
-            if (error == null) {
-              setP2(str);
-              setP2ErrMsg("");
-            } else setP2ErrMsg(error);
+            setP2(str);
+            setP2ErrMsg("");
           }}
         />
       </Form.Item>
@@ -109,20 +103,6 @@ function validate(s) {
   if (c < 0 || c >= MAX_COL) return "Column out of bounds";
 
   return null;
-}
-
-function isValidSubstr(s) {
-  if (s.length == 0) {
-    return null;
-  } else if (s.length == 1) {
-    const r = rowToIndex(s);
-    if (0 <= r && r < MAX_ROW) return null;
-    else {
-      return "The first character must be a character between A-Z!";
-    }
-  } else {
-    return validate(s);
-  }
 }
 
 function destructure(p1, p2) {
