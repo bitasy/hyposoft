@@ -20,7 +20,7 @@ class ITModelFilterView(generics.ListAPIView):
 
 class AssetFilterView(generics.ListAPIView):
     """
-    Class for returning Instances after filtering criteria.
+    Class for returning Assets after filtering criteria.
     """
 
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]

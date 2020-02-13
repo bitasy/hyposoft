@@ -193,3 +193,28 @@ class NetworkPortDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
 class NetworkPortListView(generics.ListAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
+
+
+class PoweredCreateView(generics.CreateAPIView):
+    queryset = Powered.objects.all()
+    serializer_class = PoweredSerializer
+
+
+class PoweredRetrieveView(generics.RetrieveAPIView):
+    queryset = Powered.objects.all()
+    serializer_class = PoweredSerializer
+
+
+class PoweredUpdateView(generics.UpdateAPIView):
+    queryset = Powered.objects.all()
+    serializer_class = PoweredSerializer
+
+
+class PoweredDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+    queryset = Powered.objects.all()
+    serializer_class = PoweredSerializer
+
+
+class PoweredListView(generics.ListAPIView):
+    queryset = Powered.objects.all()
+    serializer_class = PoweredSerializer

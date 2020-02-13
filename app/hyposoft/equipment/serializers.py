@@ -62,4 +62,3 @@ class PoweredSerializer(serializers.ModelSerializer):
     class Meta:
         model = Powered
         fields = '__all__'
-

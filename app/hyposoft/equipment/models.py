@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
+from rest_framework import serializers
 from django.contrib.auth.models import User
 
 
@@ -78,6 +78,11 @@ class ITModel(models.Model):
 
 
 class PDU(models.Model):
+    pdu_model = models.CharField(
+        max_length=64,
+        blank=True,
+        default="PDU Networx 98 Pro"
+    )
     assets = models.ManyToManyField(
         "Asset",
         through='Powered'
@@ -140,9 +145,10 @@ class Asset(models.Model):
     hostname = models.CharField(
         unique=True,
         null=True,
+        blank=True,
         max_length=64,
         validators=[
-            RegexValidator(r"^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
+            RegexValidator(r"^&|([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
                            message="Hostname must be compliant with RFC 1034.")
         ]
     )
@@ -177,9 +183,11 @@ class Asset(models.Model):
     )
     mac_address = models.CharField(
         unique=True,
+        null=True,
+        blank=True,
         max_length=17,
         validators=[
-            RegexValidator("^([0-9a-f]{2}:){5}[0-9a-f]{2}$",
+            RegexValidator("^$|([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
     )
@@ -187,6 +195,7 @@ class Asset(models.Model):
     asset_number = models.IntegerField(
         blank=True,
         unique=True,
+        default=0
     )
 
     class Meta:
@@ -195,9 +204,42 @@ class Asset(models.Model):
     def __str__(self):
         return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
 
-    def clean(self, *args, **kwargs):
+    def save(self, *args, **kwargs):
+        if self.asset_number == 0:
+            nums = Asset.objects.all()
+            highest = 99999
+            for asset in nums:
+                if asset.asset_number > highest:
+                    highest = asset.asset_number
+            self.asset_number = highest + 1
+            if self.asset_number > 999999:
+                raise serializers.ValidationError("The asset number is too large. Please try manually setting it to be 6 digits.")
+
         if 42 < self.rack_position + self.itmodel.height - 1:
-            raise ValidationError("The asset does not fit on the specified rack.")
+            raise serializers.ValidationError("The asset does not fit on the specified rack from the given position.")
+
+        blocked = Asset.objects.filter(
+            rack=self.rack,
+            rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height))
+
+        if len(blocked) > 0:
+            raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+
+        i = self.rack_position - 1
+        while i > 0:
+            under = Asset.objects.filter(
+                rack=self.rack,
+                rack_position=i
+            )
+            if len(under) > 0:
+                asset = under.values_list('rack_position', 'itmodel.height')[0][0]
+                if asset.rack_position + asset.height > self.rack_position:
+                    raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+                else:
+                    break
+            i -= 1
+
+        super().save(*args, **kwargs)
 
 
 class NetworkPortLabel(models.Model):
@@ -210,7 +252,8 @@ class NetworkPortLabel(models.Model):
         on_delete=models.CASCADE
     )
 
-    unique_together = ['name', 'itmodel']
+    class Meta:
+        unique_together = ['name', 'itmodel']
 
 
 class NetworkPort(models.Model):
@@ -228,7 +271,8 @@ class NetworkPort(models.Model):
         on_delete=models.SET_NULL
     )
 
-    unique_together = ['label', 'asset']
+    class Meta:
+        unique_together = ['label', 'asset']
 
 
 class Powered(models.Model):
@@ -252,4 +296,10 @@ class Powered(models.Model):
         default=False
     )
 
-    unique_together = ['plug_number', 'pdu']
+    def save(self, *args, **kwargs):
+        if self.asset.rack.left_pdu != self.pdu and self.asset.rack.right_pdu != self.pdu:
+            raise serializers.ValidationError("PDU must be on the same rack as the asset.")
+        super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ['plug_number', 'pdu']
