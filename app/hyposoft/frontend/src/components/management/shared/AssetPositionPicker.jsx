@@ -1,5 +1,6 @@
 import React from "react";
 import Rack from "./Rack";
+import { InputNumber } from "antd";
 
 function toInterval(level, height) {
   return [level, level + height];
@@ -49,10 +50,26 @@ function AssetPositionPicker({
   };
 
   function validateAndSelect(asset, level) {
-    !disabled && validateLevel(model, level, rack) && onSelect(asset, level);
+    if (disabled) return;
+    const isValid = validateLevel(model, level, rack);
+    onValidation(isValid);
+    if (!isValid) return;
+    onSelect(asset, level);
   }
 
-  return <Rack rack={newRack} onSelect={validateAndSelect} />;
+  return (
+    <div>
+      <InputNumber
+        value={value}
+        min={1}
+        max={42}
+        onChange={v => validateAndSelect(null, v)}
+        style={{ width: "100%" }}
+        disabled={disabled}
+      />
+      <Rack rack={newRack} onSelect={validateAndSelect} />
+    </div>
+  );
 }
 
 // pretend that we're forwarding the reference, since the fieldDecorator is keep complaining
