@@ -31,7 +31,7 @@ export const modelSchema = [
     fieldName: "vendor",
     type: "string",
     extractDataSource: state =>
-      removeDuplicates(Object.values(state.models).map(m => m.vendor)),
+      removeDuplicates(Object.values(state.models).map(m => m.vendor)).sort(),
     required: true,
     defaultValue: ""
   },

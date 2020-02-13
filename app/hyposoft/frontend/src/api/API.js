@@ -120,7 +120,7 @@ function createRacks(fromRow, toRow, fromNumber, toNumber) {
     const row = String.fromCharCode(i);
     for (let j = parseInt(fromNumber); j <= parseInt(toNumber); j++) {
       toCreate.push({
-        rack: row + j
+        rack: row + (j < 10 ? "0" : "") + j
       });
     }
   }
