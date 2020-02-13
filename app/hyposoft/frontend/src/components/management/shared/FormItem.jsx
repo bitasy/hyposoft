@@ -336,8 +336,11 @@ function RackUFormItem({
           }}
           onValidation={isValid => {
             if (!isValid) {
-              form.setFieldsValue({
-                [schemaFrag.fieldName]: null
+              form.setFields({
+                [schemaFrag.fieldName]: {
+                  value: null,
+                  errors: [new Error("Invalid position!")]
+                }
               });
             }
           }}
