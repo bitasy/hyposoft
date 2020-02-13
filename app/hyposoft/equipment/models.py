@@ -96,14 +96,6 @@ class Instance(models.Model):
         on_delete=models.PROTECT,
         verbose_name="Model"
     )
-    vendor = models.CharField(
-        max_length=64,
-        blank=True
-    )
-    model_number = models.CharField(
-        max_length=64,
-        blank=True
-    )
     hostname = models.CharField(
         unique=True,
         max_length=64,
