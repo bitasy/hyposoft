@@ -1,4 +1,4 @@
-from import_export.admin import ImportExportModelAdmin, ImportExportActionModelAdmin
+from import_export.admin import ImportExportActionModelAdmin
 from .resources import ITModelResource, InstanceResource
 from django.contrib import admin
 from import_export.formats import base_formats
