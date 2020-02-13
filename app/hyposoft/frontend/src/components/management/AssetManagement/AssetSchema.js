@@ -9,11 +9,11 @@ function strcmp(a, b) {
   else return a < b ? -1 : 1;
 }
 
-function instanceToLocation(instance) {
-  return `${instance.rack.rack} U${instance.rack_position}`;
+function assetToLocation(asset) {
+  return `${asset.rack.rack} U${asset.rack_position}`;
 }
 
-export const instanceSchema = [
+export const assetSchema = [
   {
     displayName: "Model",
     fieldName: "model",
@@ -58,7 +58,7 @@ export const instanceSchema = [
   }
 ];
 
-export const instanceColumns = [
+export const assetColumns = [
   {
     title: "Model",
     key: "model",
@@ -76,8 +76,8 @@ export const instanceColumns = [
   {
     title: "Location",
     key: "location",
-    toString: r => instanceToLocation(r),
-    sorter: (a, b) => strcmp(instanceToLocation(a) - instanceToLocation(b)),
+    toString: r => assetToLocation(r),
+    sorter: (a, b) => strcmp(assetToLocation(a) - assetToLocation(b)),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
   },
@@ -90,20 +90,20 @@ export const instanceColumns = [
   }
 ];
 
-function instanceKeywordMatch(value, record) {
+function assetKeywordMatch(value, record) {
   const lowercase = value.toLowerCase();
-  return instanceSchema
+  return assetSchema
     .filter(frag => frag.type === "string" && record[frag.fieldName])
     .map(frag => (record[frag.fieldName] || "").toLowerCase())
     .some(str => str.includes(lowercase));
 }
 
-function isInside([minR, maxR, minC, maxC], instance) {
-  const [r, c] = toIndex(instance.rack.rack);
+function isInside([minR, maxR, minC, maxC], asset) {
+  const [r, c] = toIndex(asset.rack.rack);
   return minR <= r && r <= maxR && minC <= c && c <= maxC;
 }
 
-export const instanceFilters = [
+export const assetFilters = [
   {
     title: "Keyword Search (Ignoring case)",
     fieldName: "keyword",
@@ -112,7 +112,7 @@ export const instanceFilters = [
     shouldInclude: (value, record) => {
       return (
         modelKeywordMatch(value, record.model) ||
-        instanceKeywordMatch(value, record)
+        assetKeywordMatch(value, record)
       );
     }
   },

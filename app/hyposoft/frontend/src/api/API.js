@@ -40,22 +40,22 @@ function deleteModel(id) {
 }
 
 // Asset APIs
-function translate(instance) {
-  Object.assign(instance, { model: instance.itmodel });
-  delete instance.itmodel;
-  return instance;
+function translate(asset) {
+  Object.assign(asset, { model: asset.itmodel });
+  delete asset.itmodel;
+  return asset;
 }
 
 function getAssets() {
   return Axios.get("api/equipment/AssetList")
     .then(getData)
-    .then(instances => instances.map(translate));
+    .then(assets => assets.map(translate));
 }
 
 // ex) A12
 function getAssetsForRack(rackID) {
-  return getAssets().then(instances =>
-    instances.filter(inst => inst.rack.id === rackID)
+  return getAssets().then(assets =>
+    assets.filter(asset => asset.rack.id === rackID)
   );
 }
 

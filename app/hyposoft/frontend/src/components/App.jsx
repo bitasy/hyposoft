@@ -5,12 +5,12 @@ import LoginPage from "./auth/LoginPage/LoginPage";
 import ManagementPageFrame from "./management/ManagementPageFrame";
 import ModelManagementPage from "./management/ModelManagement/ModelManagementPage";
 import ModelDetailPage from "./management/ModelManagement/ModelDetailPage";
-import InstanceManagementPage from "./management/InstanceManagement/InstanceManagementPage";
+import AssetManagementPage from "./management/AssetManagement/AssetManagementPage";
 import ToolingPage from "./management/Tooling/ToolingPage";
 import OverviewPage from "./management/Overview/OverviewPage";
-import InstanceDetailPage from "./management/InstanceManagement/InstanceDetailPage";
+import AssetDetailPage from "./management/AssetManagement/AssetDetailPage";
 import CreateModelPage from "./management/ModelManagement/CreateModelPage";
-import CreateInstancePage from "./management/InstanceManagement/CreateInstancePage";
+import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import { useSelector } from "react-redux";
@@ -43,14 +43,14 @@ function Routes() {
                 <ModelDetailPage />
               </Route>
 
-              <Route exact path="/instances">
-                <InstanceManagementPage />
+              <Route exact path="/assets">
+                <AssetManagementPage />
               </Route>
-              <Route exact path="/instances/create">
-                <CreateInstancePage />
+              <Route exact path="/assets/create">
+                <CreateAssetPage />
               </Route>
-              <Route exact path="/instances/:id">
-                <InstanceDetailPage />
+              <Route exact path="/assets/:id">
+                <AssetDetailPage />
               </Route>
 
               <Route exact path="/racks">

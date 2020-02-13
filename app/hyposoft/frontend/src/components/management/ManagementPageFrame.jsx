@@ -86,9 +86,9 @@ function Sidebar() {
         <span>Models</span>
       </Menu.Item>
 
-      <Menu.Item key="/instances">
+      <Menu.Item key="/assets">
         <Icon type="database" />
-        <span>Instances</span>
+        <span>Assets</span>
       </Menu.Item>
 
       <Menu.Item key="/racks">

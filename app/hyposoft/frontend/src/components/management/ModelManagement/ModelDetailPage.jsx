@@ -4,15 +4,15 @@ import DataDetailForm from "../shared/DataDetailForm";
 import DataList from "../shared/DataList";
 import { modelSchema } from "./ModelSchema";
 import { Typography } from "antd";
-import { instanceColumns } from "../InstanceManagement/InstanceSchema";
+import { assetColumns } from "../AssetManagement/AssetSchema";
 import { useSelector } from "react-redux";
 import { fetchModel, updateModel, removeModel } from "../../../redux/actions";
 
 function ModelDetailPage() {
   const { id } = useParams();
   const history = useHistory();
-  const instances = useSelector(s =>
-    Object.values(s.instances).filter(inst => inst.model.id === parseInt(id))
+  const assets = useSelector(s =>
+    Object.values(s.assets).filter(inst => inst.model.id === parseInt(id))
   );
 
   return (
@@ -27,12 +27,12 @@ function ModelDetailPage() {
         schema={modelSchema}
       />
 
-      <Typography.Title level={4}>Instances of this model</Typography.Title>
+      <Typography.Title level={4}>Assets of this model</Typography.Title>
       <DataList
-        columns={instanceColumns}
+        columns={assetColumns}
         filters={[]}
-        data={instances}
-        onSelect={id => history.push(`/instances/${id}`)}
+        data={assets}
+        onSelect={id => history.push(`/assets/${id}`)}
         onCreate={() => {}}
         noCreate
       />
