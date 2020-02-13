@@ -12,6 +12,9 @@ class Datacenter(models.Model):
         max_length=64
     )
 
+    def __str__(self):
+        return str(self.abbr).upper()
+
 
 class ITModel(models.Model):
     vendor = models.CharField(
@@ -77,18 +80,6 @@ class ITModel(models.Model):
         return '{} by {}'.format(self.model_number, self.vendor)
 
 
-class PDU(models.Model):
-    pdu_model = models.CharField(
-        max_length=64,
-        blank=True,
-        default="PDU Networx 98 Pro"
-    )
-    assets = models.ManyToManyField(
-        "Asset",
-        through='Powered'
-    )
-
-
 class Rack(models.Model):
     class RackManager(models.Manager):
         def in_racks(self, start_rack, end_rack):
@@ -119,21 +110,45 @@ class Rack(models.Model):
         Datacenter,
         on_delete=models.PROTECT
     )
-    left_pdu = models.OneToOneField(
-        PDU,
-        related_name="left_for_rack",
-        on_delete=models.SET_NULL,
-        null=True
-    )
-    right_pdu = models.OneToOneField(
-        PDU,
-        related_name="right_for_rack",
-        on_delete=models.SET_NULL,
-        null=True
-    )
 
     def __str__(self):
         return "Rack {}".format(self.rack)
+
+
+class PDU(models.Model):
+    pdu_model = models.CharField(
+        max_length=64,
+        blank=True,
+        default="PDU Networx 98 Pro"
+    )
+    assets = models.ManyToManyField(
+        "Asset",
+        through='Powered'
+    )
+
+    rack = models.ForeignKey(
+        Rack,
+        on_delete=models.CASCADE
+    )
+
+    class Position(models.TextChoices):
+        LEFT = 'L', 'Left'
+        RIGHT = 'R', 'Right'
+
+    position = models.CharField(
+        choices=Position.choices,
+        max_length=16
+    )
+
+    class Meta:
+        unique_together = ['rack', 'position']
+
+    def __str__(self):
+        return "{} PDU on Rack {} in {}".format(
+            self.position,
+            str(self.rack),
+            self.rack.datacenter.abbr
+        )
 
 
 class Asset(models.Model):
@@ -232,8 +247,8 @@ class Asset(models.Model):
                 rack_position=i
             )
             if len(under) > 0:
-                asset = under.values_list('rack_position', 'itmodel.height')[0][0]
-                if asset.rack_position + asset.height > self.rack_position:
+                asset = under.values_list('rack_position', 'itmodel__height')[0]
+                if asset[0] + asset[1] > self.rack_position:
                     raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
                 else:
                     break

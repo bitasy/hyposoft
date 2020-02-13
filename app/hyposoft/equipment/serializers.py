@@ -15,7 +15,15 @@ class ITModelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PDUSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PDU
+        fields = '__all__'
+
+
 class RackSerializer(serializers.ModelSerializer):
+    pdu_set = PDUSerializer(read_only=True, many=True)
+
     class Meta:
         model = Rack
         fields = '__all__'
@@ -38,12 +46,6 @@ class AssetSerializer(serializers.ModelSerializer):
         response['rack'] = RackSerializer(asset.rack).data
         response['owner'] = UserSerializer(asset.owner).data
         return response
-
-
-class PDUSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PDU
-        fields = '__all__'
 
 
 class NetworkPortLabelSerializer(serializers.ModelSerializer):
