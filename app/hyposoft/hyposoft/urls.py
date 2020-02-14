@@ -16,11 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .users import UserList
+from django.conf.urls import url
 
 urlpatterns = [
     path('', include('frontend.urls')),
-    path('auth/', include('auth.urls')),
+    path('auth/', include('hypo_auth.urls')),
     path('admin/', admin.site.urls),
     path('api/equipment/', include('equipment.urls')),
-    path('api/users/UserList/', UserList.as_view())
+    path('api/users/UserList/', UserList.as_view()),
 ]
