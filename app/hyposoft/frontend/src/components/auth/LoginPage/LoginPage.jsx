@@ -36,6 +36,11 @@ function LoginForm({ form }) {
     });
   }
 
+  function sso(e) {
+    e.preventDefault();
+    window.location.href = "/auth/shib_login"
+  }
+
   return (
     <Form onSubmit={handleSubmit}>
       <Form.Item>
@@ -62,6 +67,11 @@ function LoginForm({ form }) {
       <Form.Item>
         <Button type="primary" htmlType="submit" className="w100">
           Log in
+        </Button>
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" onClick={sso} className="w100">
+          Duke SSO
         </Button>
       </Form.Item>
     </Form>

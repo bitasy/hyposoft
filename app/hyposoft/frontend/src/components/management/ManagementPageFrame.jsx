@@ -2,15 +2,22 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Layout, Menu, Icon, Col, Button } from "antd";
-import { logout } from "../../redux/actions";
 import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../redux/actions";
 
 const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const dispatch = useDispatch();
-
   const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
+  function onLogout() {
+    dispatch(logout(res => {
+      if(res.redirectTo) {
+        window.location.href = res.redirectTo
+      }
+    }))
+  }
 
   return (
     <Layout>
@@ -27,7 +34,7 @@ function ManagementPageFrame({ children }) {
               Admin page
             </Button>
           ) : null}
-          <Button ghost onClick={() => dispatch(logout())}>
+          <Button ghost onClick={onLogout}>
             <Icon type="logout" />
             Logout
           </Button>
