@@ -6,6 +6,8 @@ from rest_framework.serializers import ValidationError
 
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
+    if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
+        raise ValidationError("Asset datacenter cannot be different from rack datacenter.")
     instance.datacenter = instance.rack.datacenter
     if instance.mac_address == "":
         instance.mac_address = None
