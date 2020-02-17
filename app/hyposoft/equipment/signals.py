@@ -7,6 +7,13 @@ from rest_framework.serializers import ValidationError
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
     instance.datacenter = instance.rack.datacenter
+    if instance.mac_address == "":
+        instance.mac_address = None
+    else:
+        new = instance.mac_address.lower().replace('-', ':').replace('_', ':')
+        if len(new) == 12:
+            new = ':'.join([new[b:b+2] for b in range(0, 12, 2)])
+        instance.mac_address = new
 
 
 @receiver(pre_save, sender=Powered)
