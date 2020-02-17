@@ -1,7 +1,19 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator
-from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from rest_framework import serializers
 from django.contrib.auth.models import User
+
+
+class Datacenter(models.Model):
+    abbr = models.CharField(
+        max_length=6
+    )
+    name = models.CharField(
+        max_length=64
+    )
+
+    def __str__(self):
+        return str(self.abbr).upper()
 
 
 class ITModel(models.Model):
@@ -25,14 +37,6 @@ class ITModel(models.Model):
                            message="Please enter a valid color code.")  # Color code
         ],
         default="#ddd"
-    )
-    ethernet_ports = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(0,
-                              message="Number of ethernet ports must be at least 0.")
-        ]
     )
     power_ports = models.IntegerField(
         null=True,
@@ -77,6 +81,23 @@ class ITModel(models.Model):
 
 
 class Rack(models.Model):
+    class RackManager(models.Manager):
+        def in_racks(self, start_rack, end_rack):
+            from django.db import connection
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, rack
+                    FROM equipment_rack
+                    WHERE rack BETWEEN '{}' AND '{}';
+                    """.format(start_rack, end_rack))
+                result_list = []
+                for row in cursor.fetchall():
+                    r = self.model(id=row[0], rack=row[1])
+                    result_list.append(r)
+                return result_list
+
+    objects = RackManager()
+
     rack = models.CharField(
         unique=True,
         max_length=4,
@@ -85,12 +106,52 @@ class Rack(models.Model):
                            message="Row number must be specified by one or two capital letters.")
         ]
     )
+    datacenter = models.ForeignKey(
+        Datacenter,
+        on_delete=models.PROTECT
+    )
 
     def __str__(self):
         return "Rack {}".format(self.rack)
 
 
-class Instance(models.Model):
+class PDU(models.Model):
+    pdu_model = models.CharField(
+        max_length=64,
+        blank=True,
+        default="PDU Networx 98 Pro"
+    )
+    assets = models.ManyToManyField(
+        "Asset",
+        through='Powered'
+    )
+
+    rack = models.ForeignKey(
+        Rack,
+        on_delete=models.CASCADE
+    )
+
+    class Position(models.TextChoices):
+        LEFT = 'L', 'Left'
+        RIGHT = 'R', 'Right'
+
+    position = models.CharField(
+        choices=Position.choices,
+        max_length=16
+    )
+
+    class Meta:
+        unique_together = ['rack', 'position']
+
+    def __str__(self):
+        return "{} PDU on Rack {} in {}".format(
+            self.position,
+            str(self.rack),
+            self.rack.datacenter.abbr
+        )
+
+
+class Asset(models.Model):
     itmodel = models.ForeignKey(
         ITModel,
         on_delete=models.PROTECT,
@@ -98,15 +159,23 @@ class Instance(models.Model):
     )
     hostname = models.CharField(
         unique=True,
+        null=True,
+        blank=True,
         max_length=64,
         validators=[
-            RegexValidator(r"^([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
+            RegexValidator(r"^&|([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
                            message="Hostname must be compliant with RFC 1034.")
         ]
     )
     rack = models.ForeignKey(
         Rack,
         on_delete=models.PROTECT
+    )
+
+    datacenter = models.ForeignKey(
+        Datacenter,
+        blank=True,
+        on_delete=models.PROTECT,
     )
     rack_position = models.IntegerField(
         validators=[
@@ -127,13 +196,125 @@ class Instance(models.Model):
                            message="Comments must be enclosed by double quotes if value contains line breaks.")
         ]
     )
+    mac_address = models.CharField(
+        unique=True,
+        null=True,
+        blank=True,
+        max_length=17,
+        validators=[
+            RegexValidator("^$|^([0-9a-fA-F]{2}[:-_]{0,1}){5}[0-9a-fA-F]{2}$",
+                           message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
+        ]
+    )
+
+    asset_number = models.IntegerField(
+        blank=True,
+        unique=True,
+        default=0
+    )
 
     class Meta:
         unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
-        return "{}: Rack {} U{}".format(self.hostname, self.rack.rack, self.rack_position)
+        return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
 
-    def clean(self, *args, **kwargs):
+    def save(self, *args, **kwargs):
+        if self.asset_number == 0:
+            nums = Asset.objects.all()
+            highest = 99999
+            for asset in nums:
+                if asset.asset_number > highest:
+                    highest = asset.asset_number
+            self.asset_number = highest + 1
+            if self.asset_number > 999999:
+                raise serializers.ValidationError("The asset number is too large. Please try manually setting it to be 6 digits.")
+
         if 42 < self.rack_position + self.itmodel.height - 1:
-            raise ValidationError("The instance does not fit on the specified rack.")
+            raise serializers.ValidationError("The asset does not fit on the specified rack from the given position.")
+
+        blocked = Asset.objects.filter(
+            rack=self.rack,
+            rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height))
+
+        if len(blocked) > 0:
+            raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+
+        i = self.rack_position - 1
+        while i > 0:
+            under = Asset.objects.filter(
+                rack=self.rack,
+                rack_position=i
+            )
+            if len(under) > 0:
+                asset = under.values_list('rack_position', 'itmodel__height')[0]
+                if asset[0] + asset[1] > self.rack_position:
+                    raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+                else:
+                    break
+            i -= 1
+
+        super().save(*args, **kwargs)
+
+
+class NetworkPortLabel(models.Model):
+    name = models.CharField(
+        max_length=16,
+        blank=True
+    )
+    itmodel = models.ForeignKey(
+        ITModel,
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = ['name', 'itmodel']
+
+
+class NetworkPort(models.Model):
+    label = models.ForeignKey(
+        NetworkPortLabel,
+        on_delete=models.PROTECT
+    )
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.CASCADE
+    )
+    connection = models.OneToOneField(
+        "self",
+        null=True,
+        on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        unique_together = ['label', 'asset']
+
+
+class Powered(models.Model):
+    plug_number = models.IntegerField(
+        validators=[
+            MinValueValidator(1,
+                              message="Asset must be plugged into a plug from 1 to 24 on this PDU."),
+            MaxValueValidator(24,
+                              message="Asset must be plugged into a plug from 1 to 24 on this PDU.")
+        ]
+    )
+    pdu = models.ForeignKey(
+        PDU,
+        on_delete=models.CASCADE
+    )
+    asset = models.ForeignKey(
+        Asset,
+        on_delete=models.CASCADE
+    )
+    on = models.BooleanField(
+        default=False
+    )
+
+    def save(self, *args, **kwargs):
+        if self.asset.rack.left_pdu != self.pdu and self.asset.rack.right_pdu != self.pdu:
+            raise serializers.ValidationError("PDU must be on the same rack as the asset.")
+        super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ['plug_number', 'pdu']

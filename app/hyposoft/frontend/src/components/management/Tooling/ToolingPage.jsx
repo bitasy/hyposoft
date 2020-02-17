@@ -4,7 +4,7 @@ import CreateTable from "./CreateTable";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchRacks,
-  fetchInstances,
+  fetchAssets,
   fetchModels,
   fetchUsers
 } from "../../../redux/actions";
@@ -16,13 +16,13 @@ function ToolingPage() {
   const users = useSelector(s => Object.values(s.users));
   const models = useSelector(s => Object.values(s.models));
   const racks = useSelector(s => Object.values(s.racks));
-  const instances = useSelector(s => Object.values(s.instances));
+  const assets = useSelector(s => Object.values(s.assets));
 
   React.useEffect(() => {
     dispatch(fetchUsers());
     dispatch(fetchModels());
     dispatch(fetchRacks());
-    dispatch(fetchInstances());
+    dispatch(fetchAssets());
   }, []);
 
   let rackSpace = racks.length * 42; //total rack space, type: number
@@ -32,25 +32,19 @@ function ToolingPage() {
       <Typography.Title level={3}>Reports</Typography.Title>
       <div>
         <Typography.Title level={4}>Total Rack Usage</Typography.Title>
-        <CreateTable rackUsage={RackUsage(rackSpace, instances)} />
+        <CreateTable rackUsage={RackUsage(rackSpace, assets)} />
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Model</Typography.Title>
-        <CreateTable
-          rackUsage={RackUsageByModel(rackSpace, instances, models)}
-        />
+        <CreateTable rackUsage={RackUsageByModel(rackSpace, assets, models)} />
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Owner</Typography.Title>
-        <CreateTable
-          rackUsage={RackUsageByOwner(rackSpace, instances, users)}
-        />
+        <CreateTable rackUsage={RackUsageByOwner(rackSpace, assets, users)} />
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Vendor</Typography.Title>
-        <CreateTable
-          rackUsage={RackUsageByVendor(rackSpace, instances, models)}
-        />
+        <CreateTable rackUsage={RackUsageByVendor(rackSpace, assets, models)} />
       </div>
     </div>
   ) : (
@@ -59,12 +53,12 @@ function ToolingPage() {
 }
 
 //works
-function RackUsage(rackSpace, instances) {
+function RackUsage(rackSpace, assets) {
   let usedSpace = 0;
 
   //sum model heights
-  for (let i = 0; i < instances.length; i++) {
-    usedSpace += instances[i].model.height;
+  for (let i = 0; i < assets.length; i++) {
+    usedSpace += assets[i].model.height;
   }
 
   //calculate rack usage percentages
@@ -81,20 +75,20 @@ function RackUsage(rackSpace, instances) {
   ];
 }
 
-function RackUsageByModel(rackSpace, instances, models) {
-  const instanceModels = [];
+function RackUsageByModel(rackSpace, assets, models) {
+  const assetModels = [];
 
-  //get all owner instances
-  for (let i = 0; i < instances.length; i++) {
-    instanceModels.push(instances[i].model);
+  //get all owner assets
+  for (let i = 0; i < assets.length; i++) {
+    assetModels.push(assets[i].model);
   }
 
   let modelUsedSpace = new Array(models.length).fill(0);
 
   //sum model heights by owner
   for (let i = 0; i < models.length; i++) {
-    for (let j = 0; j < instanceModels.length; j++) {
-      if (models[i].id === instanceModels[j].id) {
+    for (let j = 0; j < assetModels.length; j++) {
+      if (models[i].id === assetModels[j].id) {
         modelUsedSpace[i] += models[i].height;
       }
     }
@@ -124,12 +118,12 @@ function RackUsageByModel(rackSpace, instances, models) {
   return modelUsage;
 }
 
-function RackUsageByOwner(rackSpace, instances, users) {
+function RackUsageByOwner(rackSpace, assets, users) {
   let owners = [];
 
-  //get all owner instances
-  for (let i = 0; i < instances.length; i++) {
-    owners.push(instances[i].owner);
+  //get all owner assets
+  for (let i = 0; i < assets.length; i++) {
+    owners.push(assets[i].owner);
   }
 
   let uniqueOwners = users;
@@ -139,7 +133,7 @@ function RackUsageByOwner(rackSpace, instances, users) {
   for (let i = 0; i < uniqueOwners.length; i++) {
     for (let j = 0; j < owners.length; j++) {
       if (uniqueOwners[i].id === owners[j].id) {
-        ownerUsedSpace[i] += instances[j].model.height;
+        ownerUsedSpace[i] += assets[j].model.height;
       }
     }
   }
@@ -168,12 +162,12 @@ function RackUsageByOwner(rackSpace, instances, users) {
   return ownerUsage;
 }
 
-function RackUsageByVendor(rackSpace, instances, models) {
+function RackUsageByVendor(rackSpace, assets, models) {
   let vendors = [];
 
-  //get all vendors instances
-  for (let i = 0; i < instances.length; i++) {
-    vendors.push(instances[i].model.vendor);
+  //get all vendors assets
+  for (let i = 0; i < assets.length; i++) {
+    vendors.push(assets[i].model.vendor);
   }
 
   let uniqueVendors = Array.from(new Set(models.map(m => m.vendor)));
@@ -183,7 +177,7 @@ function RackUsageByVendor(rackSpace, instances, models) {
   for (let i = 0; i < uniqueVendors.length; i++) {
     for (let j = 0; j < vendors.length; j++) {
       if (uniqueVendors[i].localeCompare(vendors[j]) == 0) {
-        vendorUsedSpace[i] += instances[j].model.height;
+        vendorUsedSpace[i] += assets[j].model.height;
       }
     }
   }
@@ -213,37 +207,37 @@ function RackUsageByVendor(rackSpace, instances, models) {
 }
 
 // //for testing
-// function RackUsageByVendor(rackSpace, instances) { //testing
+// function RackUsageByVendor(rackSpace, assets) { //testing
 //     console.log("rackSpace", rackSpace);
-//    // console.log("instances", instances);
+//    // console.log("assets", assets);
 //     let title = "Rack Usage by Vendor";
-//     let instancesDotVendor = ["Dell", "Lenovo", "Dell", "Lenovo", "HP", "HP", "HP"]; //testing
-//     let uniqueVendorsSet = new Set(instancesDotVendor);
+//     let assetsDotVendor = ["Dell", "Lenovo", "Dell", "Lenovo", "HP", "HP", "HP"]; //testing
+//     let uniqueVendorsSet = new Set(assetsDotVendor);
 //
 //     let uniqueVendors = [...uniqueVendorsSet];
 //     console.log("uniqueVendors", uniqueVendors);
 //     //let vendorUsedSpace = [{String, Number}]; //may be needed if set does not keep same order
-//     let instancesDotModelDotHeight = [1, 2, 1, 2, 3, 3, 3]; //testing
+//     let assetsDotModelDotHeight = [1, 2, 1, 2, 3, 3, 3]; //testing
 //
 //     // calculate used space by vendor and add to array
 //     let vendorUsedSpace = new Array(uniqueVendors.length).fill(0);
 //     for (let i = 0; i < uniqueVendors.length; i++) {
-//         //for (let j = 0; j < instances.length; j++) {
-//         for (let j = 0; j < instancesDotVendor.length; j++) { //testing
-//             //if (instances[i].vendor.equals(uniqueVendors[i])) { //comparing vendors
+//         //for (let j = 0; j < assets.length; j++) {
+//         for (let j = 0; j < assetsDotVendor.length; j++) { //testing
+//             //if (assets[i].vendor.equals(uniqueVendors[i])) { //comparing vendors
 //             console.log("i", i);
 //             console.log("j", j);
-//             if (uniqueVendors[i].localeCompare(instancesDotVendor[j]) == 0) { //testing
+//             if (uniqueVendors[i].localeCompare(assetsDotVendor[j]) == 0) { //testing
 //
 //                 //vendorUsedSpace[i[0]] = uniqueVendors[i];  //first elem in nested array is vendor
-//                 //vendorUsedSpace[i[1]] += instances[i].model.height; //second elem in nested array is rackspace
-//                 //vendorUsedSpace[i] += instances[i].model.height;
+//                 //vendorUsedSpace[i[1]] += assets[i].model.height; //second elem in nested array is rackspace
+//                 //vendorUsedSpace[i] += assets[i].model.height;
 //                 console.log("uniqueVendor", uniqueVendors[i]);
-//                 console.log("vendor", instancesDotVendor[j]);
-//                 console.log("height", instancesDotModelDotHeight[j]);
-//                 console.log("height type", typeof instancesDotModelDotHeight[j]);
+//                 console.log("vendor", assetsDotVendor[j]);
+//                 console.log("height", assetsDotModelDotHeight[j]);
+//                 console.log("height type", typeof assetsDotModelDotHeight[j]);
 //                 console.log(" type", typeof vendorUsedSpace[i]);
-//                 vendorUsedSpace[i] += instancesDotModelDotHeight[j]; //testing
+//                 vendorUsedSpace[i] += assetsDotModelDotHeight[j]; //testing
 //                 console.log("vendorUsedSpace", vendorUsedSpace[i]);
 //             }
 //         }

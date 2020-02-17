@@ -39,33 +39,33 @@ function deleteModel(id) {
   return Axios.delete(`api/equipment/ITModelDestroy/${id}`).then(getData);
 }
 
-// Instance APIs
-function translate(instance) {
-  Object.assign(instance, { model: instance.itmodel });
-  delete instance.itmodel;
-  return instance;
+// Asset APIs
+function translate(asset) {
+  Object.assign(asset, { model: asset.itmodel });
+  delete asset.itmodel;
+  return asset;
 }
 
-function getInstances() {
-  return Axios.get("api/equipment/InstanceList")
+function getAssets() {
+  return Axios.get("api/equipment/AssetList")
     .then(getData)
-    .then(instances => instances.map(translate));
+    .then(assets => assets.map(translate));
 }
 
 // ex) A12
-function getInstancesForRack(rackID) {
-  return getInstances().then(instances =>
-    instances.filter(inst => inst.rack.id === rackID)
+function getAssetsForRack(rackID) {
+  return getAssets().then(assets =>
+    assets.filter(asset => asset.rack.id === rackID)
   );
 }
 
-function getInstance(id) {
-  return Axios.get(`api/equipment/InstanceRetrieve/${id}`)
+function getAsset(id) {
+  return Axios.get(`api/equipment/AssetRetrieve/${id}`)
     .then(getData)
     .then(translate);
 }
 
-function createInstance(fields) {
+function createAsset(fields) {
   const toCreate = produce(fields, draft => {
     draft.itmodel = draft.model.id;
     draft.rack = draft.rack.id;
@@ -73,14 +73,14 @@ function createInstance(fields) {
     delete draft.model;
   });
 
-  return Axios.post(`api/equipment/InstanceCreate`, toCreate)
+  return Axios.post(`api/equipment/AssetCreate`, toCreate)
     .then(getData)
     .then(translate);
 }
 
 // updates has the whole model/rack by itself rather than just model_id and rack.
 // so we'll have to double check that here
-function updateInstance(id, updates) {
+function updateAsset(id, updates) {
   const patch = produce(updates, draft => {
     if (draft.model) {
       draft.itmodel = updates.model.id;
@@ -94,13 +94,13 @@ function updateInstance(id, updates) {
     }
   });
 
-  return Axios.patch(`api/equipment/InstanceUpdate/${id}`, patch)
+  return Axios.patch(`api/equipment/AssetUpdate/${id}`, patch)
     .then(getData)
     .then(translate);
 }
 
-function deleteInstance(id) {
-  return Axios.delete(`api/equipment/InstanceDestroy/${id}`)
+function deleteAsset(id) {
+  return Axios.delete(`api/equipment/AssetDestroy/${id}`)
     .then(getData)
     .then(translate);
 }
@@ -159,12 +159,12 @@ const RealAPI = {
   updateModel,
   deleteModel,
 
-  getInstances,
-  getInstancesForRack,
-  getInstance,
-  createInstance,
-  updateInstance,
-  deleteInstance,
+  getAssets,
+  getAssetsForRack,
+  getAsset,
+  createAsset,
+  updateAsset,
+  deleteAsset,
 
   getRacks,
   createRacks,

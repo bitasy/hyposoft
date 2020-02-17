@@ -3,18 +3,14 @@ import React from "react";
 import { Typography, Button, Icon, Row, Col } from "antd";
 import { useHistory } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchInstances,
-  fetchModels,
-  fetchRacks
-} from "../../../redux/actions";
+import { fetchAssets, fetchModels, fetchRacks } from "../../../redux/actions";
 
 function OverviewPage() {
   const dispatch = useDispatch();
 
   React.useEffect(() => {
     dispatch(fetchModels());
-    dispatch(fetchInstances());
+    dispatch(fetchAssets());
     dispatch(fetchRacks());
   }, []);
 
@@ -62,11 +58,11 @@ const overviewSchema = [
     statSelector: s => Object.keys(s.models).length
   },
   {
-    entity: "Instances",
-    link: "/instances",
+    entity: "Assets",
+    link: "/assets",
     iconType: "database",
     size: 250,
-    statSelector: s => Object.keys(s.instances).length
+    statSelector: s => Object.keys(s.assets).length
   },
   {
     entity: "Racks",

@@ -72,23 +72,23 @@ export const [
   removeModel
 ] = genCRUDActions(modelCRUDActionTypes, modelCRUDAPIs);
 
-export const instanceCRUDActionTypes = genCRUDActionTypes(ENTITY_INSTANCE);
+export const assetCRUDActionTypes = genCRUDActionTypes(ENTITY_INSTANCE);
 
-const instanceCRUDAPIs = [
-  API.getInstances,
-  API.getInstance,
-  API.createInstance,
-  API.updateInstance,
-  API.deleteInstance
+const assetCRUDAPIs = [
+  API.getAssets,
+  API.getAsset,
+  API.createAsset,
+  API.updateAsset,
+  API.deleteAsset
 ];
 
 export const [
-  fetchInstances,
-  fetchInstance,
-  createInstance,
-  updateInstance,
-  removeInstance
-] = genCRUDActions(instanceCRUDActionTypes, instanceCRUDAPIs);
+  fetchAssets,
+  fetchAsset,
+  createAsset,
+  updateAsset,
+  removeAsset
+] = genCRUDActions(assetCRUDActionTypes, assetCRUDAPIs);
 
 export const FETCH_ALL_RACKS = "FETCH_ALL_RACKS";
 export const CREATE_RACKS = "CREATE_RACKS";

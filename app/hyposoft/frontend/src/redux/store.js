@@ -7,7 +7,7 @@ import { getToken } from "../global/Session";
 const initialState = {
   sessionInfo: getToken(),
   models: {},
-  instances: {},
+  assets: {},
   racks: {},
   users: {}
 };

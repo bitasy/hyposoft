@@ -8,7 +8,7 @@ import {
   LOGOUT
 } from "./actions";
 import produce from "immer";
-import { modelCRUDActionTypes, instanceCRUDActionTypes } from "./actions";
+import { modelCRUDActionTypes, assetCRUDActionTypes } from "./actions";
 import { combineReducers } from "redux";
 
 function genAsyncReducer(actionType, started, success, failure) {
@@ -183,14 +183,14 @@ function genSessionReducer() {
 
 const sessionReducer = genSessionReducer();
 const modelReducer = genCrudReducer(modelCRUDActionTypes);
-const instanceReducer = genCrudReducer(instanceCRUDActionTypes);
+const assetReducer = genCrudReducer(assetCRUDActionTypes);
 const rackReducer = genRackReducer();
 const userReducer = genUserReducer();
 
 const HyposoftApp = combineReducers({
   sessionInfo: sessionReducer,
   models: modelReducer,
-  instances: instanceReducer,
+  assets: assetReducer,
   racks: rackReducer,
   users: userReducer
 });

@@ -12,13 +12,13 @@ import {
   AutoComplete
 } from "antd";
 import { ChromePicker } from "react-color";
-import InstancePositionPicker from "./InstancePositionPicker";
+import AssetPositionPicker from "./AssetPositionPicker";
 import { modelKeywordMatch } from "../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchModels,
   fetchRacks,
-  fetchInstances,
+  fetchAssets,
   fetchUsers
 } from "../../../redux/actions";
 
@@ -250,13 +250,13 @@ function RackUFormItem({
 
   const dispatch = useDispatch();
   React.useEffect(() => {
-    dispatch(fetchInstances());
+    dispatch(fetchAssets());
   }, []);
 
-  const instances = useSelector(s => Object.values(s.instances));
+  const assets = useSelector(s => Object.values(s.assets));
 
-  const filteredInstances = currentRecord.rack
-    ? instances.filter(
+  const filteredAssets = currentRecord.rack
+    ? assets.filter(
         i => i.rack.id === currentRecord.rack.id && i.id != currentRecord.id
       )
     : [];
@@ -264,7 +264,7 @@ function RackUFormItem({
   const rack = {
     height: 42, // fixed for now
     name: currentRecord.rack ? currentRecord.rack.rack : "",
-    instances: filteredInstances
+    assets: filteredAssets
   };
 
   return currentRecord.model && currentRecord.rack ? (
@@ -273,12 +273,12 @@ function RackUFormItem({
         rules,
         initialValue: initialValue
       })(
-        <InstancePositionPicker
+        <AssetPositionPicker
           key={currentRecord.rack.id}
           rack={rack}
           model={currentRecord.model}
           hostname={currentRecord.hostname}
-          onSelect={(instance, level) => {
+          onSelect={(asset, level) => {
             onChange({
               [schemaFrag.fieldName]: level
             });

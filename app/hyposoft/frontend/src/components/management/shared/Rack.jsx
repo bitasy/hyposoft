@@ -2,15 +2,15 @@ import React from "react";
 import style from "./Rack.module.css";
 import { DEFAULT_COLOR_VALUE } from "../ModelManagement/ModelSchema";
 
-function byLevel(rackHeight, instances) {
+function byLevel(rackHeight, assets) {
   const rack = Array(rackHeight + 1).fill(null);
-  instances.forEach(instance => {
+  assets.forEach(asset => {
     for (
-      let i = instance.rack_position;
-      i < instance.rack_position + instance.model.height;
+      let i = asset.rack_position;
+      i < asset.rack_position + asset.model.height;
       i++
     ) {
-      rack[i] = instance;
+      rack[i] = asset;
     }
   });
   return rack;
@@ -25,16 +25,16 @@ function join(strs) {
   {
     name: string,
     height: number,
-    instances: [Instance]
+    assets: [Asset]
   }
 */
 function Rack({ rack, onSelect }) {
-  const instancesByLevel = byLevel(rack.height, rack.instances);
+  const assetsByLevel = byLevel(rack.height, rack.assets);
 
   function renderCell(level) {
-    const instance = instancesByLevel[level];
+    const asset = assetsByLevel[level];
 
-    if (!instance) {
+    if (!asset) {
       return (
         <tr
           key={level}
@@ -48,9 +48,9 @@ function Rack({ rack, onSelect }) {
       );
     }
 
-    const model = instance.model;
-    const isBottom = level === instance.rack_position;
-    const isTop = level === instance.rack_position + model.height - 1;
+    const model = asset.model;
+    const isBottom = level === asset.rack_position;
+    const isTop = level === asset.rack_position + model.height - 1;
 
     return (
       <tr
@@ -59,16 +59,16 @@ function Rack({ rack, onSelect }) {
           isTop ? style.borderTop : style.noBorderTop,
           isBottom ? style.borderBottom : style.noBorderBottom
         ])}
-        onClick={() => onSelect(instance, level)}
+        onClick={() => onSelect(asset, level)}
         key={level}
       >
         <td className={style.numberColumn}>{level}</td>
         <td className={style.infoColumnLeft}>
-          {isBottom && instance.isTmp ? "*" : ""}
+          {isBottom && asset.isTmp ? "*" : ""}
           {isBottom ? model.vendor + "\t" + model.model_number : ""}
         </td>
         <td className={style.infoColumnRight}>
-          {isBottom ? instance.hostname || "" : ""}
+          {isBottom ? asset.hostname || "" : ""}
         </td>
       </tr>
     );
