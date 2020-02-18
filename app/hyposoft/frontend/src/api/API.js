@@ -17,22 +17,61 @@ function logout() {
 }
 
 // Model APIs
+function translateModel(model) {
+  model.network_port_labels =
+    model.network_port_labels && model.network_port_labels.map(l => l.name);
+  return model;
+}
+
 function getModels() {
-  return Axios.get("api/equipment/ITModelList").then(getData);
+  return Axios.get("api/equipment/ITModelList")
+    .then(getData)
+    .then(lst => lst.map(translateModel));
 }
 
 function getModel(id) {
-  return Axios.get(`api/equipment/ITModelRetrieve/${id}`).then(getData);
+  return Axios.get(`api/equipment/ITModelRetrieve/${id}`)
+    .then(getData)
+    .then(translateModel);
 }
 
 function createModel(fields) {
-  return Axios.post(`api/equipment/ITModelCreate`, fields).then(getData);
+  return Axios.post(`api/equipment/ITModelCreate`, fields)
+    .then(getData)
+    .then(model => model.id)
+    .then(id =>
+      Promise.all(
+        (fields.network_port_labels || []).map(v => {
+          return createNetworkPortLabel({
+            itmodel: id,
+            name: v.name
+          });
+        })
+      ).then(() => getModel(id))
+    );
+}
+
+function destroyAllNetworkPortLabels(modelID) {
+  return Axios.get(`api/equipment/ITModelRetrieve/${modelID}`)
+    .then(getData)
+    .then(model =>
+      Promise.all(
+        model.network_port_labels.map(v => removeNetworkPortLabel(v.id))
+      )
+    );
 }
 
 function updateModel(id, updates) {
-  return Axios.patch(`api/equipment/ITModelUpdate/${id}`, updates).then(
-    getData
-  );
+  return destroyAllNetworkPortLabels(id)
+    .then(() =>
+      Promise.all(
+        updates.network_port_labels.map(name =>
+          createNetworkPortLabel({ name, itmodel: id })
+        )
+      )
+    )
+    .then(() => Axios.patch(`api/equipment/ITModelUpdate/${id}`, updates))
+    .then(getData);
 }
 
 function deleteModel(id) {
@@ -187,7 +226,7 @@ function updateNetworkPortLabel(id, updates) {
 }
 
 function removeNetworkPortLabel(id) {
-  return Axios.post(`api/equipment/NetworkPortLabelDestroy/${id}`).then(
+  return Axios.delete(`api/equipment/NetworkPortLabelDestroy/${id}`).then(
     getData
   );
 }

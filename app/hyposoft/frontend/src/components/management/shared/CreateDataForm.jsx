@@ -1,8 +1,8 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { Form, Button } from "antd";
-import FormItem from "./FormItem";
 import { useDispatch } from "react-redux";
+import FormItem from "./FormItem/FormItem";
 
 function CreateDataForm({ form, createRecord, schema }) {
   const dispatch = useDispatch();

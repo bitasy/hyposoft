@@ -58,12 +58,11 @@ export const modelSchema = [
     defaultValue: DEFAULT_COLOR_VALUE
   },
   {
-    displayName: "Ethernet Ports",
-    fieldName: "ethernet_ports",
-    type: "number",
+    displayName: "Network Ports",
+    fieldName: "network_port_labels",
+    type: "network_port_labels",
     required: false,
-    defaultValue: null,
-    min: 0
+    defaultValue: null
   },
   {
     displayName: "Power Ports",

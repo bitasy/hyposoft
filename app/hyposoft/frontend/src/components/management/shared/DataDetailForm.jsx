@@ -2,8 +2,8 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import { objectEquals } from "object-equals";
 import { Form, Button, Icon } from "antd";
-import FormItem from "./FormItem";
 import { useDispatch, useSelector } from "react-redux";
+import FormItem from "./FormItem/FormItem";
 
 function DataDetailForm({
   form,
