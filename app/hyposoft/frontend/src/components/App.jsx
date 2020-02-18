@@ -15,6 +15,7 @@ import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../redux/session/actions";
+import DatacenterManagementPage from "./management/DatacenterManagment/DatacenterManagementPage";
 
 export default function App() {
   return <Routes />;
@@ -67,6 +68,10 @@ function Routes() {
               </Route>
               <Route exact path="/assets/:id">
                 <AssetDetailPage />
+              </Route>
+
+              <Route exact path="/datacenters">
+                <DatacenterManagementPage />
               </Route>
 
               <Route exact path="/racks">

@@ -130,6 +130,11 @@ function Sidebar() {
         <span>Assets</span>
       </Menu.Item>
 
+      <Menu.Item key="/datacenters">
+        <Icon type="build" />
+        <span>Datacenters</span>
+      </Menu.Item>
+
       <Menu.Item key="/racks">
         <Icon type="table" />
         <span>Racks</span>
