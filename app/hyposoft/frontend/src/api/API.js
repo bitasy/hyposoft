@@ -2,6 +2,16 @@ import Axios from "axios";
 
 import produce from "immer";
 
+function makeHeaders(dcName) {
+  if (dcName) {
+    return {
+      "X-DATACENTER": dcName
+    };
+  } else {
+    return {};
+  }
+}
+
 // Auth APIs
 function fetchCurrentUser() {
   return Axios.get("auth/current_user").then(getData);
@@ -145,15 +155,16 @@ function deleteAsset(id) {
 }
 
 // Rack APIs
-function getRacks() {
-  return Axios.get("api/equipment/RackList").then(getData);
+function getRacks(dcName) {
+  const headers = makeHeaders(dcName);
+  return Axios.get("api/equipment/RackList", { headers }).then(getData);
 }
 
 function createRack(rack) {
   return Axios.post("api/equipment/RackCreate", rack).then(getData);
 }
 
-function createRacks(r1, r2, c1, c2) {
+function createRacks(r1, r2, c1, c2, dcID) {
   const fromRow = Math.min(r1, r2);
   const toRow = Math.max(r1, r2);
   const fromNumber = Math.min(c1, c2);
@@ -161,10 +172,13 @@ function createRacks(r1, r2, c1, c2) {
 
   const toCreate = [];
   for (let i = fromRow; i <= toRow; i++) {
-    const row = String.fromCharCode(i) + "A".charCodeAt(0);
+    const row = String.fromCharCode(i + "A".charCodeAt(0));
     for (let j = fromNumber; j <= toNumber; j++) {
       const col = j + 1;
-      toCreate.push({ rack: row + (col < 10 ? "0" : "") + col });
+      toCreate.push({
+        rack: row + (col < 10 ? "0" : "") + col,
+        datacenter: dcID
+      });
     }
   }
 

@@ -5,21 +5,22 @@ export const FETCH_ALL_RACKS = "FETCH_ALL_RACKS";
 export const CREATE_RACKS = "CREATE_RACKS";
 export const REMOVE_RACKS = "REMOVE_RACKS";
 
-export const fetchRacks = (onSuccess = noOp, onFailure = noOp) =>
-  genAsyncAction(FETCH_ALL_RACKS, API.getRacks, [], onSuccess, onFailure);
+export const fetchRacks = (dcName, onSuccess = noOp, onFailure = noOp) =>
+  genAsyncAction(FETCH_ALL_RACKS, API.getRacks, [dcName], onSuccess, onFailure);
 
 export const createRacks = (
   fromRow,
   toRow,
   fromNumber,
   toNumber,
+  dcID,
   onSuccess = noOp,
   onFailure = noOp
 ) =>
   genAsyncAction(
     CREATE_RACKS,
     API.createRacks,
-    [fromRow, toRow, fromNumber, toNumber],
+    [fromRow, toRow, fromNumber, toNumber, dcID],
     onSuccess,
     onFailure
   );

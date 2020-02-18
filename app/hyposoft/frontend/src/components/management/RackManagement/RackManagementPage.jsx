@@ -19,30 +19,30 @@ function range(start, end) {
     .map((_, idx) => start + idx);
 }
 
+const RED = 1;
+const GRAY = 2;
+const DARKRED = 3;
+
+export const GRID_COLOR_MAP = {
+  0: "white",
+  [RED]: "red",
+  [GRAY]: "gray",
+  [DARKRED]: "darkred"
+};
+
 export const MAX_ROW = 26;
 export const MAX_COL = 99;
 
 const ROWS = range(0, MAX_ROW).map(indexToRow);
 const COLS = range(0, MAX_COL).map(v => (v + 1).toString());
 
-function makeEmptyGrid(initialValue) {
-  return Array(MAX_ROW)
-    .fill()
-    .map(() => Array(MAX_COL).fill(initialValue));
-}
-
 function isInside([r1, r2, c1, c2], r, c) {
   return r1 <= r && r <= r2 && c1 <= c && c <= c2;
 }
 
-function groupByRowColumn(racks) {
-  const grouped = {};
-  racks.forEach(rack => {
-    const [r, c] = toIndex(rack.rack);
-    if (!grouped[r]) grouped[r] = {};
-    grouped[r][c] = rack;
-  });
-  return grouped;
+function showRacks(racks) {
+  const idStr = racks.map(r => r.id).join(",");
+  window.open("/#/racks/print_view?ids=" + idStr);
 }
 
 function LegendItem({ color, text }) {
@@ -74,23 +74,28 @@ function Legend() {
 function RackManagementPage() {
   const dispatch = useDispatch();
   const racks = useSelector(s => Object.values(s.racks));
-  const rackGroup = useSelector(s => groupByRowColumn(Object.values(s.racks)));
   const dcName = useSelector(s => s.appState.dcName, isEqual);
   const datacenters = useSelector(s => s.datacenters, isEqual);
 
   const [selectedDCName, setSelectedDCName] = React.useState(null);
+  const selectedDCID = Object.values(datacenters).find(
+    dc => dc.abbr === selectedDCName
+  )?.id;
+  const filteredRacks = racks.filter(r => r.datacenter === selectedDCID);
+
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
 
   React.useEffect(() => {
     rehydrate();
-    window.addEventListener("keydown", ({ keyCode }) => {
+    const listener = ({ keyCode }) => {
       if (keyCode === 27) {
         // esc
         setRange(null);
       }
-    });
-    return () => window.removeEventListener("keydown");
+    };
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
   }, []);
 
   React.useEffect(() => {
@@ -105,16 +110,18 @@ function RackManagementPage() {
   }, [dcName, datacenters]);
 
   function rehydrate() {
-    dispatch(fetchRacks());
+    dispatch(fetchRacks(selectedDCName));
   }
 
   function create([r1, r2, c1, c2]) {
-    dispatch(
-      createRacks(r1, r2, c1, c2, clear, () => {
-        rehydrate();
-        clear();
-      })
-    );
+    if (selectedDCID) {
+      dispatch(
+        createRacks(r1, r2, c1, c2, selectedDCID, clear, () => {
+          rehydrate();
+          clear();
+        })
+      );
+    }
   }
 
   function remove(racks) {
@@ -132,11 +139,6 @@ function RackManagementPage() {
     }
   }
 
-  function showRacks(racks) {
-    const idStr = racks.map(r => r.id).join(",");
-    window.open("/#/racks/print_view?ids=" + idStr);
-  }
-
   const arrangedRange = range && [
     Math.min(range[0], range[1]),
     Math.max(range[0], range[1]),
@@ -145,32 +147,27 @@ function RackManagementPage() {
   ];
 
   const selectedRacks = arrangedRange
-    ? racks.filter(rack => isInside(arrangedRange, ...toIndex(rack.rack)))
+    ? filteredRacks.filter(rack =>
+        isInside(arrangedRange, ...toIndex(rack.rack))
+      )
     : [];
 
-  function getColor(r, c) {
-    const existing = rackGroup[r] && rackGroup[r][c];
-    const inRange = arrangedRange && isInside(arrangedRange, r, c);
-
-    return existing && inRange
-      ? "darkred"
-      : existing
-      ? "gray"
-      : inRange
-      ? "red"
-      : "white";
-  }
-
   function createColorMap() {
-    const grid = makeEmptyGrid("white");
+    const grid = {};
     if (arrangedRange) {
       const [r1, r2, c1, c2] = arrangedRange;
       for (let r = r1; r <= r2; r++) {
         for (let c = c1; c <= c2; c++) {
-          grid[r][c] = getColor(r, c);
+          if (!grid[r]) grid[r] = {};
+          grid[r][c] = RED;
         }
       }
     }
+    filteredRacks.forEach(rack => {
+      const [r, c] = toIndex(rack.rack);
+      if (!grid[r]) grid[r] = {};
+      grid[r][c] = grid[r][c] === RED ? DARKRED : GRAY;
+    });
     return grid;
   }
 
@@ -179,6 +176,7 @@ function RackManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
+      <span>Datacenter: </span>
       <Select
         value={selectedDCName}
         onChange={setSelectedDCName}
@@ -190,39 +188,43 @@ function RackManagementPage() {
           </Option>
         ))}
       </Select>
-      <Legend />
-      <Grid
-        rows={ROWS}
-        columns={COLS}
-        colorMap={colorMap}
-        setRange={setRange}
-        range={range}
-      />
-      <div style={{ marginTop: 16 }}>
-        <Button
-          disabled={!range}
-          type="primary"
-          style={{ marginRight: 8 }}
-          onClick={() => create(range)}
-        >
-          Create
-        </Button>
-        <Button
-          disabled={selectedRacks.length == 0}
-          type="danger"
-          style={{ marginRight: 8 }}
-          onClick={() => remove(selectedRacks)}
-        >
-          Remove
-        </Button>
-        <Button
-          disabled={selectedRacks.length == 0}
-          type="default"
-          onClick={() => showRacks(selectedRacks)}
-        >
-          View
-        </Button>
-      </div>
+      {selectedDCName ? (
+        <>
+          <Legend />
+          <Grid
+            rows={ROWS}
+            columns={COLS}
+            colorMap={colorMap}
+            setRange={setRange}
+            range={range}
+          />
+          <div style={{ marginTop: 16 }}>
+            <Button
+              disabled={!range}
+              type="primary"
+              style={{ marginRight: 8 }}
+              onClick={() => create(range)}
+            >
+              Create
+            </Button>
+            <Button
+              disabled={selectedRacks.length == 0}
+              type="danger"
+              style={{ marginRight: 8 }}
+              onClick={() => remove(selectedRacks)}
+            >
+              Remove
+            </Button>
+            <Button
+              disabled={selectedRacks.length == 0}
+              type="default"
+              onClick={() => showRacks(selectedRacks)}
+            >
+              View
+            </Button>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React from "react";
 import style from "./Grid.module.css";
 import GridRangeSelector from "./GridRangeSelector";
 import { Typography } from "antd";
+import { GRID_COLOR_MAP } from "./RackManagementPage";
 
 const CELL_WIDTH = 20;
 
@@ -32,29 +33,31 @@ function Grid({ columns, rows, colorMap, setRange, range }) {
       {rows.map((row, rowIdx) => (
         <tr key={row + rowIdx}>
           <td className={style.tableElm}>{row}</td>
-          {columns.map((col, colIdx) => (
-            <td
-              className={style.tableElm}
-              key={col + colIdx}
-              onMouseDown={() => {
-                isDragging.current = true;
-                setRange([rowIdx, rowIdx, colIdx, colIdx]);
-              }}
-              onMouseEnter={() => {
-                if (isDragging.current) {
+          {columns.map((col, colIdx) => {
+            const cv = colorMap[rowIdx] && colorMap[rowIdx][colIdx];
+            const backgroundColor = GRID_COLOR_MAP[cv ? cv : 0];
+            return (
+              <td
+                className={style.tableElm}
+                key={col + colIdx}
+                onMouseDown={() => {
+                  isDragging.current = true;
+                  setRange([rowIdx, rowIdx, colIdx, colIdx]);
+                }}
+                onMouseEnter={() => {
+                  if (isDragging.current) {
+                    setRange([range[0], rowIdx, range[2], colIdx]);
+                  }
+                }}
+                onMouseUp={() => {
+                  isDragging.current = false;
                   setRange([range[0], rowIdx, range[2], colIdx]);
-                }
-              }}
-              onMouseUp={() => {
-                isDragging.current = false;
-                setRange([range[0], rowIdx, range[2], colIdx]);
-              }}
-            >
-              <div
-                style={{ backgroundColor: colorMap[rowIdx][colIdx], ...FULL }}
-              />
-            </td>
-          ))}
+                }}
+              >
+                <div style={{ backgroundColor, ...FULL }} />
+              </td>
+            );
+          })}
         </tr>
       ))}
     </tbody>
