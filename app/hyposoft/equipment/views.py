@@ -18,6 +18,7 @@ class ITModelFilterView(generics.ListAPIView):
     serializer_class = ITModelSerializer
     filterset_class = ITModelFilter
 
+
 class AssetFilterView(generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.

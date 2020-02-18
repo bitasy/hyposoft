@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 
 class Datacenter(models.Model):
     abbr = models.CharField(
-        max_length=6
+        max_length=6,
+        unique=True
     )
     name = models.CharField(
         max_length=64

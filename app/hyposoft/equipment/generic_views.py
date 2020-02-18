@@ -1,8 +1,20 @@
 from rest_framework import generics
-from .models import *
 from .serializers import *
+from .models import *
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, serializers
+
+
+# Filters the Rack and Asset ListAPIViews based on the datacenter in the request
+class FilterByDatacenterMixin(object):
+    def get_queryset(self):
+        datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
+        queryset = self.get_serializer_class().Meta.model.objects.all()
+        if datacenter is not None and len(datacenter) > 0:
+            if not Datacenter.objects.filter(abbr=datacenter).exists():
+                raise serializers.ValidationError("Datacenter does not exist")
+            return queryset.filter(datacenter=int(datacenter))
+        return queryset
 
 
 # This mixin makes the destroy view return the deleted item
@@ -86,7 +98,7 @@ class AssetDestroyView(generics.DestroyAPIView):
     serializer_class = AssetSerializer
 
 
-class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView):
+class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView, FilterByDatacenterMixin):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -112,7 +124,7 @@ class RackDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
     serializer_class = RackSerializer
 
 
-class RackListView(generics.ListAPIView):
+class RackListView(generics.ListAPIView, FilterByDatacenterMixin):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
