@@ -1,7 +1,6 @@
 import React from "react";
 import Grid from "../RackManagement/Grid";
 import { Typography, Button } from "antd";
-import GridRangeSelector from "./GridRangeSelector";
 import { toIndex, indexToRow, indexToCol } from "./GridUtils";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -22,11 +21,15 @@ export const MAX_COL = 99;
 const ROWS = range(0, MAX_ROW).map(indexToRow);
 const COLS = range(0, MAX_COL).map(v => (v + 1).toString());
 
+function makeEmptyGrid(initialValue) {
+  return Array(MAX_ROW)
+    .fill()
+    .map(() => Array(MAX_COL).fill(initialValue));
+}
+
 function isInside([r1, r2, c1, c2], r, c) {
   return r1 <= r && r <= r2 && c1 <= c && c <= c2;
 }
-
-const full = { width: "100%", height: "100%" };
 
 function groupByRowColumn(racks) {
   const grouped = {};
@@ -70,13 +73,17 @@ function RackManagementPage() {
   const rackGroup = useSelector(s => groupByRowColumn(Object.values(s.racks)));
 
   const [range, setRange] = React.useState(null);
-  const [clearTrigger, setClearTrigger] = React.useState(0);
-  function clear() {
-    setClearTrigger(1 - clearTrigger);
-  }
+  const clear = () => setRange(null);
 
   React.useEffect(() => {
     rehydrate();
+    window.addEventListener("keydown", ({ keyCode }) => {
+      if (keyCode === 27) {
+        // esc
+        setRange(null);
+      }
+    });
+    return () => window.removeEventListener("keydown");
   }, []);
 
   function rehydrate() {
@@ -85,17 +92,10 @@ function RackManagementPage() {
 
   function create([r1, r2, c1, c2]) {
     dispatch(
-      createRacks(
-        indexToRow(r1),
-        indexToRow(r2),
-        indexToCol(c1),
-        indexToCol(c2),
-        clear,
-        () => {
-          rehydrate();
-          clear();
-        }
-      )
+      createRacks(r1, r2, c1, c2, clear, () => {
+        rehydrate();
+        clear();
+      })
     );
   }
 
@@ -119,35 +119,56 @@ function RackManagementPage() {
     window.open("/#/racks/print_view?ids=" + idStr);
   }
 
-  const selectedRacks = range
-    ? racks.filter(rack => isInside(range, ...toIndex(rack.rack)))
+  const arrangedRange = range && [
+    Math.min(range[0], range[1]),
+    Math.max(range[0], range[1]),
+    Math.min(range[2], range[3]),
+    Math.max(range[2], range[3])
+  ];
+
+  const selectedRacks = arrangedRange
+    ? racks.filter(rack => isInside(arrangedRange, ...toIndex(rack.rack)))
     : [];
 
-  function renderCell(r, c) {
+  function getColor(r, c) {
     const existing = rackGroup[r] && rackGroup[r][c];
-    const inRange = range && isInside(range, r, c);
+    const inRange = arrangedRange && isInside(arrangedRange, r, c);
 
-    let color =
-      existing && inRange
-        ? "darkred"
-        : existing
-        ? "gray"
-        : inRange
-        ? "red"
-        : "white";
-
-    return <div style={{ backgroundColor: color, ...full }} />;
+    return existing && inRange
+      ? "darkred"
+      : existing
+      ? "gray"
+      : inRange
+      ? "red"
+      : "white";
   }
+
+  function createColorMap() {
+    const grid = makeEmptyGrid("white");
+    if (arrangedRange) {
+      const [r1, r2, c1, c2] = arrangedRange;
+      for (let r = r1; r <= r2; r++) {
+        for (let c = c1; c <= c2; c++) {
+          grid[r][c] = getColor(r, c);
+        }
+      }
+    }
+    return grid;
+  }
+
+  const colorMap = createColorMap();
 
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
       <Legend />
-      <Grid rows={ROWS} columns={COLS} renderCell={renderCell} />
-      <Typography.Title level={4} style={{ marginTop: 16 }}>
-        Select range
-      </Typography.Title>
-      <GridRangeSelector onChange={setRange} clearTrigger={clearTrigger} />
+      <Grid
+        rows={ROWS}
+        columns={COLS}
+        colorMap={colorMap}
+        setRange={setRange}
+        range={range}
+      />
       <div style={{ marginTop: 16 }}>
         <Button
           disabled={!range}

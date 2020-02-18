@@ -21,6 +21,11 @@ export function indexToCol(idx) {
   return s.length > 1 ? s : "0" + s;
 }
 
+export function indexToColNoZero(idx) {
+  const s = (idx + 1).toString();
+  return s;
+}
+
 export function toIndex(rack) {
   const [row, col] = split(rack, 1);
   return [rowToIndex(row), colToIndex(col)];

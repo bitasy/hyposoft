@@ -153,14 +153,18 @@ function createRack(rack) {
   return Axios.post("api/equipment/RackCreate", rack).then(getData);
 }
 
-function createRacks(fromRow, toRow, fromNumber, toNumber) {
+function createRacks(r1, r2, c1, c2) {
+  const fromRow = Math.min(r1, r2);
+  const toRow = Math.max(r1, r2);
+  const fromNumber = Math.min(c1, c2);
+  const toNumber = Math.max(c1, c2);
+
   const toCreate = [];
-  for (let i = fromRow.charCodeAt(0); i <= toRow.charCodeAt(0); i++) {
-    const row = String.fromCharCode(i);
-    for (let j = parseInt(fromNumber); j <= parseInt(toNumber); j++) {
-      toCreate.push({
-        rack: row + (j < 10 ? "0" : "") + j
-      });
+  for (let i = fromRow; i <= toRow; i++) {
+    const row = String.fromCharCode(i) + "A".charCodeAt(0);
+    for (let j = fromNumber; j <= toNumber; j++) {
+      const col = j + 1;
+      toCreate.push({ rack: row + (col < 10 ? "0" : "") + col });
     }
   }
 
