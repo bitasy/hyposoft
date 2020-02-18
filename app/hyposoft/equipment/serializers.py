@@ -13,6 +13,17 @@ class ITModelSerializer(serializers.ModelSerializer):
         model = ITModel
         fields = '__all__'
 
+    def to_representation(self, itmodel):
+        response = super().to_representation(itmodel)
+        port_labels = NetworkPortLabel.objects.filter(itmodel=itmodel.id)
+        serialized_port_labels = [
+            NetworkPortLabelSerializer(instance=port_label).data
+            for port_label
+            in port_labels
+        ]
+        response['network_port_labels'] = serialized_port_labels
+        return response
+
 
 class PDUSerializer(serializers.ModelSerializer):
     class Meta:

@@ -149,6 +149,49 @@ function getData(res) {
   return res.status < 300 ? res.data : Promise.reject(res.data);
 }
 
+// DC APIs
+function getDatacenters() {
+  return Axios.get("api/equipment/DatacenterList").then(getData);
+}
+
+function getDatacenter(id) {
+  return Axios.get(`api/equipment/Datacenter/${id}`).then(getData);
+}
+
+function createDatacenter(fields) {
+  return Axios.post(`api/equipment/DatacenterCreate`, fields).then(getData);
+}
+
+function updateDatacenter(id, updates) {
+  return Axios.patch(`api/equipment/DatacenterUpdate/${id}`, updates).then(
+    getData
+  );
+}
+
+function deleteDatacenter(id) {
+  return Axios.delete(`api/equipment/DatacenterDestroy/${id}`).then(getData);
+}
+
+// Network port label APIs
+function createNetworkPortLabel(fields) {
+  return Axios.post(`api/equipment/NetworkPortLabelCreate`, fields).then(
+    getData
+  );
+}
+
+function updateNetworkPortLabel(id, updates) {
+  return Axios.patch(
+    `api/equipment/NetworkPortLabelUpdate/${id}`,
+    updates
+  ).then(getData);
+}
+
+function removeNetworkPortLabel(id) {
+  return Axios.post(`api/equipment/NetworkPortLabelDestroy/${id}`).then(
+    getData
+  );
+}
+
 const RealAPI = {
   fetchCurrentUser,
   login,
@@ -170,6 +213,16 @@ const RealAPI = {
   getRacks,
   createRacks,
   deleteRacks,
+
+  getDatacenters,
+  getDatacenter,
+  createDatacenter,
+  updateDatacenter,
+  deleteDatacenter,
+
+  createNetworkPortLabel,
+  updateNetworkPortLabel,
+  removeNetworkPortLabel,
 
   getUsers
 };
