@@ -27,6 +27,8 @@ function ManagementPageFrame({ children }) {
       logout(res => {
         if (res.redirectTo) {
           window.location.href = res.redirectTo;
+        } else {
+          window.location.href = "/";
         }
       })
     );
