@@ -9,12 +9,9 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
     if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
         raise serializers.ValidationError("Asset datacenter cannot be different from rack datacenter.")
     instance.datacenter = instance.rack.datacenter
-    if instance.mac_address == "":
-        instance.mac_address = None
-    else:
-        new = instance.mac_address.lower().replace('-', ':').replace('_', ':')
-        if len(new) == 12:
-            new = ':'.join([new[b:b+2] for b in range(0, 12, 2)])
+    if not instance.mac_address == "":
+        new = instance.mac_address.lower().replace('-', '').replace('_', '').replace(':', '')
+        new = ':'.join([new[b:b+2] for b in range(0, 12, 2)])
         instance.mac_address = new
 
 

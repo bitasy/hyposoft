@@ -199,8 +199,6 @@ class Asset(models.Model):
         ]
     )
     mac_address = models.CharField(
-        unique=True,
-        null=True,
         blank=True,
         max_length=17,
         validators=[
