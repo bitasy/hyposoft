@@ -8,9 +8,12 @@ import {
   removeAsset,
   fetchAsset
 } from "../../../redux/assets/actions";
+import { useSelector } from "react-redux";
 
 function AssetDetailPage() {
   const { id } = useParams();
+
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
 
   return (
     <div style={{ padding: 16 }}>
@@ -22,6 +25,7 @@ function AssetDetailPage() {
         updateRecord={updateAsset}
         deleteRecord={removeAsset}
         schema={assetSchema}
+        disabled={!isAdmin}
       />
     </div>
   );

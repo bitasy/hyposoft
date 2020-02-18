@@ -9,7 +9,7 @@ import {
 
 export const GLOBAL_ABBR = "global";
 
-function DatacenterCard({ dc, onUpdate, onRemove }) {
+function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(null);
 
@@ -32,6 +32,7 @@ function DatacenterCard({ dc, onUpdate, onRemove }) {
         size="small"
         shape="circle"
         onClick={() => setIsEditing(!isEditing)}
+        disabled={disabled}
       >
         {isEditing ? <Icon type="close" /> : <Icon type="edit" />}
       </Button>
@@ -40,6 +41,7 @@ function DatacenterCard({ dc, onUpdate, onRemove }) {
         size="small"
         shape="circle"
         type="danger"
+        disabled={disabled}
         onClick={() => {
           if (confirm("You sure?")) {
             onRemove(dc.id);
@@ -84,13 +86,17 @@ function DatacenterCard({ dc, onUpdate, onRemove }) {
   );
 }
 
-function AddCard({ onCreate }) {
+function AddCard({ onCreate, disabled }) {
   return (
     <Card
       style={{ padding: 0, height: "100px" }}
       bodyStyle={{ padding: 0, width: "100%", height: "100%" }}
     >
-      <Button style={{ width: "100%", height: "100%" }} onClick={onCreate}>
+      <Button
+        style={{ width: "100%", height: "100%" }}
+        onClick={onCreate}
+        disabled={disabled}
+      >
         <Icon type="plus" />
         Add Datacenter
       </Button>
@@ -143,6 +149,8 @@ function DatacenterManagementPage() {
   const showGhostCard = () => setIsAdding(true);
   const showAddCard = () => setIsAdding(false);
 
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
   const datacenters = useSelector(s => Object.values(s.datacenters));
   const dispatch = useDispatch();
 
@@ -175,7 +183,7 @@ function DatacenterManagementPage() {
             case "add":
               return (
                 <List.Item>
-                  <AddCard onCreate={createGhost} />
+                  <AddCard onCreate={createGhost} disabled={!isAdmin} />
                 </List.Item>
               );
             case "ghost":
@@ -191,6 +199,7 @@ function DatacenterManagementPage() {
                     dc={dc}
                     onUpdate={handleUpdate}
                     onRemove={handleDelete}
+                    disabled={!isAdmin}
                   />
                 </List.Item>
               );

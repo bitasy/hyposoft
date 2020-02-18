@@ -83,6 +83,8 @@ function RackManagementPage() {
   )?.id;
   const filteredRacks = racks.filter(r => r.datacenter === selectedDCID);
 
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
 
@@ -200,7 +202,7 @@ function RackManagementPage() {
           />
           <div style={{ marginTop: 16 }}>
             <Button
-              disabled={!range}
+              disabled={!isAdmin || !range}
               type="primary"
               style={{ marginRight: 8 }}
               onClick={() => create(range)}
@@ -208,7 +210,7 @@ function RackManagementPage() {
               Create
             </Button>
             <Button
-              disabled={selectedRacks.length == 0}
+              disabled={!isAdmin || selectedRacks.length === 0}
               type="danger"
               style={{ marginRight: 8 }}
               onClick={() => remove(selectedRacks)}

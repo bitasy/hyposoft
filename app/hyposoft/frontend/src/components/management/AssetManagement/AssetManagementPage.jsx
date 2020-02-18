@@ -11,6 +11,8 @@ function AssetManagementPage() {
   const history = useHistory();
   const dispatch = useDispatch();
 
+  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
   React.useEffect(() => {
     dispatch(fetchAssets());
   }, []);
@@ -38,6 +40,7 @@ function AssetManagementPage() {
         data={assets}
         onSelect={id => history.push(`/assets/${id}`)}
         onCreate={() => history.push("/assets/create")}
+        createDisabled={!isAdmin}
       />
     </div>
   );

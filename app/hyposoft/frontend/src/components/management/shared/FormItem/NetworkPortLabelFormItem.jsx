@@ -38,8 +38,7 @@ const SwitchingInput = React.forwardRef(
               min={0}
               value={networkPorts.length}
               readOnly={disabled}
-              onBlur={e => {
-                const v = parseInt(e.target.value);
+              onChange={v => {
                 onChange(
                   produce(value, draft => {
                     if (v < draft.length) {
