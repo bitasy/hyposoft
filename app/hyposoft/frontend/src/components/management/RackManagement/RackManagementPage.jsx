@@ -1,13 +1,17 @@
 import React from "react";
 import Grid from "../RackManagement/Grid";
-import { Typography, Button } from "antd";
-import { toIndex, indexToRow, indexToCol } from "./GridUtils";
+import { isEqual } from "lodash";
+import { Typography, Button, Select } from "antd";
+import { toIndex, indexToRow } from "./GridUtils";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchRacks,
   createRacks,
   removeRacks
 } from "../../../redux/racks/actions";
+import { GLOBAL_ABBR } from "../DatacenterManagment/DatacenterManagementPage";
+
+const { Option } = Select;
 
 function range(start, end) {
   return Array(end - start)
@@ -71,7 +75,10 @@ function RackManagementPage() {
   const dispatch = useDispatch();
   const racks = useSelector(s => Object.values(s.racks));
   const rackGroup = useSelector(s => groupByRowColumn(Object.values(s.racks)));
+  const dcName = useSelector(s => s.appState.dcName, isEqual);
+  const datacenters = useSelector(s => s.datacenters, isEqual);
 
+  const [selectedDCName, setSelectedDCName] = React.useState(null);
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
 
@@ -85,6 +92,17 @@ function RackManagementPage() {
     });
     return () => window.removeEventListener("keydown");
   }, []);
+
+  React.useEffect(() => {
+    const dcs = Object.values(datacenters);
+    if ((!dcName || dcName === GLOBAL_ABBR) && dcs.length > 0) {
+      setSelectedDCName(dcs[0].abbr);
+    } else if (dcName !== GLOBAL_ABBR) {
+      setSelectedDCName(dcName);
+    } else {
+      setSelectedDCName(null);
+    }
+  }, [dcName, datacenters]);
 
   function rehydrate() {
     dispatch(fetchRacks());
@@ -161,6 +179,17 @@ function RackManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
+      <Select
+        value={selectedDCName}
+        onChange={setSelectedDCName}
+        style={{ width: 150 }}
+      >
+        {Object.values(datacenters).map(ds => (
+          <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
+            {`${ds.name} (${ds.abbr})`}
+          </Option>
+        ))}
+      </Select>
       <Legend />
       <Grid
         rows={ROWS}

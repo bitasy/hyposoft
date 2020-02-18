@@ -8,6 +8,7 @@ import {
   switchDatacenter
 } from "../../redux/datacenters/actions";
 import { logout } from "../../redux/session/actions";
+import { GLOBAL_ABBR } from "./DatacenterManagment/DatacenterManagementPage";
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
@@ -53,9 +54,9 @@ function ManagementPageFrame({ children }) {
               onChange={handleDCSelection}
               style={{ width: 150, marginRight: 8 }}
             >
-              <Option key="global">Global</Option>
+              <Option key={GLOBAL_ABBR}>Global</Option>
               {datacenters.map(ds => (
-                <Option key={ds.name} title={`${ds.name} (${ds.abbr})`}>
+                <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
                   {`${ds.name} (${ds.abbr})`}
                 </Option>
               ))}
