@@ -1,4 +1,4 @@
-import { genAsyncReducer, genFetchAllReducer } from "../reducers";
+import { genAsyncReducer, genFetchAllReducer, applyAll } from "../reducers";
 import { REMOVE_RACKS, CREATE_RACKS, FETCH_ALL_RACKS } from "./actions";
 import produce from "immer";
 
@@ -26,7 +26,7 @@ function CreateRacksReducer(s, a) {
   });
 }
 
-function RemoveRacksReducer() {
+function RemoveRacksReducer(s, a) {
   return produce(s, draft => {
     draft.racks = genAsyncReducer(
       REMOVE_RACKS,

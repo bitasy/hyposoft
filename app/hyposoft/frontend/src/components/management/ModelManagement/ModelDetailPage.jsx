@@ -6,7 +6,11 @@ import { modelSchema } from "./ModelSchema";
 import { Typography } from "antd";
 import { assetColumns } from "../AssetManagement/AssetSchema";
 import { useSelector } from "react-redux";
-import { fetchModel, updateModel, removeModel } from "../../../redux/actions";
+import {
+  fetchModel,
+  updateModel,
+  removeModel
+} from "../../../redux/models/actions";
 
 function ModelDetailPage() {
   const { id } = useParams();

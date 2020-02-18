@@ -7,7 +7,7 @@ export function genAsyncActionTypes(action) {
   return async_suffixes.map(s => `${action}_${s}`);
 }
 
-function genAsyncAction(actionType, op, args, onSuccess, onFailure) {
+export function genAsyncAction(actionType, op, args, onSuccess, onFailure) {
   const [STARTED, SUCCESS, FAILURE] = genAsyncActionTypes(actionType);
   return dispatch => {
     dispatch({ type: STARTED });

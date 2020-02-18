@@ -1,6 +1,6 @@
 import { applyAll, genCrudReducer } from "../reducers";
 import produce from "immer";
-import { assetCRUDActionTypes } from "../actions";
+import { assetCRUDActionTypes } from "./actions";
 
 function AssetCRUDReducer(s, a) {
   return produce(s, draft => {

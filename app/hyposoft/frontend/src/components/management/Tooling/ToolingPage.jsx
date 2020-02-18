@@ -2,13 +2,11 @@ import React from "react";
 import { Typography } from "antd";
 import CreateTable from "./CreateTable";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchRacks,
-  fetchAssets,
-  fetchModels,
-  fetchUsers
-} from "../../../redux/actions";
 import { modelToString } from "../ModelManagement/ModelSchema";
+import { fetchUsers } from "../../../redux/users/actions";
+import { fetchModels } from "../../../redux/models/actions";
+import { fetchRacks } from "../../../redux/racks/actions";
+import { fetchAssets } from "../../../redux/assets/actions";
 
 function ToolingPage() {
   const dispatch = useDispatch();

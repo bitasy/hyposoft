@@ -14,7 +14,7 @@ import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchCurrentUser } from "../redux/actions";
+import { fetchCurrentUser } from "../redux/session/actions";
 
 export default function App() {
   return <Routes />;

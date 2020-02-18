@@ -1,6 +1,8 @@
 import { genCRUDActions, genCRUDActionTypes } from "../actions";
 import API from "../../api/API";
 
+const ENTITY_ASSET = "ASSET";
+
 export const assetCRUDActionTypes = genCRUDActionTypes(ENTITY_ASSET);
 
 const assetCRUDAPIs = [

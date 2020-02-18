@@ -155,7 +155,7 @@ function getDatacenters() {
 }
 
 function getDatacenter(id) {
-  return Axios.get(`api/equipment/Datacenter/${id}`).then(getData);
+  return Axios.get(`api/equipment/DatacenterRetrieve/${id}`).then(getData);
 }
 
 function createDatacenter(fields) {

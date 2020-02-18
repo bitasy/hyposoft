@@ -3,7 +3,11 @@ import { useParams } from "react-router-dom";
 import DataDetailForm from "../shared/DataDetailForm";
 import { assetSchema } from "./AssetSchema";
 import { Typography } from "antd";
-import { fetchAsset, updateAsset, removeAsset } from "../../../redux/actions";
+import {
+  updateAsset,
+  removeAsset,
+  fetchAsset
+} from "../../../redux/assets/actions";
 
 function AssetDetailPage() {
   const { id } = useParams();

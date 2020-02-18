@@ -1,6 +1,6 @@
 import { applyAll, genCrudReducer } from "../reducers";
 import produce from "immer";
-import { modelCRUDActionTypes } from "../actions";
+import { modelCRUDActionTypes } from "./actions";
 
 function ModelCRUDReducer(s, a) {
   return produce(s, draft => {

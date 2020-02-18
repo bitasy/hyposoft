@@ -13,7 +13,7 @@ function LoginReducer(s, a) {
   });
 }
 
-function LogoutReducer() {
+function LogoutReducer(s, a) {
   return produce(s, draft => {
     draft.currentUser = genAsyncReducer(
       LOGOUT,
@@ -24,7 +24,7 @@ function LogoutReducer() {
   });
 }
 
-function FetchCurrentUserReducer() {
+function FetchCurrentUserReducer(s, a) {
   return produce(s, draft => {
     draft.currentUser = genAsyncReducer(
       FETCH_CURRENT_USER,

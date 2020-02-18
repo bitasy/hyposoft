@@ -4,7 +4,8 @@ import Rack from "../shared/Rack";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchRacks, fetchAssets } from "../../../redux/actions";
+import { fetchRacks } from "../../../redux/racks/actions";
+import { fetchAssets } from "../../../redux/assets/actions";
 
 const RACKS_IN_ROW = 4;
 

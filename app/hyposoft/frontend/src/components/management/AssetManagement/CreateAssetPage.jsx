@@ -2,7 +2,7 @@ import React from "react";
 import CreateDataForm from "../shared/CreateDataForm";
 import { assetSchema } from "./AssetSchema";
 import { Typography } from "antd";
-import { createAsset } from "../../../redux/actions";
+import { createAsset } from "../../../redux/assets/actions";
 
 function CreateAssetPage() {
   return (

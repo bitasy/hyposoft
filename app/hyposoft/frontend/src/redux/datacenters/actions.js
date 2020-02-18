@@ -1,3 +1,6 @@
+import { genCRUDActionTypes, genCRUDActions } from "../actions";
+import API from "../../api/API";
+
 export const SWITCH_DATACENTER = "SWITCH_DATACENTER";
 
 export const switchDatacenter = dcName => {
@@ -6,6 +9,8 @@ export const switchDatacenter = dcName => {
     dcName
   };
 };
+
+const ENTITY_DATACENTER = "DATACENTER";
 
 export const datacenterCRUDActionTypes = genCRUDActionTypes(ENTITY_DATACENTER);
 

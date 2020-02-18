@@ -4,7 +4,11 @@ import { Typography, Button } from "antd";
 import GridRangeSelector from "./GridRangeSelector";
 import { toIndex, indexToRow, indexToCol } from "./GridUtils";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchRacks, createRacks, removeRacks } from "../../../redux/actions";
+import {
+  fetchRacks,
+  createRacks,
+  removeRacks
+} from "../../../redux/racks/actions";
 
 function range(start, end) {
   return Array(end - start)

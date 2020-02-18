@@ -1,4 +1,4 @@
-import { genCRUDActionTypes } from "../actions";
+import { genCRUDActionTypes, genCRUDActions } from "../actions";
 import API from "../../api/API";
 
 const ENTITY_MODEL = "MODEL";

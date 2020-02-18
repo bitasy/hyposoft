@@ -18,12 +18,10 @@ import {
   modelToString
 } from "../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchModels,
-  fetchRacks,
-  fetchAssets,
-  fetchUsers
-} from "../../../redux/actions";
+import { fetchRacks } from "../../../redux/racks/actions";
+import { fetchModels } from "../../../redux/models/actions";
+import { fetchAssets } from "../../../redux/assets/actions";
+import { fetchUsers } from "../../../redux/users/actions";
 
 const formItemLayout = {
   labelCol: { span: 8 },

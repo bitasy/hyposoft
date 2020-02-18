@@ -1,4 +1,4 @@
-import { genAsyncAction, noOp } from "../actions";
+import { noOp, genAsyncAction } from "../actions";
 import API from "../../api/API";
 
 export const FETCH_ALL_USERS = "FETCH_ALL_USERS";

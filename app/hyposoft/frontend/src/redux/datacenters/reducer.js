@@ -1,6 +1,6 @@
 import { SWITCH_DATACENTER, datacenterCRUDActionTypes } from "./actions";
 import produce from "immer";
-import { applyAll, genCreateReducer } from "../reducers";
+import { applyAll, genCrudReducer } from "../reducers";
 
 function SwitchDatacenterReducer(s, a) {
   switch (a.type) {
@@ -15,7 +15,7 @@ function SwitchDatacenterReducer(s, a) {
 
 function DatacenterCRUDReducer(s, a) {
   return produce(s, draft => {
-    draft.datacenters = genCreateReducer(datacenterCRUDActionTypes)(
+    draft.datacenters = genCrudReducer(datacenterCRUDActionTypes)(
       draft.datacenters,
       a
     );

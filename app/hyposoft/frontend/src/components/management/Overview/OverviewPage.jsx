@@ -3,7 +3,9 @@ import React from "react";
 import { Typography, Button, Icon, Row, Col } from "antd";
 import { useHistory } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchAssets, fetchModels, fetchRacks } from "../../../redux/actions";
+import { fetchModels } from "../../../redux/models/actions";
+import { fetchAssets } from "../../../redux/assets/actions";
+import { fetchRacks } from "../../../redux/racks/actions";
 
 function OverviewPage() {
   const dispatch = useDispatch();

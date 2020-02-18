@@ -1,22 +1,39 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
-import { Layout, Menu, Icon, Col, Button } from "antd";
+import { Layout, Menu, Icon, Col, Button, Select } from "antd";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../../redux/actions";
+import {
+  fetchDatacenters,
+  switchDatacenter
+} from "../../redux/datacenters/actions";
+import { logout } from "../../redux/session/actions";
 
 const { Header, Content, Sider } = Layout;
+const { Option } = Select;
 
 function ManagementPageFrame({ children }) {
   const dispatch = useDispatch();
   const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const datacenters = useSelector(s => Object.values(s.datacenters));
+  const dcName = useSelector(s => s.appState.dcName);
+
+  React.useEffect(() => {
+    dispatch(fetchDatacenters());
+  }, []);
 
   function onLogout() {
-    dispatch(logout(res => {
-      if(res.redirectTo) {
-        window.location.href = res.redirectTo
-      }
-    }))
+    dispatch(
+      logout(res => {
+        if (res.redirectTo) {
+          window.location.href = res.redirectTo;
+        }
+      })
+    );
+  }
+
+  function handleDCSelection(dcName) {
+    dispatch(switchDatacenter(dcName));
   }
 
   return (
@@ -28,6 +45,20 @@ function ManagementPageFrame({ children }) {
           </h1>
         </Col>
         <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
+          {dcName ? (
+            <Select
+              value={dcName}
+              onChange={handleDCSelection}
+              style={{ width: 150, marginRight: 8 }}
+            >
+              <Option key="global">Global</Option>
+              {datacenters.map(ds => (
+                <Option key={ds.name} title={`${ds.name} (${ds.abbr})`}>
+                  {`${ds.name} (${ds.abbr})`}
+                </Option>
+              ))}
+            </Select>
+          ) : null}
           {isAdmin ? (
             <Button ghost style={{ marginRight: 8 }} href="admin">
               <Icon type="eye" />
