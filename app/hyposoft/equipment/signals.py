@@ -1,13 +1,13 @@
-from django.db.models.signals import pre_save, post_save, pre_delete
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from .models import Asset, Powered, NetworkPortLabel, Rack, PDU
-from rest_framework.serializers import ValidationError
+from rest_framework import serializers
 
 
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
     if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
-        raise ValidationError("Asset datacenter cannot be different from rack datacenter.")
+        raise serializers.ValidationError("Asset datacenter cannot be different from rack datacenter.")
     instance.datacenter = instance.rack.datacenter
     if instance.mac_address == "":
         instance.mac_address = None
@@ -21,7 +21,9 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
 @receiver(pre_save, sender=Powered)
 def check_pdu(sender, instance, *args, **kwargs):
     if instance.pdu.assets.count() > 24:
-        raise ValidationError("This PDU is already full.")
+        raise serializers.ValidationError("This PDU is already full.")
+    if instance.pdu.rack != instance.asset.rack:
+        raise serializers.ValidationError("PDU must be on the same rack as the asset.")
 
 
 @receiver(pre_save, sender=NetworkPortLabel)

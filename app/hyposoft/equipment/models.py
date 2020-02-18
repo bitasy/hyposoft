@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -222,14 +223,11 @@ class Asset(models.Model):
 
     def save(self, *args, **kwargs):
         if self.asset_number == 0:
-            nums = Asset.objects.all()
-            highest = 99999
-            for asset in nums:
-                if asset.asset_number > highest:
-                    highest = asset.asset_number
-            self.asset_number = highest + 1
+            max_an = Asset.objects.all().aggregate(Max('asset_number'))
+            self.asset_number = max_an + 1
             if self.asset_number > 999999:
-                raise serializers.ValidationError("The asset number is too large. Please try manually setting it to be 6 digits.")
+                raise serializers.ValidationError(
+                    "The asset number is too large. Please try manually setting it to be 6 digits.")
 
         if 42 < self.rack_position + self.itmodel.height - 1:
             raise serializers.ValidationError("The asset does not fit on the specified rack from the given position.")
@@ -311,11 +309,6 @@ class Powered(models.Model):
     on = models.BooleanField(
         default=False
     )
-
-    def save(self, *args, **kwargs):
-        if self.asset.rack.left_pdu != self.pdu and self.asset.rack.right_pdu != self.pdu:
-            raise serializers.ValidationError("PDU must be on the same rack as the asset.")
-        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ['plug_number', 'pdu']
