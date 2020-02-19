@@ -1,4 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from requests import ConnectTimeout
 from rest_framework import filters
 from rest_framework import generics
 from rest_framework.decorators import api_view
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status, serializers
 
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
-from .models import ITModel, Datacenter, Asset, Powered
+from .models import ITModel, Datacenter, Asset, Powered, PDU
 from .serializers import ITModelSerializer, AssetSerializer, PDUSerializer, PoweredSerializer
 
 import requests
@@ -38,15 +39,21 @@ class DestroyWithPayloadMixin(object):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+def get_pdu(rack, position):
+    try:
+        response = requests.get(PDU_url + GET_suf, params={'pdu': rack_pre + rack + position})
+        # The following regex extracts the state of each port on the pdu
+        # The format is a list of tuples, e.g. [('1', 'OFF'), ('2', 'ON'), ...]
+        result = re.findall(r"<td>(\d{1,2})<td><span style=\'background-color:#[0-9a-f]{3}\'>(ON|OFF)", response.text)
+        # If there are no matches, the post failed so return the error text
+        result = result if len(result) > 0 else response.text
+    except ConnectTimeout:
+        return "couldn't connect", 400
+    return result, response.status_code
+
 @api_view()
 def getPDU(request, rack, position):
-    response = requests.get(PDU_url + GET_suf, params={'pdu': rack_pre + rack + position})
-    # The following regex extracts the state of each port on the pdu
-    # The format is a list of tuples, e.g. [('1', 'OFF'), ('2', 'ON'), ...]
-    result = re.findall(r"<td>(\d{1,2})<td><span style=\'background-color:#[0-9a-f]{3}\'>(ON|OFF)", response.text)
-    # If there are no matches, the post failed so return the error text
-    result = result if len(result) > 0 else response.text
-    return Response(result, status=response.status_code)
+    return Response(*get_pdu(rack, position))
 
 
 @api_view(['POST'])
@@ -130,3 +137,32 @@ class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
     filterset_class = PoweredFilter
+
+    def get(self, request, *args, **kwargs):
+        """
+        Heads up: This method is SLOW!!
+        It makes many network requests and potentially multiple database queries!
+        """
+        response = super().get(self, request, *args, **kwargs)
+        data = response.data
+        to_check = [x['pdu'] for x in data]
+        pdus = PDU.objects.filter(id__in=to_check, rack__datacenter__abbr__iexact='rtp1').distinct()
+        to_get = [(pdu.rack.rack, pdu.position) for pdu in pdus]
+        # Update Powered states that might have been changed from the Networx website
+        # Only update PDUs that are being returned in this request
+        updated = False
+        for pdu in to_get:
+            states, status_code = get_pdu(pdu[0], pdu[1])
+            if status_code >= 400:
+                break
+            for state in states:
+                try:
+                    entry = Powered.objects.get(pdu__rack__rack=pdu[0], pdu__position=pdu[1], plug_number=state[0])
+                except Powered.DoesNotExist:
+                    continue
+                updated = entry.on != (state[1] == 'ON')
+                entry.on = state[1] == 'ON'
+                entry.save()
+
+        # Recalculate response if necessary
+        return super().get(self, request, *args, **kwargs) if updated else response

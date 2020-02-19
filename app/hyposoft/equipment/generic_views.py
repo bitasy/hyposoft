@@ -191,21 +191,11 @@ class PoweredCreateView(generics.CreateAPIView):
     serializer_class = PoweredSerializer
 
 
-class PoweredRetrieveView(generics.RetrieveAPIView):
-    queryset = Powered.objects.all()
-    serializer_class = PoweredSerializer
-
-
 class PoweredUpdateView(generics.UpdateAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
 
 
 class PoweredDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
-    queryset = Powered.objects.all()
-    serializer_class = PoweredSerializer
-
-
-class PoweredListView(generics.ListAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
