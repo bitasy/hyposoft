@@ -45,14 +45,18 @@ class DestroyWithPayloadMixin(object):
 def get_pdu(rack, position):
     try:
         response = requests.get(PDU_url + GET_suf, params={'pdu': rack_pre + rack + position})
+        code = response.status_code
         # The following regex extracts the state of each port on the pdu
         # The format is a list of tuples, e.g. [('1', 'OFF'), ('2', 'ON'), ...]
         result = re.findall(r"<td>(\d{1,2})<td><span style=\'background-color:#[0-9a-f]{3}\'>(ON|OFF)", response.text)
         # If there are no matches, the post failed so return the error text
-        result = result if len(result) > 0 else response.text
+        if len(result) == 0:
+            result = response.text
+            code = 400
     except ConnectTimeout:
         return "couldn't connect", 400
-    return result, response.status_code
+    return result, code
+
 
 def post_pdu(rack, position, port, state):
     try:
@@ -70,31 +74,60 @@ def post_pdu(rack, position, port, state):
         return "couldn't connect", 400
     return result, response.status_code
 
+
 @api_view()
 def getPDU(request, rack, position):
     return Response(*get_pdu(rack, position))
 
 
+def process_asset(asset_id, func):
+    asset = Asset.objects.get(id=asset_id)
+    rack = asset.rack.id
+    ports = Powered.objects.filter(asset=asset)
+    for port in ports:
+        func(rack, port)
+
+
 @api_view(['POST'])
 def switchPDU(request):
-    return Response(*post_pdu(**request.data))
+    responses = {}
+
+    def process_port(rack, port):
+        res = post_pdu(rack, port.pdu.position, port.plug_number, request.data['state'])
+        responses[str(port.id)] = (
+            port.pdu.id,
+            port.asset.id,
+            res[0],
+            res[1]
+        )
+
+    process_asset(request.data['asset'], process_port)
+    return Response(responses)
 
 
 @api_view(['POST'])
 def cycleAsset(request):
+
+    responses = {}
+
     def delay_start(rack, position, port):
         time.sleep(2)
         post_pdu(rack, position, port, 'on')
-    asset = Asset.objects.get(id=request.data['asset'])
-    rack = asset.rack.id
-    ports = Powered.objects.filter(asset=asset)
-    response = {}
-    for port in ports:
-        response[str(port.id)] = (port.pdu.id, port.asset.id, *post_pdu(rack, port.position, port.plug_number, 'off'))
+
+    def process_port(rack, port):
+        res = post_pdu(rack, port.pdu.position, port.plug_number, 'off')
+        responses[str(port.id)] = (
+            port.pdu.id,
+            port.asset.id,
+            res[0],
+            res[1]
+        )
         t = threading.Thread(target=delay_start, args=(rack, port.position, port.plug_number))
         t.start()
+
+    process_asset(request['asset'], process_port)
     # Return only the responses for turning off the ports as to not block.
-    return Response(response)
+    return Response(responses)
 
 
 class ITModelFilterView(generics.ListAPIView):
@@ -173,7 +206,9 @@ class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
         response = super().get(self, request, *args, **kwargs)
         data = response.data
         to_check = [x['pdu'] for x in data]
-        pdus = PDU.objects.filter(id__in=to_check, rack__datacenter__abbr__iexact='rtp1').distinct()
+        pdus = PDU.objects.filter(
+            id__in=to_check,
+            networked=True).distinct()
         to_get = [(pdu.rack.rack, pdu.position) for pdu in pdus]
         # Update Powered states that might have been changed from the Networx website
         # Only update PDUs that are being returned in this request

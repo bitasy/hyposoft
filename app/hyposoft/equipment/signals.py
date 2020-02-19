@@ -1,6 +1,7 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from .models import Asset, Powered, NetworkPortLabel, Rack, PDU
+from .views import get_pdu
 from rest_framework import serializers
 
 
@@ -34,6 +35,12 @@ def set_default_npl(sender, instance, *args, **kwargs):
                 if digit > highest:
                     highest = digit
         instance.name = str(highest + 1)
+
+
+@receiver(pre_save, sender=PDU)
+def set_connected(sender, instance, *args, **kwargs):
+    response = get_pdu(instance.rack.rack, instance.position)
+    instance.networked = response[1] < 400
 
 
 @receiver(post_save, sender=Rack)

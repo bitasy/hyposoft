@@ -116,6 +116,8 @@ class PDU(models.Model):
         on_delete=models.CASCADE
     )
 
+    networked = models.BooleanField()
+
     class Position(models.TextChoices):
         LEFT = 'L', 'Left'
         RIGHT = 'R', 'Right'
