@@ -4,8 +4,10 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   updateDatacenter,
   removeDatacenter,
-  createDatacenter
+  createDatacenter,
+  switchDatacenter
 } from "../../../redux/datacenters/actions";
+import { GLOBAL_ABBR } from "../../../api/API";
 
 function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
@@ -42,7 +44,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
         disabled={disabled}
         onClick={() => {
           if (confirm("You sure?")) {
-            onRemove(dc.id);
+            onRemove(dc.id, dc.abbr);
           }
         }}
       >
@@ -150,14 +152,21 @@ function DatacenterManagementPage() {
   const isAdmin = useSelector(s => s.currentUser.is_superuser);
 
   const datacenters = useSelector(s => Object.values(s.datacenters));
+  const dcName = useSelector(s => s.appState.dcName);
   const dispatch = useDispatch();
 
   function handleUpdate({ id, name, abbr }) {
     dispatch(updateDatacenter(id, { name, abbr }));
   }
 
-  function handleDelete(id) {
-    dispatch(removeDatacenter(id));
+  function handleDelete(id, abbr) {
+    dispatch(
+      removeDatacenter(id, () => {
+        if (dcName === abbr) {
+          dispatch(switchDatacenter(GLOBAL_ABBR));
+        }
+      })
+    );
   }
 
   function handleCreate(fields) {

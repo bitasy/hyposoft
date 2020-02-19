@@ -20,7 +20,13 @@ function ManagementPageFrame({ children }) {
   const dcName = useSelector(s => s.appState.dcName);
 
   React.useEffect(() => {
-    dispatch(fetchDatacenters());
+    dispatch(
+      fetchDatacenters(dcs => {
+        if (!dcs.find(dc => dc.abbr === dcName)) {
+          dispatch(switchDatacenter(GLOBAL_ABBR));
+        }
+      })
+    );
   }, []);
 
   function onLogout() {
