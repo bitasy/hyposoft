@@ -114,6 +114,7 @@ function createAsset(fields) {
     draft.itmodel = draft.model.id;
     draft.rack = draft.rack.id;
     draft.owner = draft.owner && draft.owner.id;
+    draft.asset_number = draft.asset_number || 0;
     delete draft.model;
   });
 

@@ -7,12 +7,14 @@ from rest_framework import serializers
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
     if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
-        raise serializers.ValidationError("Asset datacenter cannot be different from rack datacenter.")
+        raise serializers.ValidationError(
+            "Asset datacenter cannot be different from rack datacenter.")
     instance.datacenter = instance.rack.datacenter
     if instance.mac_address == "":
         instance.mac_address = None
     else:
-        new = instance.mac_address.lower().replace('-', ':').replace('_', ':')
+        new = (instance.mac_address or "").lower().replace(
+            '-', ':').replace('_', ':')
         if len(new) == 12:
             new = ':'.join([new[b:b+2] for b in range(0, 12, 2)])
         instance.mac_address = new
@@ -23,7 +25,8 @@ def check_pdu(sender, instance, *args, **kwargs):
     if instance.pdu.assets.count() > 24:
         raise serializers.ValidationError("This PDU is already full.")
     if instance.pdu.rack != instance.asset.rack:
-        raise serializers.ValidationError("PDU must be on the same rack as the asset.")
+        raise serializers.ValidationError(
+            "PDU must be on the same rack as the asset.")
 
 
 @receiver(pre_save, sender=NetworkPortLabel)

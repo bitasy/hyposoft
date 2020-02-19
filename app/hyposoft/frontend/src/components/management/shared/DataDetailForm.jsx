@@ -51,9 +51,9 @@ function DataDetailForm({
 
   return record && newRecord ? (
     <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
-      {schema.map(schemaFrag => (
+      {schema.map((schemaFrag, idx) => (
         <FormItem
-          key={schemaFrag.fieldName}
+          key={idx}
           form={form}
           schemaFrag={schemaFrag}
           originalValue={record[schemaFrag.fieldName]}
