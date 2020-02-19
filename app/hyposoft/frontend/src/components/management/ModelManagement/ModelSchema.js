@@ -107,7 +107,7 @@ export const modelColumns = [
   {
     title: "Vendor",
     key: "vendor",
-    toString: r => r.vendor,
+    render: r => r.vendor,
     sorter: (a, b) => strcmp(a.vendor, b.vendor),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
@@ -115,56 +115,56 @@ export const modelColumns = [
   {
     title: "Model #",
     key: "model_number",
-    toString: r => r.model_number,
+    render: r => r.model_number,
     sorter: (a, b) => strcmp(a.model_number, b.model_number),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Height",
     key: "height",
-    toString: s => s.height,
+    render: s => s.height,
     sorter: (a, b) => a.height - b.height,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Display Color",
     key: "display_color",
-    toString: s => s.display_color,
+    render: s => s.display_color,
     sorter: (a, b) => strcmp(a.display_color, b.display_color),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Ethernet Ports",
     key: "ethernet_ports",
-    toString: s => (s.ethernet_ports || "").toString(),
+    render: s => (s.ethernet_ports || "").toString(),
     sorter: (a, b) => (a.ethernet_ports || 0) - (b.ethernet_ports || 0),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Power Ports",
     key: "power_ports",
-    toString: s => (s.power_ports || "").toString(),
+    render: s => (s.power_ports || "").toString(),
     sorter: (a, b) => (a.power_ports || 0) - (b.power_ports || 0),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "CPU",
     key: "cpu",
-    toString: s => s.cpu,
+    render: s => s.cpu,
     sorter: (a, b) => strcmp(a.cpu, b.cpu),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Memory",
     key: "memory",
-    toString: s => (s.memory || "").toString(),
+    render: s => (s.memory || "").toString(),
     sorter: (a, b) => (a.memory || 0) - (b.memory || 0),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Storage",
     key: "storage",
-    toString: s => s.storage,
+    render: s => s.storage,
     sorter: (a, b) => strcmp(a.storage, b.storage),
     sortDirections: ["ascend", "descend"]
   }

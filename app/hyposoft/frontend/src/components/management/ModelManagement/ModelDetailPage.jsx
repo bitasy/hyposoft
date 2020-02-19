@@ -5,7 +5,7 @@ import DataList from "../shared/DataList";
 import { modelSchema } from "./ModelSchema";
 import { Typography } from "antd";
 import { assetColumns } from "../AssetManagement/AssetSchema";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import {
   fetchModel,
   updateModel,
@@ -14,20 +14,27 @@ import {
 
 function ModelDetailPage() {
   const { id } = useParams();
+  const dispatch = useDispatch();
   const history = useHistory();
+  const models = useSelector(s => s.models);
   const assets = useSelector(s =>
-    Object.values(s.assets).filter(inst => inst.model.id === parseInt(id))
+    Object.values(s.assets).filter(inst => inst.model.id == id)
   );
-
   const isAdmin = useSelector(s => s.currentUser.is_superuser);
+
+  React.useEffect(() => {
+    dispatch(fetchModel(id));
+  }, [id]);
+
+  const record = models[id];
+
+  if (!record) return null;
 
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Model Details</Typography.Title>
       <DataDetailForm
-        id={id}
-        selector={(s, id) => s.models[id]}
-        getRecord={fetchModel}
+        record={record}
         updateRecord={updateModel}
         deleteRecord={removeModel}
         schema={modelSchema}

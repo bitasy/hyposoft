@@ -245,6 +245,20 @@ function removeNetworkPortLabel(id) {
   );
 }
 
+// Power control APIs
+
+function turnOn(assetID) {
+  return Axios.post(`api/equipment/PowerOn/${assetID}`).then(getData);
+}
+
+function turnOff(assetID) {
+  return Axios.post(`api/equipment/PowerOff/${assetID}`).then(getData);
+}
+
+function cycle(assetID) {
+  return Axios.post(`api/equipment/Cycle/${assetID}`).then(getData);
+}
+
 const RealAPI = {
   fetchCurrentUser,
   login,
@@ -275,6 +289,10 @@ const RealAPI = {
   createNetworkPortLabel,
   updateNetworkPortLabel,
   removeNetworkPortLabel,
+
+  turnOn,
+  turnOff,
+  cycle,
 
   getUsers
 };

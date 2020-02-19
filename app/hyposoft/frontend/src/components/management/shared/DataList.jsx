@@ -1,12 +1,13 @@
 import React from "react";
 import { Table, Button, Icon, Collapse } from "antd";
 import Filter from "./Filters";
+import { useSelector } from "react-redux";
 
-function decorateColumns(columns) {
+function decorateColumns(columns, currentUser) {
   return columns.map(column => {
     return {
       ...column,
-      render: (txt, record, idx) => <span>{column.toString(record)}</span>
+      render: (txt, record, idx) => column.render(record, currentUser)
     };
   });
 }
@@ -48,6 +49,8 @@ function DataList({
 
   const [filterValues, setFilterValues] = React.useState(defaults);
 
+  const currentUser = useSelector(s => s.currentUser);
+
   React.useEffect(() => {
     setFilterValues(getDefaults(data, filters));
   }, [data]);
@@ -85,7 +88,7 @@ function DataList({
       ) : null}
       <Table
         rowKey={r => r.id}
-        columns={decorateColumns(columns)}
+        columns={decorateColumns(columns, currentUser)}
         dataSource={filteredData}
         onRow={r => {
           return {

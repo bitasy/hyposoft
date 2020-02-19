@@ -7,9 +7,7 @@ import FormItem from "./FormItem/FormItem";
 
 function DataDetailForm({
   form,
-  id,
-  selector,
-  getRecord,
+  record,
   updateRecord,
   deleteRecord,
   schema,
@@ -17,13 +15,7 @@ function DataDetailForm({
 }) {
   const dispatch = useDispatch();
   const history = useHistory();
-
-  const record = useSelector(s => id && selector(s, id));
   const [newRecord, setNewRecord] = React.useState(null);
-
-  React.useEffect(() => {
-    dispatch(getRecord(id));
-  }, [id]);
 
   React.useEffect(() => {
     record && setNewRecord(Object.assign({}, record));
@@ -36,7 +28,7 @@ function DataDetailForm({
     form.validateFields((err, values) => {
       if (!err) {
         if (confirm("You sure?")) {
-          dispatch(updateRecord(id, newRecord));
+          dispatch(updateRecord(record.id, newRecord));
         }
       }
     });
@@ -45,7 +37,7 @@ function DataDetailForm({
   function handleDelete(e) {
     e.preventDefault();
     if (confirm("You sure?")) {
-      dispatch(deleteRecord(id, () => history.goBack()));
+      dispatch(deleteRecord(record.id, () => history.goBack()));
     }
   }
 

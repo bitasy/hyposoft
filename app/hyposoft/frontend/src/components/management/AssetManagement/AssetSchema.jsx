@@ -1,8 +1,10 @@
+import React from "react";
 import {
   modelKeywordMatch,
   modelToString
 } from "../ModelManagement/ModelSchema";
 import { toIndex } from "../RackManagement/GridUtils";
+import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 
 function strcmp(a, b) {
   if (a === b) return 0;
@@ -89,21 +91,21 @@ export const assetColumns = [
   {
     title: "Model",
     key: "model",
-    toString: r => modelToString(r.model),
+    render: r => modelToString(r.model),
     sorter: (a, b) => strcmp(modelToString(a.model), modelToString(b.model)),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Host",
     key: "host",
-    toString: r => r.hostname,
+    render: r => r.hostname,
     sorter: (a, b) => strcmp(a.hostname, b.hostname),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Location",
     key: "location",
-    toString: r => assetToLocation(r),
+    render: r => assetToLocation(r),
     sorter: (a, b) => strcmp(assetToLocation(a) - assetToLocation(b)),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
@@ -111,9 +113,18 @@ export const assetColumns = [
   {
     title: "Owner",
     key: "owner",
-    toString: r => r.owner.username,
+    render: r => r.owner.username,
     sorter: (a, b) => strcmp(a.owner.username - b.owner.username),
     sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Power",
+    key: "actions",
+    render: (r, user) => {
+      return <NetworkPowerActionButtons asset={r} user={user} />;
+    },
+    sorter: null,
+    sortDirections: []
   }
 ];
 
