@@ -24,7 +24,6 @@ function NumberFormItem({
       {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
         <InputNumber
           disabled={disabled}
-          placeholder={schemaFrag.displayName}
           min={schemaFrag.min}
           onChange={v => onChange({ [schemaFrag.fieldName]: v })}
           style={{ width: "100%" }}

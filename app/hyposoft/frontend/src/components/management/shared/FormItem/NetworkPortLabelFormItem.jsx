@@ -37,7 +37,7 @@ const SwitchingInput = React.forwardRef(
             <InputNumber
               min={0}
               value={networkPorts.length}
-              readOnly={disabled}
+              disabled={disabled}
               onChange={v => {
                 onChange(
                   produce(value, draft => {
@@ -59,7 +59,7 @@ const SwitchingInput = React.forwardRef(
               key={idx}
               style={{ marginTop: 4 }}
               value={port}
-              readOnly={disabled}
+              disabled={disabled}
               onChange={e =>
                 onChange(
                   produce(value, draft => {

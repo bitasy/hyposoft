@@ -31,7 +31,6 @@ function StringFormItem({
       })(
         <AutoComplete
           disabled={disabled}
-          placeholder={schemaFrag.displayName}
           dataSource={dataSource}
           filterOption={(input, option) => option.key.includes(input)}
           onChange={v => {

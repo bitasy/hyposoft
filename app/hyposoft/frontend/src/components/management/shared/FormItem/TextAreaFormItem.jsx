@@ -24,7 +24,6 @@ function TextAreaFormItem({
       {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
         <Input.TextArea
           disabled={disabled}
-          placeholder={schemaFrag.displayName}
           rows={5}
           onChange={e => onChange({ [schemaFrag.fieldName]: e.target.value })}
         />
