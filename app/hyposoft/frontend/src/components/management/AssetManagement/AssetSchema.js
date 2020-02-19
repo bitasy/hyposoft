@@ -15,6 +15,15 @@ function assetToLocation(asset) {
 
 export const assetSchema = [
   {
+    displayName: "Asset Number",
+    fieldName: "asset_number",
+    type: "autogen-number",
+    required: false,
+    defaultValue: null,
+    min: 100001,
+    max: 999999
+  },
+  {
     displayName: "Model",
     fieldName: "model",
     type: "model",
@@ -25,8 +34,15 @@ export const assetSchema = [
     displayName: "Host",
     fieldName: "hostname",
     type: "string",
-    required: true,
+    required: false,
     defaultValue: ""
+  },
+  {
+    displayName: "Datacenter",
+    fieldName: "datacenter",
+    type: "datacenter",
+    required: true,
+    defaultValue: null
   },
   {
     displayName: "Rack",
@@ -49,6 +65,15 @@ export const assetSchema = [
     required: false,
     defaultValue: ""
   },
+  {
+    displayName: "Mac Address",
+    fieldName: "mac_address",
+    type: "string",
+    required: false,
+    defaultValue: ""
+  },
+  // network port connections
+  // power connections
   {
     displayName: "Comment",
     fieldName: "comment",

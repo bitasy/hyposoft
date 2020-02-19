@@ -68,8 +68,8 @@ class ITModel(models.Model):
     comment = models.TextField(
         blank=True,
         validators=[
-                   RegexValidator("(?m)""(?![ \t]*(,|$))",
-                                  message="Comments must be enclosed by double quotes if comment contains line breaks.")
+            RegexValidator("(?m)""(?![ \t]*(,|$))",
+                           message="Comments must be enclosed by double quotes if comment contains line breaks.")
         ]
     )
 
@@ -224,20 +224,22 @@ class Asset(models.Model):
     def save(self, *args, **kwargs):
         if self.asset_number == 0:
             max_an = Asset.objects.all().aggregate(Max('asset_number'))
-            self.asset_number = max_an + 1
+            self.asset_number = (max_an['asset_number__max'] or 100000) + 1
             if self.asset_number > 999999:
                 raise serializers.ValidationError(
                     "The asset number is too large. Please try manually setting it to be 6 digits.")
 
         if 42 < self.rack_position + self.itmodel.height - 1:
-            raise serializers.ValidationError("The asset does not fit on the specified rack from the given position.")
+            raise serializers.ValidationError(
+                "The asset does not fit on the specified rack from the given position.")
 
         blocked = Asset.objects.filter(
             rack=self.rack,
             rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height))
 
         if len(blocked) > 0:
-            raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+            raise serializers.ValidationError(
+                "There is already an asset in this area of the specified rack.")
 
         i = self.rack_position - 1
         while i > 0:
@@ -246,9 +248,11 @@ class Asset(models.Model):
                 rack_position=i
             )
             if len(under) > 0:
-                asset = under.values_list('rack_position', 'itmodel__height')[0]
+                asset = under.values_list(
+                    'rack_position', 'itmodel__height')[0]
                 if asset[0] + asset[1] > self.rack_position:
-                    raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+                    raise serializers.ValidationError(
+                        "There is already an asset in this area of the specified rack.")
                 else:
                     break
             i -= 1

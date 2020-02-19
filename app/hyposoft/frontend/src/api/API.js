@@ -96,16 +96,10 @@ function translate(asset) {
 }
 
 function getAssets() {
-  return Axios.get("api/equipment/AssetList")
+  const headers = makeHeaders(dcName);
+  return Axios.get("api/equipment/AssetList", { headers })
     .then(getData)
     .then(assets => assets.map(translate));
-}
-
-// ex) A12
-function getAssetsForRack(rackID) {
-  return getAssets().then(assets =>
-    assets.filter(asset => asset.rack.id === rackID)
-  );
 }
 
 function getAsset(id) {

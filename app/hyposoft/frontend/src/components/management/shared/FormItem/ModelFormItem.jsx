@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import { Form, Select, Button, Icon, Row, Col } from "antd";
 import { modelKeywordMatch } from "../../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
+import { fetchModels } from "../../../../redux/models/actions";
 
 function ModelFormItem({
   form,

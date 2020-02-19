@@ -8,6 +8,7 @@ import RackFormItem from "./RackFormItem";
 import RackUFormItem from "./RackUFormItem";
 import UserFormItem from "./UserFormItem";
 import NetworkPortLabelFormItem from "./NetworkPortLabelFormItem";
+import AutogenNumberFormItem from "./AutogenNumberFormItem";
 
 export const FORM_ITEM_LAYOUT = {
   labelCol: { span: 8 },
@@ -33,6 +34,8 @@ function FormItem(props) {
     <UserFormItem {...props} />
   ) : props.schemaFrag.type === "network_port_labels" ? (
     <NetworkPortLabelFormItem {...props} />
+  ) : props.schemaFrag.type === "autogen-number" ? (
+    <AutogenNumberFormItem {...props} />
   ) : null;
 }
 
