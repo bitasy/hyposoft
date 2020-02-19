@@ -20,6 +20,7 @@ for view in views:
 urlpatterns += [
     path('ITModelFilter', ITModelFilterView.as_view()),
     path('AssetFilter', AssetFilterView.as_view()),
+    path('PoweredFilter', PoweredFilterView.as_view()),
     path('PDUNetwork/get/<rack>/<position>', getPDU),
     path('PDUNetwork/post', switchPDU)
 ]

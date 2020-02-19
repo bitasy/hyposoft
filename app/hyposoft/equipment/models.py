@@ -129,10 +129,10 @@ class PDU(models.Model):
         unique_together = ['rack', 'position']
 
     def __str__(self):
-        return "{} PDU on Rack {} in {}".format(
+        return "{} PDU on {} in {}".format(
             self.position,
             str(self.rack),
-            self.rack.datacenter.abbr
+            self.rack.datacenter
         )
 
 

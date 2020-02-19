@@ -3,51 +3,39 @@ from rest_framework import filters
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status, serializers
 
-from .filters import ITModelFilter, AssetFilter
-from .models import ITModel, Asset, Rack
-from .serializers import ITModelSerializer, AssetSerializer
+from .filters import ITModelFilter, AssetFilter, PoweredFilter
+from .models import ITModel, Datacenter, Asset, Powered
+from .serializers import ITModelSerializer, AssetSerializer, PDUSerializer, PoweredSerializer
 
 import requests
 import re
-
-
-class ITModelFilterView(generics.ListAPIView):
-    """
-    Class for returning ITModels after filtering criteria.
-    """
-
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ['vendor', 'model_number', 'cpu', 'storage']
-
-    queryset = ITModel.objects.all()
-    serializer_class = ITModelSerializer
-    filterset_class = ITModelFilter
-
-
-class AssetFilterView(generics.ListAPIView):
-    """
-    Class for returning Assets after filtering criteria.
-    """
-
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = [
-        'itmodel__vendor',
-        'itmodel__model_number',
-        'hostname',
-        'owner__username',
-        'owner__first_name',
-        'owner__last_name'
-    ]
-
-    serializer_class = AssetSerializer
-    filterset_class = AssetFilter
-
 
 PDU_url = "http://hyposoft-mgt.colab.duke.edu:8008/"
 GET_suf = "pdu.php"
 POST_suf = "power.php"
 rack_pre = "hpdu-rtp1-"
+
+
+# Filters the Rack and Asset ListAPIViews based on the datacenter in the request
+class FilterByDatacenterMixin(object):
+    def get_queryset(self):
+        datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
+        queryset = self.get_serializer_class().Meta.model.objects.all()
+        if datacenter is not None and len(datacenter) > 0:
+            if not Datacenter.objects.filter(abbr=datacenter).exists():
+                raise serializers.ValidationError("Datacenter does not exist")
+            return queryset.filter(datacenter=int(datacenter))
+        return queryset
+
+
+# This mixin makes the destroy view return the deleted item
+class DestroyWithPayloadMixin(object):
+    def destroy(self, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        super().destroy(*args, **kwargs)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view()
@@ -73,3 +61,72 @@ def switchPDU(request):
     result = re.findall(r'(set .*)\n', response.text)
     result = result[0] if len(result) > 0 else response.text
     return Response(result, status=response.status_code)
+
+
+class ITModelFilterView(generics.ListAPIView):
+    """
+    Class for returning ITModels after filtering criteria.
+    """
+
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
+    search_fields = [
+        'vendor',
+        'model_number',
+        'cpu',
+        'storage'
+    ]
+    ordering_fields = [
+        'vendor',
+        'model_number',
+        'height',
+        'display_color',
+        'power_ports',
+        'cpu',
+        'memory',
+        'storage'
+    ]
+
+    queryset = ITModel.objects.all()
+    serializer_class = ITModelSerializer
+    filterset_class = ITModelFilter
+
+
+class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
+    """
+    Class for returning Assets after filtering criteria.
+    """
+
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
+    search_fields = [
+        'itmodel__vendor',
+        'itmodel__model_number',
+        'hostname',
+        'mac_address',
+        'owner__username',
+        'owner__first_name',
+        'owner__last_name'
+    ]
+    ordering_fields = [
+        'itmodel__vendor',
+        'itmodel__model_number',
+        'hostname',
+        'rack__rack',
+        'rack_position',
+        'owner'
+    ]
+
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
+    filterset_class = AssetFilter
+
+
+class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
+    """
+    Class for returning PDU by Rack Range.
+    """
+
+    filter_backends = [DjangoFilterBackend]
+
+    queryset = Powered.objects.all()
+    serializer_class = PoweredSerializer
+    filterset_class = PoweredFilter
