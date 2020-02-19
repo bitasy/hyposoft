@@ -1,9 +1,10 @@
 import Axios from "axios";
 
 import produce from "immer";
+export const GLOBAL_ABBR = "global";
 
 function makeHeaders(dcName) {
-  if (dcName) {
+  if (dcName && dcName !== GLOBAL_ABBR) {
     return {
       "X-DATACENTER": dcName
     };
@@ -95,7 +96,7 @@ function translate(asset) {
   return asset;
 }
 
-function getAssets() {
+function getAssets(dcName) {
   const headers = makeHeaders(dcName);
   return Axios.get("api/equipment/AssetList", { headers })
     .then(getData)
@@ -255,7 +256,6 @@ const RealAPI = {
   deleteModel,
 
   getAssets,
-  getAssetsForRack,
   getAsset,
   createAsset,
   updateAsset,

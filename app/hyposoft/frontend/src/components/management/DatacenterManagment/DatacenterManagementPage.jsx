@@ -7,8 +7,6 @@ import {
   createDatacenter
 } from "../../../redux/datacenters/actions";
 
-export const GLOBAL_ABBR = "global";
-
 function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(null);

@@ -9,7 +9,7 @@ import {
   createRacks,
   removeRacks
 } from "../../../redux/racks/actions";
-import { GLOBAL_ABBR } from "../DatacenterManagment/DatacenterManagementPage";
+import { GLOBAL_ABBR } from "../../../api/API";
 
 const { Option } = Select;
 

@@ -8,7 +8,7 @@ import {
   switchDatacenter
 } from "../../redux/datacenters/actions";
 import { logout } from "../../redux/session/actions";
-import { GLOBAL_ABBR } from "./DatacenterManagment/DatacenterManagementPage";
+import { GLOBAL_ABBR } from "../../api/API";
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;

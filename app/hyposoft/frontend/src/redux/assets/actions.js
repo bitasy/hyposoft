@@ -1,4 +1,9 @@
-import { genCRUDActions, genCRUDActionTypes } from "../actions";
+import {
+  genCRUDActions,
+  genCRUDActionTypes,
+  noOp,
+  genAsyncAction
+} from "../actions";
 import API from "../../api/API";
 
 const ENTITY_ASSET = "ASSET";
@@ -14,9 +19,18 @@ const assetCRUDAPIs = [
 ];
 
 export const [
-  fetchAssets,
+  ,
   fetchAsset,
   createAsset,
   updateAsset,
   removeAsset
 ] = genCRUDActions(assetCRUDActionTypes, assetCRUDAPIs);
+
+export const fetchAssets = (dcName, onSuccess = noOp, onFailure = noOp) =>
+  genAsyncAction(
+    assetCRUDActionTypes[0],
+    API.getAssets,
+    [dcName],
+    onSuccess,
+    onFailure
+  );
