@@ -1,3 +1,6 @@
+import threading
+import time
+
 from django_filters.rest_framework import DjangoFilterBackend
 from requests import ConnectTimeout
 from rest_framework import filters
@@ -51,6 +54,22 @@ def get_pdu(rack, position):
         return "couldn't connect", 400
     return result, response.status_code
 
+def post_pdu(rack, position, port, state):
+    try:
+        response = requests.post(PDU_url + POST_suf, {
+            'pdu': rack_pre + rack + position,
+            'port': port,
+            'v': state
+        })
+        # The following regex extracts the result string from the HTML response text
+        # If there are no matches, the post failed so return the error text
+        result = re.findall(r'(set .*)\n', response.text)
+        result = result[0] if len(result) > 0 else response.text
+
+    except ConnectTimeout:
+        return "couldn't connect", 400
+    return result, response.status_code
+
 @api_view()
 def getPDU(request, rack, position):
     return Response(*get_pdu(rack, position))
@@ -58,16 +77,24 @@ def getPDU(request, rack, position):
 
 @api_view(['POST'])
 def switchPDU(request):
-    response = requests.post(PDU_url + POST_suf, {
-        'pdu': rack_pre + request.data['rack'] + request.data['position'],
-        'port': request.data['port'],
-        'v': request.data['state']
-    })
-    # The following regex extracts the result string from the HTML response text
-    # If there are no matches, the post failed so return the error text
-    result = re.findall(r'(set .*)\n', response.text)
-    result = result[0] if len(result) > 0 else response.text
-    return Response(result, status=response.status_code)
+    return Response(*post_pdu(**request.data))
+
+
+@api_view(['POST'])
+def cycleAsset(request):
+    def delay_start(rack, position, port):
+        time.sleep(2)
+        post_pdu(rack, position, port, 'on')
+    asset = Asset.objects.get(id=request.data['asset'])
+    rack = asset.rack.id
+    ports = Powered.objects.filter(asset=asset)
+    response = {}
+    for port in ports:
+        response[str(port.id)] = (port.pdu.id, port.asset.id, *post_pdu(rack, port.position, port.plug_number, 'off'))
+        t = threading.Thread(target=delay_start, args=(rack, port.position, port.plug_number))
+        t.start()
+    # Return only the responses for turning off the ports as to not block.
+    return Response(response)
 
 
 class ITModelFilterView(generics.ListAPIView):

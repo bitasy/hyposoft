@@ -22,5 +22,6 @@ urlpatterns += [
     path('AssetFilter', AssetFilterView.as_view()),
     path('PoweredFilter', PoweredFilterView.as_view()),
     path('PDUNetwork/get/<rack>/<position>', getPDU),
-    path('PDUNetwork/post', switchPDU)
+    path('PDUNetwork/post', switchPDU),
+    path('PDUNetwork/cycle', cycleAsset)
 ]
