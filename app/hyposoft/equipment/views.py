@@ -43,16 +43,6 @@ class AssetFilterView(generics.ListAPIView):
     serializer_class = AssetSerializer
     filterset_class = AssetFilter
 
-    def get_queryset(self):
-        queryset = Asset.objects.all()
-        rack_min = self.request.query_params.get("rack_min", None)
-        rack_max = self.request.query_params.get("rack_max", None)
-        if rack_max is not None and rack_max is not None:
-            racks = Rack.objects.in_racks(rack_min, rack_max)
-            queryset = queryset.filter(rack__in=racks)
-
-        return queryset
-
 
 PDU_url = "http://hyposoft-mgt.colab.duke.edu:8008/"
 GET_suf = "pdu.php"
