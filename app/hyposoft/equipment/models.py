@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
-from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -116,6 +115,9 @@ class Rack(models.Model):
     def __str__(self):
         return "Rack {}".format(self.rack)
 
+    class Meta:
+        unique_together = ['rack', 'datacenter']
+
 
 class PDU(models.Model):
     pdu_model = models.CharField(
@@ -220,19 +222,18 @@ class Asset(models.Model):
         return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
 
     def save(self, *args, **kwargs):
-        if self.asset_number == 0:
-            max_an = Asset.objects.all().aggregate(Max('asset_number'))
-            self.asset_number = max_an + 1
-            if self.asset_number > 999999:
-                raise serializers.ValidationError(
-                    "The asset number is too large. Please try manually setting it to be 6 digits.")
+
+        if self.asset_number > 999999:
+            raise serializers.ValidationError(
+                "The asset number is too large. Please try manually setting it to be 6 digits.")
 
         if 42 < self.rack_position + self.itmodel.height - 1:
             raise serializers.ValidationError("The asset does not fit on the specified rack from the given position.")
 
         blocked = Asset.objects.filter(
             rack=self.rack,
-            rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height))
+            rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height),
+        ).exclude(id=self.id)
 
         if len(blocked) > 0:
             raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
@@ -242,7 +243,7 @@ class Asset(models.Model):
             under = Asset.objects.filter(
                 rack=self.rack,
                 rack_position=i
-            )
+            ).exclude(id=self.id)
             if len(under) > 0:
                 asset = under.values_list('rack_position', 'itmodel__height')[0]
                 if asset[0] + asset[1] > self.rack_position:
