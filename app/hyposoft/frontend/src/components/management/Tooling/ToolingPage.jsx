@@ -1,7 +1,7 @@
 import React from "react";
 import { Typography } from "antd";
 import { Table } from 'antd';
-import CreateTable from "./CreateTable";
+import CreateTable  from "./CreateTable";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchRacks,
@@ -234,62 +234,5 @@ function RackUsageByVendor(rackSpace, instances, models) {
   //props passed to CreateTable.jsx
   return vendorUsage;
 }
-
-// //for testing
-// function RackUsageByVendor(rackSpace, instances) { //testing
-//     console.log("rackSpace", rackSpace);
-//    // console.log("instances", instances);
-//     let title = "Rack Usage by Vendor";
-//     let instancesDotVendor = ["Dell", "Lenovo", "Dell", "Lenovo", "HP", "HP", "HP"]; //testing
-//     let uniqueVendorsSet = new Set(instancesDotVendor);
-//
-//     let uniqueVendors = [...uniqueVendorsSet];
-//     console.log("uniqueVendors", uniqueVendors);
-//     //let vendorUsedSpace = [{String, Number}]; //may be needed if set does not keep same order
-//     let instancesDotModelDotHeight = [1, 2, 1, 2, 3, 3, 3]; //testing
-//
-//     // calculate used space by vendor and add to array
-//     let vendorUsedSpace = new Array(uniqueVendors.length).fill(0);
-//     for (let i = 0; i < uniqueVendors.length; i++) {
-//         //for (let j = 0; j < instances.length; j++) {
-//         for (let j = 0; j < instancesDotVendor.length; j++) { //testing
-//             //if (instances[i].vendor.equals(uniqueVendors[i])) { //comparing vendors
-//             console.log("i", i);
-//             console.log("j", j);
-//             if (uniqueVendors[i].localeCompare(instancesDotVendor[j]) == 0) { //testing
-//
-//                 //vendorUsedSpace[i[0]] = uniqueVendors[i];  //first elem in nested array is vendor
-//                 //vendorUsedSpace[i[1]] += instances[i].model.height; //second elem in nested array is rackspace
-//                 //vendorUsedSpace[i] += instances[i].model.height;
-//                 console.log("uniqueVendor", uniqueVendors[i]);
-//                 console.log("vendor", instancesDotVendor[j]);
-//                 console.log("height", instancesDotModelDotHeight[j]);
-//                 console.log("height type", typeof instancesDotModelDotHeight[j]);
-//                 console.log(" type", typeof vendorUsedSpace[i]);
-//                 vendorUsedSpace[i] += instancesDotModelDotHeight[j]; //testing
-//                 console.log("vendorUsedSpace", vendorUsedSpace[i]);
-//             }
-//         }
-//     }
-//     console.log("vendorUsedSpace", vendorUsedSpace);
-//     let percentUsed = [];
-//     let percentFree = 100;
-//     for (let i = 0; i < uniqueVendors.length; i++) {
-//         percentUsed[i] = Number.parseFloat(100 * vendorUsedSpace[i] / rackSpace).toFixed(2);
-//         percentFree = percentFree - percentUsed[i];
-//     }
-//     console.log("percentUsed", percentUsed);
-//     console.log("percentFree", percentFree);
-//     let id = [...Array(uniqueVendors.length + 1).keys()].slice(1);
-//     console.log("id", id);
-//     let vendorUsage = [];
-//     for (let i = 0; i < uniqueVendors.length; i++) {
-//         vendorUsage[i] = {id: id[i], category: uniqueVendors[i], used: percentUsed[i], free: percentFree};
-//     }
-//     console.log("vendorUsage", vendorUsage);
-//     return (
-//         vendorUsage
-//     );
-// }
 
 export default ToolingPage;
