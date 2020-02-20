@@ -2,6 +2,8 @@ import React from "react";
 import { Form, Switch, Input, InputNumber, Row, Col } from "antd";
 import { FORM_ITEM_LAYOUT } from "./FormItem";
 import produce from "immer";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAssets } from "../../../../redux/assets/actions";
 
 function NetworkPortLabelFormItem({
   form,
@@ -12,13 +14,24 @@ function NetworkPortLabelFormItem({
   disabled
 }) {
   const initialValue = originalValue || schemaFrag.defaultValue;
+  const dispatch = useDispatch();
+
+  const assets = useSelector(s => Object.values(s.assets));
+  React.useEffect(() => {
+    dispatch(fetchAssets());
+  }, []);
+
+  const instanceExists = !!assets.find(a => a.model.id == currentRecord.id);
+
+  const actuallyDisabled = disabled || instanceExists;
 
   return (
     <Form.Item label={schemaFrag.displayName} {...FORM_ITEM_LAYOUT}>
       {form.getFieldDecorator(schemaFrag.fieldName, { initialValue })(
         <SwitchingInput
           onChange={v => onChange({ [schemaFrag.fieldName]: v })}
-          disabled={disabled}
+          disabled={actuallyDisabled}
+          instanceExists={instanceExists}
         />
       )}
     </Form.Item>
@@ -26,12 +39,17 @@ function NetworkPortLabelFormItem({
 }
 
 const SwitchingInput = React.forwardRef(
-  ({ value, onChange, disabled }, ref) => {
+  ({ value, onChange, disabled, instanceExists }, ref) => {
     const networkPorts = value || [];
 
     return (
       <div ref={ref}>
         <div>
+          {instanceExists ? (
+            <p style={{ color: "orange" }}>
+              Can't change these when there are instances of this model
+            </p>
+          ) : null}
           <Row>
             <span># of Network Ports: </span>
             <InputNumber
@@ -40,7 +58,7 @@ const SwitchingInput = React.forwardRef(
               disabled={disabled}
               onChange={v => {
                 onChange(
-                  produce(value, draft => {
+                  produce(value || [], draft => {
                     if (v < draft.length) {
                       draft.splice(v, draft.length - v);
                     } else {
