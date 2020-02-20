@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Icon, Input, Button, Row, Col, Typography } from "antd";
 import { useDispatch } from "react-redux";
-import { login } from "../../../redux/actions";
+import { login } from "../../../redux/session/actions";
 
 const { Title, Paragraph } = Typography;
 
@@ -38,7 +38,7 @@ function LoginForm({ form }) {
 
   function sso(e) {
     e.preventDefault();
-    window.location.href = "/auth/shib_login"
+    window.location.href = "/auth/shib_login";
   }
 
   return (

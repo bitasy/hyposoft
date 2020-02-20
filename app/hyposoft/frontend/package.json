@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "webpack --mode development ./src/index.js --output ./static/main.js --watch",
     "build": "webpack --mode production ./src/index.js --output ./static/main.js",
-    "format": "prettier-eslint --write $PWD/'src/**/*.[jt]s?(x)' && eslint --fix src"
+    "format": "prettier-eslint --write $PWD/'src/**/*.[jt]s?(x)' && eslint --fix src",
+    "watch": "watch 'python3 ../manage.py collectstatic --no-input' ./static"
   },
   "author": "",
   "license": "ISC",
@@ -35,6 +36,7 @@
     "less": "^3.10.3",
     "less-loader": "^5.0.0",
     "less-vars-to-js": "^1.3.0",
+    "lodash": "^4.17.15",
     "object-equals": "^0.3.0",
     "prettier": "^1.19.1",
     "prettier-eslint": "^9.0.1",

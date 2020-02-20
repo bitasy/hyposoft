@@ -2,7 +2,7 @@ import React from "react";
 import CreateDataForm from "../shared/CreateDataForm";
 import { modelSchema } from "./ModelSchema";
 import { Typography } from "antd";
-import { createModel } from "../../../redux/actions";
+import { createModel } from "../../../redux/models/actions";
 
 function CreateModelPage() {
   return (

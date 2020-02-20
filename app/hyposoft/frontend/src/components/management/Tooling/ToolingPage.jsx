@@ -2,13 +2,11 @@ import React from "react";
 import { Typography } from "antd";
 import { Table } from 'antd';
 import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchRacks,
-  fetchInstances,
-  fetchModels,
-  fetchUsers
-} from "../../../redux/actions";
 import { modelToString } from "../ModelManagement/ModelSchema";
+import { fetchUsers } from "../../../redux/users/actions";
+import { fetchModels } from "../../../redux/models/actions";
+import { fetchRacks } from "../../../redux/racks/actions";
+import { fetchAssets } from "../../../redux/assets/actions";
 
 
 function ToolingPage() {
@@ -17,13 +15,13 @@ function ToolingPage() {
   const users = useSelector(s => Object.values(s.users));
   const models = useSelector(s => Object.values(s.models));
   const racks = useSelector(s => Object.values(s.racks));
-  const instances = useSelector(s => Object.values(s.instances));
+  const assets = useSelector(s => Object.values(s.assets));
 
   React.useEffect(() => {
     dispatch(fetchUsers());
     dispatch(fetchModels());
     dispatch(fetchRacks());
-    dispatch(fetchInstances());
+    dispatch(fetchAssets());
   }, []);
 
   const rackSpace = racks.length * 42; //total rack space, type: number
@@ -77,8 +75,8 @@ function RackUsage(rackSpace, instances) {
   let usedSpace = 0;
 
   //sum model heights
-  for (let i = 0; i < instances.length; i++) {
-    usedSpace += instances[i].model.height;
+  for (let i = 0; i < assets.length; i++) {
+    usedSpace += assets[i].model.height;
   }
 
   //calculate rack usage percentages
@@ -98,20 +96,20 @@ function RackUsage(rackSpace, instances) {
   return rackUsage;
 }
 
-function RackUsageByModel(rackSpace, instances, models) {
-  const instanceModels = [];
+function RackUsageByModel(rackSpace, assets, models) {
+  const assetModels = [];
 
-  //get all owner instances
-  for (let i = 0; i < instances.length; i++) {
-    instanceModels.push(instances[i].model);
+  //get all owner assets
+  for (let i = 0; i < assets.length; i++) {
+    assetModels.push(assets[i].model);
   }
 
   let modelUsedSpace = new Array(models.length).fill(0);
 
   //sum model heights by owner
   for (let i = 0; i < models.length; i++) {
-    for (let j = 0; j < instanceModels.length; j++) {
-      if (models[i].id === instanceModels[j].id) {
+    for (let j = 0; j < assetModels.length; j++) {
+      if (models[i].id === assetModels[j].id) {
         modelUsedSpace[i] += models[i].height;
       }
     }
@@ -141,12 +139,12 @@ function RackUsageByModel(rackSpace, instances, models) {
   return modelUsage;
 }
 
-function RackUsageByOwner(rackSpace, instances, users) {
+function RackUsageByOwner(rackSpace, assets, users) {
   let owners = [];
 
-  //get all owner instances
-  for (let i = 0; i < instances.length; i++) {
-    owners.push(instances[i].owner);
+  //get all owner assets
+  for (let i = 0; i < assets.length; i++) {
+    owners.push(assets[i].owner);
   }
 
   let uniqueOwners = users;
@@ -156,7 +154,7 @@ function RackUsageByOwner(rackSpace, instances, users) {
   for (let i = 0; i < uniqueOwners.length; i++) {
     for (let j = 0; j < owners.length; j++) {
       if (uniqueOwners[i].id === owners[j].id) {
-        ownerUsedSpace[i] += instances[j].model.height;
+        ownerUsedSpace[i] += assets[j].model.height;
       }
     }
   }
@@ -187,12 +185,12 @@ function RackUsageByOwner(rackSpace, instances, users) {
   return ownerUsage;
 }
 
-function RackUsageByVendor(rackSpace, instances, models) {
+function RackUsageByVendor(rackSpace, assets, models) {
   let vendors = [];
 
-  //get all vendors instances
-  for (let i = 0; i < instances.length; i++) {
-    vendors.push(instances[i].model.vendor);
+  //get all vendors assets
+  for (let i = 0; i < assets.length; i++) {
+    vendors.push(assets[i].model.vendor);
   }
 
   let uniqueVendors = Array.from(new Set(models.map(m => m.vendor)));
@@ -202,7 +200,7 @@ function RackUsageByVendor(rackSpace, instances, models) {
   for (let i = 0; i < uniqueVendors.length; i++) {
     for (let j = 0; j < vendors.length; j++) {
       if (uniqueVendors[i].localeCompare(vendors[j]) == 0) {
-        vendorUsedSpace[i] += instances[j].model.height;
+        vendorUsedSpace[i] += assets[j].model.height;
       }
     }
   }
