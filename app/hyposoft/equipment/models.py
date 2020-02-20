@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
-from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -83,23 +82,6 @@ class ITModel(models.Model):
 
 
 class Rack(models.Model):
-    class RackManager(models.Manager):
-        def in_racks(self, start_rack, end_rack):
-            from django.db import connection
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT id, rack
-                    FROM equipment_rack
-                    WHERE rack BETWEEN '{}' AND '{}';
-                    """.format(start_rack, end_rack))
-                result_list = []
-                for row in cursor.fetchall():
-                    r = self.model(id=row[0], rack=row[1])
-                    result_list.append(r)
-                return result_list
-
-    objects = RackManager()
-
     rack = models.CharField(
         unique=True,
         max_length=4,
@@ -115,6 +97,9 @@ class Rack(models.Model):
 
     def __str__(self):
         return "Rack {}".format(self.rack)
+
+    class Meta:
+        unique_together = ['rack', 'datacenter']
 
 
 class PDU(models.Model):
@@ -133,6 +118,8 @@ class PDU(models.Model):
         on_delete=models.CASCADE
     )
 
+    networked = models.BooleanField()
+
     class Position(models.TextChoices):
         LEFT = 'L', 'Left'
         RIGHT = 'R', 'Right'
@@ -146,10 +133,10 @@ class PDU(models.Model):
         unique_together = ['rack', 'position']
 
     def __str__(self):
-        return "{} PDU on Rack {} in {}".format(
+        return "{} PDU on {} in {}".format(
             self.position,
             str(self.rack),
-            self.rack.datacenter.abbr
+            self.rack.datacenter
         )
 
 
@@ -199,8 +186,6 @@ class Asset(models.Model):
         ]
     )
     mac_address = models.CharField(
-        unique=True,
-        null=True,
         blank=True,
         max_length=17,
         validators=[
@@ -235,7 +220,9 @@ class Asset(models.Model):
 
         blocked = Asset.objects.filter(
             rack=self.rack,
-            rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height))
+            rack_position__range=(self.rack_position,
+                                  self.rack_position + self.itmodel.height),
+        ).exclude(id=self.id)
 
         if len(blocked) > 0:
             raise serializers.ValidationError(
@@ -246,7 +233,7 @@ class Asset(models.Model):
             under = Asset.objects.filter(
                 rack=self.rack,
                 rack_position=i
-            )
+            ).exclude(id=self.id)
             if len(under) > 0:
                 asset = under.values_list(
                     'rack_position', 'itmodel__height')[0]

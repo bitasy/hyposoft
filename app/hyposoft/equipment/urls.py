@@ -1,9 +1,7 @@
 from django.urls import path
 from .views import *
-from .generic_views import *
 
 # Generic Views
-import inspect
 from . import generic_views
 views = [(name[:-4], cls) for name, cls in generic_views.__dict__.items() if isinstance(cls, type) and name[-4:] == "View"]
 
@@ -21,5 +19,9 @@ for view in views:
 # Custom Views
 urlpatterns += [
     path('ITModelFilter', ITModelFilterView.as_view()),
-    path('AssetFilter', AssetFilterView.as_view())
+    path('AssetFilter', AssetFilterView.as_view()),
+    path('PoweredFilter', PoweredFilterView.as_view()),
+    path('PDUNetwork/get/<rack>/<position>', getPDU),
+    path('PDUNetwork/post', switchPDU),
+    path('PDUNetwork/cycle', cycleAsset)
 ]

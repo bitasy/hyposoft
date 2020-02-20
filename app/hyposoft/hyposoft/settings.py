@@ -16,6 +16,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAdminUser
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -148,6 +150,17 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
+
+class ReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
+
+
+if not DEBUG:
+    REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
+        'rest_framework.permissions.IsAdminUser',
+        'hyposoft.settings.ReadOnly'
+    ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
