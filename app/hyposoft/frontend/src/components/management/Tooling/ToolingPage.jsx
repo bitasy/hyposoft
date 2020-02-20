@@ -1,5 +1,6 @@
 import React from "react";
 import { Typography } from "antd";
+import { Table } from 'antd';
 import CreateTable from "./CreateTable";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -9,6 +10,7 @@ import {
   fetchUsers
 } from "../../../redux/actions";
 import { modelToString } from "../ModelManagement/ModelSchema";
+
 
 function ToolingPage() {
   const dispatch = useDispatch();
@@ -25,32 +27,46 @@ function ToolingPage() {
     dispatch(fetchInstances());
   }, []);
 
-  let rackSpace = racks.length * 42; //total rack space, type: number
+  const rackSpace = racks.length * 42; //total rack space, type: number
+  const columns = [
+      {
+        title: 'Category',
+        dataIndex: 'category',
+        key: 'category',
+      },
+      {
+        title: '% Used',
+        dataIndex: 'used',
+        key: 'used',
+      },
+      {
+        title: "% Free",
+        dataIndex: 'free',
+        key: 'free',
+      }
+  ]
+
+  console.log("instances", instances);
+  console.log("instances size", instances.length);
 
   return rackSpace != null ? (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Reports</Typography.Title>
       <div>
         <Typography.Title level={4}>Total Rack Usage</Typography.Title>
-        <CreateTable rackUsage={RackUsage(rackSpace, instances)} />
+        <Table dataSource={RackUsage(rackSpace, instances)} columns={columns} />;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Model</Typography.Title>
-        <CreateTable
-          rackUsage={RackUsageByModel(rackSpace, instances, models)}
-        />
+        <Table dataSource={RackUsageByModel(rackSpace, instances, models)} columns={columns} />;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Owner</Typography.Title>
-        <CreateTable
-          rackUsage={RackUsageByOwner(rackSpace, instances, users)}
-        />
+        <Table dataSource={RackUsageByOwner(rackSpace, instances, users)} columns={columns} />;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Vendor</Typography.Title>
-        <CreateTable
-          rackUsage={RackUsageByVendor(rackSpace, instances, models)}
-        />
+        <Table dataSource={RackUsageByModel(rackSpace, instances, models)} columns={columns} />;
       </div>
     </div>
   ) : (
@@ -58,7 +74,6 @@ function ToolingPage() {
   );
 }
 
-//works
 function RackUsage(rackSpace, instances) {
   let usedSpace = 0;
 
@@ -68,17 +83,20 @@ function RackUsage(rackSpace, instances) {
   }
 
   //calculate rack usage percentages
-  let percentUsed = Number.parseFloat((100 * usedSpace) / rackSpace);
+  let percentUsed = Number.parseFloat((100 * usedSpace) / rackSpace).toFixed(2);
   let percentFree = 100 - percentUsed;
+  const rackUsage = [];
 
-  //add row data to array, props passed to CreateTable.jsx
-  return [
-    {
+  if (instances.length != 0) {
+    rackUsage.push({
+      key: '1',
       category: "All racks",
-      used: percentUsed.toFixed(2),
-      free: percentFree.toFixed(2)
-    }
-  ];
+      used: percentUsed,
+      free: percentFree,
+    });
+  }
+
+  return rackUsage;
 }
 
 function RackUsageByModel(rackSpace, instances, models) {
@@ -114,9 +132,10 @@ function RackUsageByModel(rackSpace, instances, models) {
   //add row data to array
   for (let i = 0; i < models.length; i++) {
     modelUsage.push({
+      key: i+1,
       category: modelToString(models[i]),
       used: percentUsed[i],
-      free: percentFree.toFixed(2)
+      free: percentFree
     });
   }
 
@@ -156,12 +175,15 @@ function RackUsageByOwner(rackSpace, instances, users) {
   let ownerUsage = [];
 
   //add row data to array
-  for (let i = 0; i < uniqueOwners.length; i++) {
-    ownerUsage[i] = {
-      category: uniqueOwners[i].username,
-      used: percentUsed[i],
-      free: percentFree.toFixed(2)
-    };
+  if (instances.length != 0) {
+    for (let i = 0; i < uniqueOwners.length; i++) {
+      ownerUsage[i] = {
+        key: i + 1,
+        category: uniqueOwners[i].username,
+        used: percentUsed[i],
+        free: percentFree
+      };
+    }
   }
 
   //props passed to CreateTable.jsx
@@ -202,9 +224,10 @@ function RackUsageByVendor(rackSpace, instances, models) {
   //add row data to array
   for (let i = 0; i < uniqueVendors.length; i++) {
     vendorUsage[i] = {
+      key: i + 1,
       category: uniqueVendors[i],
       used: percentUsed[i],
-      free: percentFree.toFixed(2)
+      free: percentFree
     };
   }
 
