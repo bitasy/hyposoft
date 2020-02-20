@@ -1,7 +1,6 @@
 import React from "react";
 import { Typography } from "antd";
 import { Table } from 'antd';
-import CreateTable  from "./CreateTable";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchRacks,
@@ -139,7 +138,6 @@ function RackUsageByModel(rackSpace, instances, models) {
     });
   }
 
-  //props passed to CreateTable.jsx
   return modelUsage;
 }
 
@@ -186,7 +184,6 @@ function RackUsageByOwner(rackSpace, instances, users) {
     }
   }
 
-  //props passed to CreateTable.jsx
   return ownerUsage;
 }
 
@@ -231,7 +228,6 @@ function RackUsageByVendor(rackSpace, instances, models) {
     };
   }
 
-  //props passed to CreateTable.jsx
   return vendorUsage;
 }
 
