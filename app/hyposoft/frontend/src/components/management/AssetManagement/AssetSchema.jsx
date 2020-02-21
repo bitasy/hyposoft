@@ -74,7 +74,13 @@ export const assetSchema = [
     required: false,
     defaultValue: ""
   },
-  // network port connections
+  {
+    displayName: "Network connections",
+    fieldName: "network_connections",
+    type: "network-connection",
+    required: false,
+    defaultValue: []
+  },
   {
     displayName: "Power connections",
     fieldName: "power_connections",

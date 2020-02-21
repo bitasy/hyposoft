@@ -42,6 +42,8 @@ function FormItem(props) {
     <DatacenterFormItem {...props} />
   ) : props.schemaFrag.type === "power-connection" ? (
     <PowerPortFormItem {...props} />
+  ) : props.schemaFrag.type === "netowkr-connection" ? (
+    <PowerPortFormItem {...props} />
   ) : null;
 }
 
