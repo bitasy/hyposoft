@@ -46,6 +46,14 @@ class ITModel(models.Model):
                               message="Number of power ports must be at least 0.")
         ]
     )
+    network_ports = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(0,
+                              message="Number of network ports must be at least 0.")
+        ]
+    )
     cpu = models.CharField(
         max_length=64,
         blank=True
@@ -104,11 +112,13 @@ class Rack(models.Model):
         validators=[
             RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
                            message="Row number must be specified by one or two capital letters.")
-        ]
+        ],
+        default="A0"
     )
     datacenter = models.ForeignKey(
         Datacenter,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        default=""
     )
 
     def __str__(self):
@@ -152,10 +162,9 @@ class PDU(models.Model):
 
 
 class Asset(models.Model):
-    itmodel = models.ForeignKey(
-        ITModel,
-        on_delete=models.PROTECT,
-        verbose_name="Model"
+    asset_number = models.IntegerField(
+        unique=True,
+        default=0
     )
     hostname = models.CharField(
         unique=True,
@@ -167,21 +176,25 @@ class Asset(models.Model):
                            message="Hostname must be compliant with RFC 1034.")
         ]
     )
+    datacenter = models.ForeignKey(
+        Datacenter,
+        on_delete=models.PROTECT,
+    )
     rack = models.ForeignKey(
         Rack,
         on_delete=models.PROTECT
-    )
-
-    datacenter = models.ForeignKey(
-        Datacenter,
-        blank=True,
-        on_delete=models.PROTECT,
     )
     rack_position = models.IntegerField(
         validators=[
             MinValueValidator(1,
                               message="Rack position must be at least 1.")
         ]
+    )
+    # vendor, model_number
+    itmodel = models.ForeignKey(
+        ITModel,
+        on_delete=models.PROTECT,
+        verbose_name="Model"
     )
     owner = models.ForeignKey(
         User,
@@ -196,6 +209,22 @@ class Asset(models.Model):
                            message="Comments must be enclosed by double quotes if value contains line breaks.")
         ]
     )
+    # MAY DELETE
+    power_port_connection_1 = models.ForeignKey(
+        'Powered',
+        related_name='power_port_connection_1',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    power_port_connection_2 = models.ForeignKey(
+        'Powered',
+        related_name='power_port_connection_2',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
+    # Separate Model???
     mac_address = models.CharField(
         unique=True,
         null=True,
@@ -205,12 +234,6 @@ class Asset(models.Model):
             RegexValidator("^$|^([0-9a-fA-F]{2}[:-_]{0,1}){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
-    )
-
-    asset_number = models.IntegerField(
-        blank=True,
-        unique=True,
-        default=0
     )
 
     class Meta:
@@ -270,24 +293,45 @@ class NetworkPortLabel(models.Model):
     class Meta:
         unique_together = ['name', 'itmodel']
 
+    def __str__(self):
+        return '{} : {}'.format(self.name, self.itmodel)
+
 
 class NetworkPort(models.Model):
-    label = models.ForeignKey(
+    src_label = models.ForeignKey(
         NetworkPortLabel,
+        related_name='src_label',
+        on_delete=models.PROTECT,
+        default='1'
+    )
+    src_asset = models.ForeignKey(
+        Asset,
+        related_name='src_asset',
+        on_delete=models.CASCADE,
+        default=''
+    )
+    dest_label = models.ForeignKey(
+        NetworkPortLabel,
+        related_name='dest_label',
+        null=True,
+        blank=True,
         on_delete=models.PROTECT
     )
-    asset = models.ForeignKey(
+    dest_asset = models.ForeignKey(
         Asset,
+        related_name='dest_asset',
+        null=True,
+        blank=True,
         on_delete=models.CASCADE
     )
-    connection = models.OneToOneField(
-        "self",
-        null=True,
-        on_delete=models.SET_NULL
-    )
+    # connection = models.OneToOneField(
+    #     "self",
+    #     null=True,
+    #     on_delete=models.SET_NULL
+    # )
 
     class Meta:
-        unique_together = ['label', 'asset']
+        unique_together = ['src_label', 'src_asset', 'dest_label', 'dest_asset']
 
 
 class Powered(models.Model):
