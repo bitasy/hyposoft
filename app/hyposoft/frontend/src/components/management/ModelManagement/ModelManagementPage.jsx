@@ -4,7 +4,7 @@ import { Typography, Button, Icon } from "antd";
 import { modelColumns, modelFilters } from "./ModelSchema";
 import DataList from "../shared/DataList";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchModels } from "../../../redux/actions";
+import { fetchModels } from "../../../redux/models/actions";
 
 function ModelManagementPage() {
   const models = useSelector(s => Object.values(s.models));

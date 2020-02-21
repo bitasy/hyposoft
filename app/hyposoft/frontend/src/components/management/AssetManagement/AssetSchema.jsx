@@ -1,19 +1,30 @@
+import React from "react";
 import {
   modelKeywordMatch,
   modelToString
 } from "../ModelManagement/ModelSchema";
 import { toIndex } from "../RackManagement/GridUtils";
+import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 
 function strcmp(a, b) {
   if (a === b) return 0;
   else return a < b ? -1 : 1;
 }
 
-function instanceToLocation(instance) {
-  return `${instance.rack.rack} U${instance.rack_position}`;
+function assetToLocation(asset) {
+  return `${asset.rack.rack} U${asset.rack_position}`;
 }
 
-export const instanceSchema = [
+export const assetSchema = [
+  {
+    displayName: "Asset Number",
+    fieldName: "asset_number",
+    type: "autogen-number",
+    required: false,
+    defaultValue: null,
+    min: 100001,
+    max: 999999
+  },
   {
     displayName: "Model",
     fieldName: "model",
@@ -25,8 +36,15 @@ export const instanceSchema = [
     displayName: "Host",
     fieldName: "hostname",
     type: "string",
-    required: true,
+    required: false,
     defaultValue: ""
+  },
+  {
+    displayName: "Datacenter",
+    fieldName: "datacenter",
+    type: "datacenter",
+    required: true,
+    defaultValue: null
   },
   {
     displayName: "Rack",
@@ -50,6 +68,17 @@ export const instanceSchema = [
     defaultValue: ""
   },
   {
+    displayName: "Mac Address",
+    fieldName: "mac_address",
+    type: "string",
+    required: false,
+    defaultValue: ""
+  },
+  // network port connections
+  {
+    displayName: "Power connections"
+  },
+  {
     displayName: "Comment",
     fieldName: "comment",
     type: "multiline-string",
@@ -58,52 +87,61 @@ export const instanceSchema = [
   }
 ];
 
-export const instanceColumns = [
+export const assetColumns = [
   {
     title: "Model",
     key: "model",
-    toString: r => modelToString(r.model),
+    render: r => modelToString(r.model),
     sorter: (a, b) => strcmp(modelToString(a.model), modelToString(b.model)),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Host",
     key: "host",
-    toString: r => r.hostname,
+    render: r => r.hostname,
     sorter: (a, b) => strcmp(a.hostname, b.hostname),
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Location",
     key: "location",
-    toString: r => instanceToLocation(r),
-    sorter: (a, b) => strcmp(instanceToLocation(a) - instanceToLocation(b)),
+    render: r => assetToLocation(r),
+    sorter: (a, b) => strcmp(assetToLocation(a) - assetToLocation(b)),
     defaultSortOrder: "ascend",
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Owner",
     key: "owner",
-    toString: r => r.owner.username,
+    render: r => r.owner.username,
     sorter: (a, b) => strcmp(a.owner.username - b.owner.username),
     sortDirections: ["ascend", "descend"]
+  },
+  {
+    title: "Power",
+    key: "actions",
+    render: (r, user) => {
+      return <NetworkPowerActionButtons asset={r} user={user} />;
+    },
+    sorter: null,
+    sortDirections: []
   }
 ];
 
-function instanceKeywordMatch(value, record) {
+function assetKeywordMatch(value, record) {
   const lowercase = value.toLowerCase();
-  return instanceSchema
+  return assetSchema
     .filter(frag => frag.type === "string" && record[frag.fieldName])
     .map(frag => (record[frag.fieldName] || "").toLowerCase())
     .some(str => str.includes(lowercase));
 }
 
-function isInside([minR, maxR, minC, maxC], instance) {
-  const [r, c] = toIndex(instance.rack.rack);
+function isInside([minR, maxR, minC, maxC], asset) {
+  const [r, c] = toIndex(asset.rack.rack);
   return minR <= r && r <= maxR && minC <= c && c <= maxC;
 }
 
-export const instanceFilters = [
+export const assetFilters = [
   {
     title: "Keyword Search (Ignoring case)",
     fieldName: "keyword",
@@ -112,7 +150,7 @@ export const instanceFilters = [
     shouldInclude: (value, record) => {
       return (
         modelKeywordMatch(value, record.model) ||
-        instanceKeywordMatch(value, record)
+        assetKeywordMatch(value, record)
       );
     }
   },

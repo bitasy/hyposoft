@@ -43,6 +43,11 @@ function ToolingPage() {
       }
   ]
 
+<<<<<<< HEAD
+=======
+  console.log("assets", assets);
+  console.log("assets size", assets.length);
+>>>>>>> dev
 
   return rackSpace != null ? (
     <div style={{ padding: 16 }}>
@@ -69,7 +74,7 @@ function ToolingPage() {
   );
 }
 
-function RackUsage(rackSpace, instances) {
+function RackUsage(rackSpace, assets) {
   let usedSpace = 0;
 
   //sum model heights
@@ -82,7 +87,7 @@ function RackUsage(rackSpace, instances) {
   let percentFree = 100 - percentUsed;
   const rackUsage = [];
 
-  if (instances.length != 0) {
+  if (assets.length != 0) {
     rackUsage.push({
       key: '1',
       category: "All racks",
@@ -169,7 +174,7 @@ function RackUsageByOwner(rackSpace, assets, users) {
   let ownerUsage = [];
 
   //add row data to array
-  if (instances.length != 0) {
+  if (assets.length != 0) {
     for (let i = 0; i < uniqueOwners.length; i++) {
       ownerUsage[i] = {
         key: i + 1,

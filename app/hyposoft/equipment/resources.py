@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from import_export import resources, fields
-from .models import ITModel, Instance, Rack
+from .models import ITModel, Asset, Rack
 from import_export.widgets import ForeignKeyWidget
 
 
@@ -17,7 +17,7 @@ class ITModelResource(resources.ModelResource):
         clean_model_instances = True
 
 
-class InstanceResource(resources.ModelResource):
+class AssetResource(resources.ModelResource):
 
     rack = fields.Field(
         column_name='rack',
@@ -41,7 +41,7 @@ class InstanceResource(resources.ModelResource):
     )
 
     class Meta:
-        model = Instance
+        model = Asset
         import_id_fields = ('hostname', 'vendor', 'model_number')
         export_order = ('hostname', 'rack', 'rack_position', 'vendor', 'model_number', 'owner', 'comment')
         exclude = ('id', 'itmodel')

@@ -7,3 +7,7 @@ npm-debug.log
 .DS_Store
 .idea
 *.iml
+<<<<<<< HEAD
+=======
+.DS_Store
+>>>>>>> saved_fe_datacenter

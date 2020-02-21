@@ -4,7 +4,8 @@ import Rack from "../shared/Rack";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchRacks, fetchInstances } from "../../../redux/actions";
+import { fetchRacks } from "../../../redux/racks/actions";
+import { fetchAssets } from "../../../redux/assets/actions";
 
 const RACKS_IN_ROW = 4;
 
@@ -34,18 +35,18 @@ function RackView({ r }) {
 
   const rackVMs = useSelector(s => {
     const racksByID = s.racks;
-    const instancesForRack = rackIDs.map(rackID =>
-      Object.values(s.instances).filter(inst => inst.rack.id === rackID)
+    const assetsForRack = rackIDs.map(rackID =>
+      Object.values(s.assets).filter(inst => inst.rack.id === rackID)
     );
 
-    return instancesForRack
-      .map((instances, idx) => {
+    return assetsForRack
+      .map((assets, idx) => {
         const id = rackIDs[idx];
         return racksByID[id]
           ? {
               name: racksByID[id].rack,
               height: 42,
-              instances: instances
+              assets: assets
             }
           : null;
       })
@@ -56,7 +57,7 @@ function RackView({ r }) {
 
   React.useEffect(() => {
     dispatch(fetchRacks());
-    dispatch(fetchInstances());
+    dispatch(fetchAssets());
   }, []);
 
   return (
@@ -78,9 +79,9 @@ function RackView({ r }) {
             <Col key={idx} style={{ marginTop: "auto", marginBottom: "auto" }}>
               <Rack
                 rack={rackVM}
-                onSelect={instance => {
-                  if (instance) {
-                    history.push(`/instances/${instance.id}`);
+                onSelect={asset => {
+                  if (asset) {
+                    history.push(`/assets/${asset.id}`);
                   }
                 }}
               />

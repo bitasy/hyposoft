@@ -1,10 +1,10 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from .models import ITModel, Rack, Instance
+from .models import ITModel, Rack, Asset
 from contextlib import contextmanager
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 
-"""Used in class InstanceTest(TestCase)"""
+"""Used in class AssetTest(TestCase)"""
 
 
 class ITModelTest(TestCase):
@@ -158,7 +158,7 @@ class RackTest(TestCase):
             rack_test6.full_clean()  # Should throw error
 
 
-class InstanceTest(TestCase):
+class AssetTest(TestCase):
     def setUp(self):
         ITModel.objects.create(
             id=0,
@@ -168,14 +168,14 @@ class InstanceTest(TestCase):
 
         Rack.objects.create(id=0, rack="A1")
 
-    # Test cases for the Instance param, hostname
+    # Test cases for the Asset param, hostname
     # Reqs:  required always; RFC-1034-compliant string
 
-    def test_Instance_hostname(self):
+    def test_Asset_hostname(self):
         model = ITModel.objects.get(id=0)
         rack = Rack.objects.get(id=0)
 
-        hostname_test1 = Instance(
+        hostname_test1 = Asset(
             itmodel=model,
             hostname="test",  # Should NOT throw error
             rack=rack,
@@ -183,7 +183,7 @@ class InstanceTest(TestCase):
         )
         hostname_test1.full_clean()  # Should NOT throw error
 
-        hostname_test2 = Instance(
+        hostname_test2 = Asset(
             itmodel=model,
             hostname="!",  # Should throw error
             rack=rack,
@@ -193,15 +193,15 @@ class InstanceTest(TestCase):
             hostname_test2.full_clean()  # Should throw error
 
 
-    # Test cases for the Instance param, rack_position
+    # Test cases for the Asset param, rack_position
     # Reqs: required always; positive integer; refers to the vertical location
     # (on a rack, measured in U) from the bottom of the equipment
 
-    def test_Instance_rack_position(self):
+    def test_Asset_rack_position(self):
         model = ITModel.objects.get(id=0)
         rack = Rack.objects.get(id=0)
 
-        rack_pos_test1 = Instance(
+        rack_pos_test1 = Asset(
             itmodel=model,
             hostname="test",
             rack=rack,
@@ -209,7 +209,7 @@ class InstanceTest(TestCase):
         )
         rack_pos_test1.full_clean()  # Should NOT throw error
 
-        rack_pos_test2 = Instance(
+        rack_pos_test2 = Asset(
             itmodel=model,
             hostname="test",
             rack=rack,
