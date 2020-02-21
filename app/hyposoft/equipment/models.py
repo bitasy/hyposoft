@@ -209,22 +209,6 @@ class Asset(models.Model):
                            message="Comments must be enclosed by double quotes if value contains line breaks.")
         ]
     )
-    # MAY DELETE
-    power_port_connection_1 = models.ForeignKey(
-        'Powered',
-        related_name='power_port_connection_1',
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True
-    )
-    power_port_connection_2 = models.ForeignKey(
-        'Powered',
-        related_name='power_port_connection_2',
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True
-    )
-    # Separate Model???
     mac_address = models.CharField(
         unique=True,
         null=True,
@@ -354,11 +338,6 @@ class Powered(models.Model):
     on = models.BooleanField(
         default=False
     )
-
-    def save(self, *args, **kwargs):
-        if self.asset.rack.left_pdu != self.pdu and self.asset.rack.right_pdu != self.pdu:
-            raise serializers.ValidationError("PDU must be on the same rack as the asset.")
-        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ['plug_number', 'pdu']

@@ -19,7 +19,7 @@ from rest_framework.serializers import ValidationError
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
     instance.datacenter = instance.rack.datacenter
-    if instance.mac_address == "":
+    if not instance.mac_address:
         instance.mac_address = None
     else:
         new = instance.mac_address.lower().replace('-', ':').replace('_', ':')
