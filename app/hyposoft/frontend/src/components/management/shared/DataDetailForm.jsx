@@ -22,7 +22,6 @@ function DataDetailForm({
   }, [record]);
 
   const canUpdate = !objectEquals(record, newRecord);
-  console.log(record, newRecord, canUpdate);
 
   function handleSubmit(e) {
     e.preventDefault();

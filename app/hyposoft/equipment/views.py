@@ -60,7 +60,7 @@ def get_pdu(rack, position):
 def post_pdu(rack, position, port, state):
     try:
         response = requests.post(PDU_url + POST_suf, {
-            'pdu': rack_pre + str(rack) + position,
+            'pdu': rack_pre + rack + position,
             'port': port,
             'v': state
         })
@@ -81,7 +81,7 @@ def getPDU(request, rack, position):
 
 def process_asset(asset_id, func):
     asset = Asset.objects.get(id=asset_id)
-    rack = asset.rack.id
+    rack = asset.rack.rack
     ports = Powered.objects.filter(asset=asset)
     for port in ports:
         func(rack, port)

@@ -18,7 +18,7 @@ function PowerPortFormItem({
 
   React.useEffect(() => {
     onChange({ [schemaFrag.fieldName]: initialValue });
-  }, []);
+  }, [currentRecord.rack?.id]);
 
   React.useEffect(() => {
     if (currentRecord.rack) {
@@ -105,7 +105,7 @@ const Input = React.forwardRef(
 
     const [valuesWithSuggestions, suggestions] = React.useMemo(
       () => suggestion(numPowerPorts, namedFreePorts, value),
-      []
+      [freePorts]
     );
 
     const valueIndices = valuesWithSuggestions
@@ -130,6 +130,10 @@ const Input = React.forwardRef(
 
     return (
       <div ref={ref}>
+        <p style={{ color: "orange" }}>
+          When switching racks, clear these out first, update, and then change
+          these fields
+        </p>
         <Select
           showSearch
           mode="multiple"
