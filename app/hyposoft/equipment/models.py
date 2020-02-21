@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -204,7 +205,9 @@ class Asset(models.Model):
         unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
-        return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
+        if self.hostname is not None and len(self.hostname) > 0:
+            return self.hostname
+        return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
 
     def save(self, *args, **kwargs):
         if self.asset_number == 0:

@@ -23,5 +23,9 @@ urlpatterns += [
     path('PoweredFilter', PoweredFilterView.as_view()),
     path('PDUNetwork/get/<rack>/<position>', getPDU),
     path('PDUNetwork/post', switchPDU),
-    path('PDUNetwork/cycle', cycleAsset)
+    path('PDUNetwork/cycle', cycleAsset),
+    path('Rack/FreePorts/<int:rack_id>/<int:asset_id>', RackFreePorts.as_view()),
+    path('PoweredDeleteByAsset/<int:asset_id>', PoweredDeleteByAsset.as_view()),
+    path('NetworkConnectedPDUs', NetworkConnectedPDUs.as_view()),
+    path('NetworkGraph/<int:asset_id>', net_graph)
 ]

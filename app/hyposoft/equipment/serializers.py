@@ -55,6 +55,11 @@ class AssetSerializer(serializers.ModelSerializer):
         response['itmodel'] = ITModelSerializer(asset.itmodel).data
         response['rack'] = RackSerializer(asset.rack).data
         response['owner'] = UserSerializer(asset.owner).data
+        response['power_connections'] = [
+            { "pdu_id": powered.pdu.id, "position": powered.plug_number } for
+            powered in
+            Powered.objects.filter(asset=asset.id)
+         ]
         return response
 
 
@@ -68,6 +73,15 @@ class NetworkPortSerializer(serializers.ModelSerializer):
     class Meta:
         model = NetworkPort
         fields = '__all__'
+
+
+class EdgeSerializer(NetworkPortSerializer):
+    #asset = AssetSerializer()
+    #connection = AssetSerializer(source='connection.asset')
+
+    class Meta:
+        model = NetworkPort
+        fields = ['asset', 'connection']
 
 
 class PoweredSerializer(serializers.ModelSerializer):

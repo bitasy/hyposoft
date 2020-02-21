@@ -22,7 +22,12 @@ function RackFormItem({
   if (!dcID) return null;
 
   const dcs = useSelector(s => s.datacenters);
-  const dcName = dcs[dcID].abbr;
+  const dc = dcs[dcID];
+
+  if (!dc) return null;
+
+  const dcName = dc.abbr;
+
   React.useEffect(() => {
     dispatch(fetchRacks(dcName));
   }, [dcName]);

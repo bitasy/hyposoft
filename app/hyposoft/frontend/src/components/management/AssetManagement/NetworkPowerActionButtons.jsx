@@ -2,13 +2,14 @@ import React from "react";
 import { displayError, displayInfo } from "../../../global/message";
 import { Button, message } from "antd";
 import API from "../../../api/API";
+import { useSelector } from "react-redux";
 
-function networkActions(asset, user) {
+function networkActions(asset, user, networkConnectedPDUs) {
   if (asset.owner.username === user.username || user.is_superuser) {
     const pdus = asset.rack.pdu_set;
-    const pdu = pdus.find(pdu =>
-      // pdu.network_connected &&
-      pdu.assets.includes(asset.id)
+    const pdu = pdus.find(
+      pdu =>
+        networkConnectedPDUs.includes(pdu.id) && pdu.assets.includes(asset.id)
     );
 
     if (pdu) {
@@ -46,7 +47,8 @@ function preventing(op) {
 }
 
 function NetworkPowerActionButtons({ asset, user }) {
-  const actions = networkActions(asset, user);
+  const networkConnectedPDUs = useSelector(s => s.networkConnectedPDUs);
+  const actions = networkActions(asset, user, networkConnectedPDUs);
 
   if (actions) {
     const [on, off, cycle] = actions;

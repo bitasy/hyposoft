@@ -2,7 +2,10 @@ import { FORM_ITEM_LAYOUT } from "./FormItem";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { Form, Select, Button, Icon, Row, Col } from "antd";
-import { modelKeywordMatch, modelToString } from "../../ModelManagement/ModelSchema";
+import {
+  modelKeywordMatch,
+  modelToString
+} from "../../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchModels } from "../../../../redux/models/actions";
 

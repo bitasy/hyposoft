@@ -139,7 +139,15 @@ function updateAsset(id, updates) {
     }
   });
 
-  return Axios.patch(`api/equipment/AssetUpdate/${id}`, patch)
+  return deleteAllPowered(id)
+    .then(() =>
+      Promise.all(
+        updates.power_connections.map(({ pdu_id, position }) =>
+          createPowered(position, pdu_id, id)
+        )
+      )
+    )
+    .then(() => Axios.patch(`api/equipment/AssetUpdate/${id}`, patch))
     .then(getData)
     .then(translate);
 }
@@ -247,16 +255,53 @@ function removeNetworkPortLabel(id) {
 
 // Power control APIs
 
+function switchPower(assetID, state) {
+  return Axios.post(`api/equipment/PDUNetwork/post`, {
+    asset: assetID,
+    state
+  }).then(getData);
+}
+
 function turnOn(assetID) {
-  return Axios.post(`api/equipment/PowerOn/${assetID}`).then(getData);
+  return switchPower(assetID, "on");
 }
 
 function turnOff(assetID) {
-  return Axios.post(`api/equipment/PowerOff/${assetID}`).then(getData);
+  return switchPower(assetID, "off");
 }
 
 function cycle(assetID) {
-  return Axios.post(`api/equipment/Cycle/${assetID}`).then(getData);
+  return Axios.post(`api/equipment/PDUNetwork/cycle`, {
+    asset: assetID
+  }).then(getData);
+}
+
+// Powereds
+
+function createPowered(plugNumber, pduID, assetID) {
+  return Axios.post(`api/equipment/PoweredCreate`, {
+    plug_number: plugNumber,
+    pdu: pduID,
+    asset: assetID
+  }).then(getData);
+}
+
+function deleteAllPowered(assetID) {
+  return Axios.delete(`api/equipment/PoweredDeleteByAsset/${assetID}`).then(
+    getData // probably null or undefined
+  );
+}
+
+// Utilities control APIs
+
+function getFreePorts(rackID, assetID) {
+  return Axios.get(`api/equipment/Rack/FreePorts/${rackID}/${assetID}`).then(
+    getData
+  );
+}
+
+function getNetworkConnectedPDUs() {
+  return Axios.get("api/equipment/NetworkConnectedPDUs").then(getData);
 }
 
 const RealAPI = {
@@ -293,6 +338,9 @@ const RealAPI = {
   turnOn,
   turnOff,
   cycle,
+
+  getFreePorts,
+  getNetworkConnectedPDUs,
 
   getUsers
 };

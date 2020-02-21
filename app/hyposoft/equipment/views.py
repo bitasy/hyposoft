@@ -3,15 +3,14 @@ import time
 
 from django_filters.rest_framework import DjangoFilterBackend
 from requests import ConnectTimeout
-from rest_framework import filters
-from rest_framework import generics
+from rest_framework import filters, generics, views
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, serializers
 
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
-from .models import ITModel, Datacenter, Asset, Powered, PDU
-from .serializers import ITModelSerializer, AssetSerializer, PDUSerializer, PoweredSerializer
+from .models import ITModel, Datacenter, Asset, Powered, PDU, Rack, NetworkPort
+from .serializers import ITModelSerializer, AssetSerializer, PDUSerializer, PoweredSerializer, EdgeSerializer
 
 import requests
 import re
@@ -61,7 +60,7 @@ def get_pdu(rack, position):
 def post_pdu(rack, position, port, state):
     try:
         response = requests.post(PDU_url + POST_suf, {
-            'pdu': rack_pre + rack + position,
+            'pdu': rack_pre + str(rack) + position,
             'port': port,
             'v': state
         })
@@ -122,10 +121,10 @@ def cycleAsset(request):
             res[0],
             res[1]
         )
-        t = threading.Thread(target=delay_start, args=(rack, port.position, port.plug_number))
+        t = threading.Thread(target=delay_start, args=(rack, port.pdu.position, port.plug_number))
         t.start()
 
-    process_asset(request['asset'], process_port)
+    process_asset(request.data['asset'], process_port)
     # Return only the responses for turning off the ports as to not block.
     return Response(responses)
 
@@ -228,3 +227,68 @@ class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
 
         # Recalculate response if necessary
         return super().get(self, request, *args, **kwargs) if updated else response
+
+
+class RackFreePorts(views.APIView):
+    def get(self, request, rack_id, asset_id):
+        pdus = PDU.objects.filter(rack=rack_id)
+        pdu_ids = [pdu.id for pdu in pdus]
+        powereds = Powered.objects.filter(pdu__in=pdu_ids)
+        free_ports = { pdu_id: list(range(1, 25)) for pdu_id in pdu_ids }
+        for powered in powereds:
+            if powered.asset.id != asset_id:
+                free_ports[powered.pdu.id].remove(powered.plug_number)
+
+        return Response(free_ports)
+
+
+class PoweredDeleteByAsset(views.APIView):
+    def delete(self, request, asset_id):
+        Powered.objects.filter(asset=asset_id).delete()
+        return Response()
+
+
+class NetworkConnectedPDUs(views.APIView):
+    def get(self, request):
+        try:
+            response = requests.get(PDU_url)
+            code = response.status_code
+            result = re.findall(r"<td><a.*>.*-(.*)-([a-zA-Z][0-9]{2})(.*)</a>", response.text, re.IGNORECASE)
+
+            dc_abbrs = [res[0] for res in result]
+            dcs = {
+                dc.abbr: dc
+                for dc
+                in Datacenter.objects.filter(abbr__in=dc_abbrs) 
+            }
+
+            network_connected_pdus = []
+            for [dc_abbr, rack_str, position] in result:
+                dc = dcs.get(dc_abbr)
+                if not dc: continue
+                rack = Rack.objects.filter(datacenter=dc.id, rack=rack_str).first()
+                if not rack: continue
+                pdu = PDU.objects.filter(rack=rack.id, position=position).first()
+                if not pdu: continue
+                network_connected_pdus.append(pdu.id)
+
+        except ConnectTimeout:
+            return Response(status=400)
+        return Response(data=network_connected_pdus)
+
+
+@api_view()
+def net_graph(request, asset_id):
+    asset = Asset.objects.get(id=asset_id)
+    assets = set()
+    for e in asset.networkport_set.select_related('asset'):
+        assets.add(e.connection.asset)
+    edges = NetworkPort.objects.filter(asset__in=assets).distinct()
+    two_hops = set()
+    for e in edges.select_related('asset'):
+        two_hops.add(e.asset)
+        two_hops.add(e.connection.asset)
+    return Response({
+        'verticies': [AssetSerializer(data).data for data in two_hops],
+        'edges': [EdgeSerializer(edge).data for edge in edges]
+    })
