@@ -133,6 +133,16 @@ class AssetResource(resources.ModelResource):
 
 class NetworkPortResource(resources.ModelResource):
 
+    class SrcHostnameForeignKeyWidget(ForeignKeyWidget):
+        def clean(self, value, row):
+            my_asset = Asset.objects.get(hostname=row['src_hostname'])
+            return my_asset
+
+    class DestHostnameForeignKeyWidget(ForeignKeyWidget):
+        def clean(self, value, row):
+            my_asset = Asset.objects.get(hostname=row['dest_hostname'])
+            return my_asset
+
     class SrcPortForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             my_asset = Asset.objects.get(hostname=row['src_hostname'])
@@ -153,35 +163,61 @@ class NetworkPortResource(resources.ModelResource):
 
     src_hostname = fields.Field(
         column_name='src_hostname',
-        attribute='asset',
-        widget=ForeignKeyWidget(Asset, 'hostname')
+        attribute='src_hostname',
+        widget=SrcHostnameForeignKeyWidget(Asset, 'hostname')
     )
     src_port = fields.Field(
         column_name='src_port',
-        attribute='label',
+        attribute='src_port',
         widget=SrcPortForeignKeyWidget(NetworkPortLabel, 'name')
     )
     src_mac = fields.Field(
         column_name='src_mac',
-        attribute='asset',
+        attribute='src_hostname',
         widget=ForeignKeyWidget(Asset, 'mac_address')
     )
     dest_hostname = fields.Field(
         column_name='dest_hostname',
-        attribute='connection',
-        widget=ForeignKeyWidget(Asset, 'hostname')
+        attribute='connection.src_hostname',
+        widget=DestHostnameForeignKeyWidget(Asset, 'hostname')
     )
     dest_port = fields.Field(
         column_name='dest_port',
-        attribute='connection',
+        attribute='connection.src_port',
         widget=DestPortForeignKeyWidget(NetworkPortLabel, 'name')
     )
 
     class Meta:
         model = NetworkPort
-        exclude = ('id', 'label', 'asset', 'connection')
+        exclude = ('id', 'connection')
         import_id_fields = ('src_hostname', 'src_port')
         export_order = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         skip_unchanged = True
         report_skipped = True
         clean_model_instances = True
+
+    # def before_import_row(self, row, **kwargs):
+    #     my_src_asset = Asset.objects.get(hostname=row['src_hostname'])
+    #     my_src_model = my_src_asset.itmodel
+    #     my_src_port = NetworkPortLabel.objects.get(name=row['src_port'], itmodel=my_src_model)
+    #     if row['dest_hostname'] != '':
+    #         my_dest_asset = Asset.objects.get(hostname=row['dest_hostname'])
+    #         my_dest_model = my_dest_asset.itmodel
+    #         my_dest_port = NetworkPortLabel.objects.get(name=row['dest_port'], itmodel=my_dest_model)
+    #         my_dest_network_port = NetworkPort.objects.create(
+    #             label=my_dest_port,
+    #             asset=my_dest_asset
+    #         )
+    #         my_dest_network_port.save()
+    #         my_network_port = NetworkPort.objects.create(
+    #             label=my_src_port,
+    #             asset=my_src_asset,
+    #             connection=my_dest_network_port
+    #         )
+    #         my_network_port.save()
+    #     else:
+    #         my_network_port = NetworkPort.objects.create(
+    #             label=my_src_port,
+    #             asset=my_src_asset
+    #         )
+    #         my_network_port.save()

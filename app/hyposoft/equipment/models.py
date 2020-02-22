@@ -172,8 +172,8 @@ class Asset(models.Model):
     )
     hostname = models.CharField(
         unique=True,
-        null=True,
         blank=True,
+        null=False,
         max_length=64,
         validators=[
             RegexValidator(r"^&|([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
@@ -225,8 +225,8 @@ class Asset(models.Model):
     # power_port_connection_1
     # power_port_connection_2
 
-    class Meta:
-        unique_together = ('hostname', 'itmodel')
+    # class Meta:
+    #     unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
         return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
@@ -297,22 +297,23 @@ class NetworkPortLabel(models.Model):
 
 
 class NetworkPort(models.Model):
-    label = models.ForeignKey(
-        NetworkPortLabel,
-        on_delete=models.PROTECT,
-    )
-    asset = models.ForeignKey(
+    src_hostname = models.ForeignKey(
         Asset,
         on_delete=models.CASCADE
+    )
+    src_port = models.ForeignKey(
+        NetworkPortLabel,
+        on_delete=models.PROTECT
     )
     connection = models.OneToOneField(
         "self",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL
     )
 
     class Meta:
-        unique_together = ['label', 'asset']
+        unique_together = ['src_hostname', 'src_port']
 
 
 class Powered(models.Model):

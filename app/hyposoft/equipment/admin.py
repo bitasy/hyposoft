@@ -20,7 +20,7 @@ class AssetAdmin(ImportExportActionModelAdmin):
 class NetworkPortAdmin(ImportExportActionModelAdmin):
     resource_class = NetworkPortResource
     formats = (base_formats.CSV,)
-    list_filter = ['asset']
+    list_filter = ['src_port', 'src_hostname']
 
 
 admin.site.register(ITModel, ITModelAdmin)
