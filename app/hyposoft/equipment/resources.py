@@ -6,27 +6,6 @@ from import_export.widgets import ForeignKeyWidget
 
 class ITModelResource(resources.ModelResource):
 
-    # network_port_name_1 = fields.Field(
-    #     column_name='network_port_name_1',
-    #     attribute='network_port_name_1',
-    #     widget=ForeignKeyWidget(NetworkPortLabel, 'name')
-    # )
-    # network_port_name_2 = fields.Field(
-    #     column_name='network_port_name_2',
-    #     attribute='network_port_name_2',
-    #     widget=ForeignKeyWidget(NetworkPortLabel, 'name')
-    # )
-    # network_port_name_3 = fields.Field(
-    #     column_name='network_port_name_3',
-    #     attribute='network_port_name_3',
-    #     widget=ForeignKeyWidget(NetworkPortLabel, 'name')
-    # )
-    # network_port_name_4 = fields.Field(
-    #     column_name='network_port_name_4',
-    #     attribute='network_port_name_4',
-    #     widget=ForeignKeyWidget(NetworkPortLabel, 'name')
-    # )
-
     class Meta:
         model = ITModel
         exclude = 'id'
@@ -39,7 +18,7 @@ class ITModelResource(resources.ModelResource):
 
     def after_import_row(self, row, row_result, **kwargs):
         my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
-        my_network_ports = row['network_ports']
+        my_network_ports = int(row['network_ports'])
         # network_port_name_1
         if my_network_ports >= 1:
             if row['network_port_name_1'] == '':
