@@ -273,49 +273,41 @@ class NetworkPortLabel(models.Model):
         ITModel,
         on_delete=models.CASCADE
     )
+    special = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1,
+                              message="Special network port ID must be at least 1"),
+            MaxValueValidator(4,
+                              message="Special network port ID must be no greater than 4")
+        ]
+    )
 
     class Meta:
-        unique_together = ['name', 'itmodel']
+        unique_together = ['name', 'itmodel', 'special']
 
     def __str__(self):
         return '{} : {}'.format(self.name, self.itmodel)
 
 
 class NetworkPort(models.Model):
-    src_label = models.ForeignKey(
+    label = models.ForeignKey(
         NetworkPortLabel,
-        related_name='src_label',
         on_delete=models.PROTECT,
-        default='1'
     )
-    src_asset = models.ForeignKey(
+    asset = models.ForeignKey(
         Asset,
-        related_name='src_asset',
-        on_delete=models.CASCADE,
-        default=''
-    )
-    dest_label = models.ForeignKey(
-        NetworkPortLabel,
-        related_name='dest_label',
-        null=True,
-        blank=True,
-        on_delete=models.PROTECT
-    )
-    dest_asset = models.ForeignKey(
-        Asset,
-        related_name='dest_asset',
-        null=True,
-        blank=True,
         on_delete=models.CASCADE
     )
-    # connection = models.OneToOneField(
-    #     "self",
-    #     null=True,
-    #     on_delete=models.SET_NULL
-    # )
+    connection = models.OneToOneField(
+        "self",
+        null=True,
+        on_delete=models.SET_NULL
+    )
 
     class Meta:
-        unique_together = ['src_label', 'src_asset', 'dest_label', 'dest_asset']
+        unique_together = ['label', 'asset']
 
 
 class Powered(models.Model):

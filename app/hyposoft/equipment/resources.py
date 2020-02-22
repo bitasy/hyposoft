@@ -39,14 +39,19 @@ class ITModelResource(resources.ModelResource):
 
     def after_import_row(self, row, row_result, **kwargs):
         my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
-        network_port_name_1 = NetworkPortLabel.objects.create(name=row['network_port_name_1'], itmodel=my_model)
-        network_port_name_1.save()
-        network_port_name_2 = NetworkPortLabel.objects.create(name=row['network_port_name_2'], itmodel=my_model)
-        network_port_name_2.save()
-        network_port_name_3 = NetworkPortLabel.objects.create(name=row['network_port_name_3'], itmodel=my_model)
-        network_port_name_3.save()
-        network_port_name_4 = NetworkPortLabel.objects.create(name=row['network_port_name_4'], itmodel=my_model)
-        network_port_name_4.save()
+        my_network_ports = row['network_ports']
+        if my_network_ports >= 1:
+            network_port_name_1 = NetworkPortLabel.objects.create(name=row['network_port_name_1'], itmodel=my_model)
+            network_port_name_1.save()
+        if my_network_ports >= 2:
+            network_port_name_2 = NetworkPortLabel.objects.create(name=row['network_port_name_2'], itmodel=my_model)
+            network_port_name_2.save()
+        if my_network_ports >= 3:
+            network_port_name_3 = NetworkPortLabel.objects.create(name=row['network_port_name_3'], itmodel=my_model)
+            network_port_name_3.save()
+        if my_network_ports >= 4:
+            network_port_name_4 = NetworkPortLabel.objects.create(name=row['network_port_name_4'], itmodel=my_model)
+            network_port_name_4.save()
 
 
 class AssetResource(resources.ModelResource):
@@ -127,37 +132,36 @@ class NetworkPortResource(resources.ModelResource):
     # src_hostname – string; matches the hostname of an existing asset in the system
     src_hostname = fields.Field(
         column_name='src_hostname',
-        attribute='src_asset',
+        attribute='asset',
         widget=ForeignKeyWidget(Asset, 'hostname')
     )
     # src_port – string; matches a network port name defined by the source asset’s model
     src_port = fields.Field(
         column_name='src_port',
-        attribute='src_label',
+        attribute='label',
         widget=ForeignKeyWidget(NetworkPortLabel, 'name')
     )
     # src_mac – six-byte MAC address; format must comply with Requirement 2.2.1.5; sets this value for the associated src port
     src_mac = fields.Field(
         column_name='src_mac',
-        attribute='src_asset',
+        attribute='asset',
         widget=ForeignKeyWidget(Asset, 'mac_address')
     )
     # dest_hostname – string; matches the hostname of an existing asset in the system; leaving blank will disconnect src port if it’s currently connected
-    dest_hostname = fields.Field(
-        column_name='dest_hostname',
-        attribute='dest_asset',
-        widget=ForeignKeyWidget(Asset, 'hostname')
-    )
+    # dest_hostname = fields.Field(
+    #     column_name='dest_hostname',
+    #     attribute='connection.asset',
+    #     widget=ForeignKeyWidget(Asset, 'hostname')
+    # )
     # dest_port – string; matches a network port name defined by the destination asset’s model; must be given a value if a value is given for dest hostname; must be left blank if dest hostname is left blank
-    dest_port = fields.Field(
-        column_name='dest_port',
-        attribute='dest_label',
-        widget=ForeignKeyWidget(NetworkPortLabel, 'name')
-    )
+    # dest_port = fields.Field(
+    #     column_name='dest_port',
+    #     attribute='connection.label',
+    #     widget=ForeignKeyWidget(NetworkPortLabel, 'name')
+    # )
 
     class Meta:
         model = NetworkPort
-        exclude = 'id'
         import_id_fields = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         export_order = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         skip_unchanged = True

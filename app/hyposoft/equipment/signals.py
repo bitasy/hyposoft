@@ -4,18 +4,6 @@ from .models import ITModel, Asset, Powered, NetworkPortLabel, Rack, PDU
 from rest_framework.serializers import ValidationError
 
 
-# @receiver(post_save, sender=ITModel)
-# def add_network_ports(sender, instance,  *args, **kwargs):
-#     network_port_name_1 = NetworkPortLabel.objects.create(name=instance.network_port_name_1, itmodel=instance)
-#     network_port_name_1.save()
-#     network_port_name_2 = NetworkPortLabel.objects.create(name=instance.network_port_name_2, itmodel=instance)
-#     network_port_name_2.save()
-#     network_port_name_3 = NetworkPortLabel.objects.create(name=instance.network_port_name_3, itmodel=instance)
-#     network_port_name_3.save()
-#     network_port_name_4 = NetworkPortLabel.objects.create(name=instance.network_port_name_4, itmodel=instance)
-#     network_port_name_4.save()
-
-
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
     instance.datacenter = instance.rack.datacenter
