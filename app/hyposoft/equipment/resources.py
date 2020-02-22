@@ -136,6 +136,7 @@ class NetworkPortResource(resources.ModelResource):
     class SrcHostnameForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             my_asset = Asset.objects.get(hostname=row['src_hostname'])
+            print(my_asset)
             return my_asset
 
     class DestHostnameForeignKeyWidget(ForeignKeyWidget):
@@ -163,33 +164,33 @@ class NetworkPortResource(resources.ModelResource):
 
     src_hostname = fields.Field(
         column_name='src_hostname',
-        attribute='src_hostname',
+        attribute='asset',
         widget=SrcHostnameForeignKeyWidget(Asset, 'hostname')
     )
     src_port = fields.Field(
         column_name='src_port',
-        attribute='src_port',
+        attribute='label',
         widget=SrcPortForeignKeyWidget(NetworkPortLabel, 'name')
     )
     src_mac = fields.Field(
         column_name='src_mac',
-        attribute='src_hostname',
+        attribute='asset',
         widget=ForeignKeyWidget(Asset, 'mac_address')
     )
     dest_hostname = fields.Field(
         column_name='dest_hostname',
-        attribute='connection.src_hostname',
+        attribute='connection.asset',
         widget=DestHostnameForeignKeyWidget(Asset, 'hostname')
     )
     dest_port = fields.Field(
         column_name='dest_port',
-        attribute='connection.src_port',
+        attribute='connection.label',
         widget=DestPortForeignKeyWidget(NetworkPortLabel, 'name')
     )
 
     class Meta:
         model = NetworkPort
-        exclude = ('id', 'connection')
+        exclude = ('id', 'asset', 'label', 'connection')
         import_id_fields = ('src_hostname', 'src_port')
         export_order = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         skip_unchanged = True

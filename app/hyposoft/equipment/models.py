@@ -297,11 +297,11 @@ class NetworkPortLabel(models.Model):
 
 
 class NetworkPort(models.Model):
-    src_hostname = models.ForeignKey(
+    asset = models.ForeignKey(
         Asset,
         on_delete=models.CASCADE
     )
-    src_port = models.ForeignKey(
+    label = models.ForeignKey(
         NetworkPortLabel,
         on_delete=models.PROTECT
     )
@@ -313,7 +313,7 @@ class NetworkPort(models.Model):
     )
 
     class Meta:
-        unique_together = ['src_hostname', 'src_port']
+        unique_together = ['asset', 'label']
 
 
 class Powered(models.Model):
