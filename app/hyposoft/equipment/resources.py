@@ -55,11 +55,11 @@ class ITModelResource(resources.ModelResource):
 
 class AssetResource(resources.ModelResource):
 
-    class MyForeignKeyWidget(ForeignKeyWidget):
+    class ITModelForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             return self.model.objects.get(
-                vendor__iexact=row["vendor"],
-                model_number__iexact=row["model_number"]
+                vendor__iexact=row['vendor'],
+                model_number__iexact=row['model_number']
             )
 
     datacenter = fields.Field(
@@ -75,12 +75,12 @@ class AssetResource(resources.ModelResource):
     vendor = fields.Field(
         column_name='vendor',
         attribute='itmodel',
-        widget=MyForeignKeyWidget(ITModel, 'vendor')
+        widget=ITModelForeignKeyWidget(ITModel, 'vendor')
     )
     model_number = fields.Field(
         column_name='model_number',
         attribute='itmodel',
-        widget=MyForeignKeyWidget(ITModel, 'model_number')
+        widget=ITModelForeignKeyWidget(ITModel, 'model_number')
     )
     owner = fields.Field(
         column_name='owner',
@@ -112,7 +112,8 @@ class AssetResource(resources.ModelResource):
             power_port_connection_1 = Powered.objects.create(
                 plug_number=my_plug_number_1,
                 pdu=my_pdu_1,
-                asset=my_asset
+                asset=my_asset,
+                special=1
             )
             power_port_connection_1.save()
         # power_port_connection_2
@@ -124,47 +125,62 @@ class AssetResource(resources.ModelResource):
             power_port_connection_2 = Powered.objects.create(
                 plug_number=my_plug_number_2,
                 pdu=my_pdu_2,
-                asset=my_asset
+                asset=my_asset,
+                special=2
             )
             power_port_connection_2.save()
 
 
 class NetworkPortResource(resources.ModelResource):
 
-    # src_hostname – string; matches the hostname of an existing asset in the system
+    class SrcPortForeignKeyWidget(ForeignKeyWidget):
+        def clean(self, value, row):
+            my_asset = Asset.objects.get(hostname=row['src_hostname'])
+            return self.model.objects.get(
+                name__iexact=row['src_port'],
+                itmodel__vendor__iexact=my_asset.itmodel.vendor,
+                itmodel__model_number__iexact=my_asset.itmodel.model_number
+            )
+
+    class DestPortForeignKeyWidget(ForeignKeyWidget):
+        def clean(self, value, row):
+            my_asset = Asset.objects.get(hostname=row['dest_hostname'])
+            return self.model.objects.get(
+                name__iexact=row['dest_port'],
+                itmodel__vendor__iexact=my_asset.itmodel.vendor,
+                itmodel__model_number__iexact=my_asset.itmodel.model_number
+            )
+
     src_hostname = fields.Field(
         column_name='src_hostname',
         attribute='asset',
         widget=ForeignKeyWidget(Asset, 'hostname')
     )
-    # src_port – string; matches a network port name defined by the source asset’s model
     src_port = fields.Field(
         column_name='src_port',
         attribute='label',
-        widget=ForeignKeyWidget(NetworkPortLabel, 'name')
+        widget=SrcPortForeignKeyWidget(NetworkPortLabel, 'name')
     )
-    # src_mac – six-byte MAC address; format must comply with Requirement 2.2.1.5; sets this value for the associated src port
     src_mac = fields.Field(
         column_name='src_mac',
         attribute='asset',
         widget=ForeignKeyWidget(Asset, 'mac_address')
     )
-    # dest_hostname – string; matches the hostname of an existing asset in the system; leaving blank will disconnect src port if it’s currently connected
-    # dest_hostname = fields.Field(
-    #     column_name='dest_hostname',
-    #     attribute='connection.asset',
-    #     widget=ForeignKeyWidget(Asset, 'hostname')
-    # )
-    # dest_port – string; matches a network port name defined by the destination asset’s model; must be given a value if a value is given for dest hostname; must be left blank if dest hostname is left blank
-    # dest_port = fields.Field(
-    #     column_name='dest_port',
-    #     attribute='connection.label',
-    #     widget=ForeignKeyWidget(NetworkPortLabel, 'name')
-    # )
+    dest_hostname = fields.Field(
+        column_name='dest_hostname',
+        attribute='connection',
+        widget=ForeignKeyWidget(Asset, 'hostname')
+    )
+    dest_port = fields.Field(
+        column_name='dest_port',
+        attribute='connection',
+        widget=DestPortForeignKeyWidget(NetworkPortLabel, 'name')
+    )
 
     class Meta:
         model = NetworkPort
-        import_id_fields = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
+        exclude = ('id', 'label', 'asset', 'connection')
+        import_id_fields = ('src_hostname', 'src_port')
         export_order = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         skip_unchanged = True
         report_skipped = True
