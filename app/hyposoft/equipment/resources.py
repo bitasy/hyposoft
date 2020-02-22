@@ -99,31 +99,34 @@ class AssetResource(resources.ModelResource):
         clean_model_instances = True
 
     def after_import_row(self, row, row_result, **kwargs):
+        my_model = ITModel.objects.get(model_number=row['model_number'], vendor=row['vendor'])
         my_asset = Asset.objects.get(asset_number=row['asset_number'])
         my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
         my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter)
         # power_port_connection_1
-        powered_1 = row['power_port_connection_1']
-        my_position_1 = powered_1[0]
-        my_plug_number_1 = powered_1[1:]
-        my_pdu_1 = PDU.objects.get(rack=my_rack, position=my_position_1)
-        power_port_connection_1 = Powered.objects.create(
-            plug_number=my_plug_number_1,
-            pdu=my_pdu_1,
-            asset=my_asset
-        )
-        power_port_connection_1.save()
+        if my_model.power_ports >= 1:
+            powered_1 = row['power_port_connection_1']
+            my_position_1 = powered_1[0]
+            my_plug_number_1 = powered_1[1:]
+            my_pdu_1 = PDU.objects.get(rack=my_rack, position=my_position_1)
+            power_port_connection_1 = Powered.objects.create(
+                plug_number=my_plug_number_1,
+                pdu=my_pdu_1,
+                asset=my_asset
+            )
+            power_port_connection_1.save()
         # power_port_connection_2
-        powered_2 = row['power_port_connection_2']
-        my_position_2 = powered_2[0]
-        my_plug_number_2 = powered_2[1:]
-        my_pdu_2 = PDU.objects.get(rack=my_rack, position=my_position_2)
-        power_port_connection_2 = Powered.objects.create(
-            plug_number=my_plug_number_2,
-            pdu=my_pdu_2,
-            asset=my_asset
-        )
-        power_port_connection_2.save()
+        if my_model.power_ports >= 2:
+            powered_2 = row['power_port_connection_2']
+            my_position_2 = powered_2[0]
+            my_plug_number_2 = powered_2[1:]
+            my_pdu_2 = PDU.objects.get(rack=my_rack, position=my_position_2)
+            power_port_connection_2 = Powered.objects.create(
+                plug_number=my_plug_number_2,
+                pdu=my_pdu_2,
+                asset=my_asset
+            )
+            power_port_connection_2.save()
 
 
 class NetworkPortResource(resources.ModelResource):
