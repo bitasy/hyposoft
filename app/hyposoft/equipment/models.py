@@ -78,10 +78,6 @@ class ITModel(models.Model):
                                   message="Comments must be enclosed by double quotes if comment contains line breaks.")
         ]
     )
-    # network_port_name_1
-    # network_port_name_2
-    # network_port_name_3
-    # network_port_name_4
 
     class Meta:
         unique_together = ('vendor', 'model_number')
@@ -222,8 +218,6 @@ class Asset(models.Model):
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
     )
-    # power_port_connection_1
-    # power_port_connection_2
 
     # class Meta:
     #     unique_together = ('hostname', 'itmodel')

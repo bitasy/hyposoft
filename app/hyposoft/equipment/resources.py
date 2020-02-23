@@ -12,20 +12,32 @@ class ITModelResource(resources.ModelResource):
     network_port_name_4 = fields.Field()
 
     def dehydrate_network_port_name_1(self, itmodel):
-        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=1)
-        return my_network_port_label.name
+        if itmodel.network_ports >= 1:
+            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=1)
+            return my_network_port_label.name
+        else:
+            return ''
 
     def dehydrate_network_port_name_2(self, itmodel):
-        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=2)
-        return my_network_port_label.name
+        if itmodel.network_ports >= 2:
+            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=2)
+            return my_network_port_label.name
+        else:
+            return ''
 
     def dehydrate_network_port_name_3(self, itmodel):
-        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=3)
-        return my_network_port_label.name
+        if itmodel.network_ports >= 3:
+            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=3)
+            return my_network_port_label.name
+        else:
+            return ''
 
     def dehydrate_network_port_name_4(self, itmodel):
-        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=4)
-        return my_network_port_label.name
+        if itmodel.network_ports >= 4:
+            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=4)
+            return my_network_port_label.name
+        else:
+            return ''
 
     class Meta:
         model = ITModel
@@ -109,13 +121,29 @@ class AssetResource(resources.ModelResource):
         attribute='owner',
         widget=ForeignKeyWidget(User, 'username')
     )
+    power_port_connection_1 = fields.Field()
+    power_port_connection_2 = fields.Field()
+
+    def dehydrate_power_port_connection_1 (self, asset):
+        if asset.itmodel.power_ports >= 1:
+            my_powered = Powered.objects.get(asset=asset, special=1)
+            return str(my_powered.pdu.position) + str(my_powered.plug_number)
+        else:
+            return ''
+
+    def dehydrate_power_port_connection_2(self, asset):
+        if asset.itmodel.power_ports >= 2:
+            my_powered = Powered.objects.get(asset=asset, special=2)
+            return str(my_powered.pdu.position) + str(my_powered.plug_number)
+        else:
+            return ''
 
     class Meta:
         model = Asset
         exclude = ('id', 'itmodel', 'mac_address')
         import_id_fields = 'asset_number'
         export_order = ('asset_number', 'datacenter', 'hostname', 'rack', 'rack_position', 'vendor', 'model_number',
-                        'owner', 'comment')
+                        'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2')
         skip_unchanged = True
         report_skipped = True
         clean_model_instances = True
