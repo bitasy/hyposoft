@@ -12,31 +12,43 @@ class ITModelResource(resources.ModelResource):
     network_port_name_4 = fields.Field()
 
     def dehydrate_network_port_name_1(self, itmodel):
-        if itmodel.network_ports >= 1:
-            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=1)
-            return my_network_port_label.name
-        else:
+        try:
+            if itmodel.network_ports >= 1:
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=1)
+                return my_network_port_label.name
+            else:
+                return ''
+        except:
             return ''
 
     def dehydrate_network_port_name_2(self, itmodel):
-        if itmodel.network_ports >= 2:
-            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=2)
-            return my_network_port_label.name
-        else:
+        try:
+            if itmodel.network_ports >= 2:
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=2)
+                return my_network_port_label.name
+            else:
+                return ''
+        except:
             return ''
 
     def dehydrate_network_port_name_3(self, itmodel):
-        if itmodel.network_ports >= 3:
-            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=3)
-            return my_network_port_label.name
-        else:
+        try:
+            if itmodel.network_ports >= 3:
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=3)
+                return my_network_port_label.name
+            else:
+                return ''
+        except:
             return ''
 
     def dehydrate_network_port_name_4(self, itmodel):
-        if itmodel.network_ports >= 4:
-            my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=4)
-            return my_network_port_label.name
-        else:
+        try:
+            if itmodel.network_ports >= 4:
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=4)
+                return my_network_port_label.name
+            else:
+                return ''
+        except:
             return ''
 
     class Meta:
@@ -125,17 +137,23 @@ class AssetResource(resources.ModelResource):
     power_port_connection_2 = fields.Field()
 
     def dehydrate_power_port_connection_1 (self, asset):
-        if asset.itmodel.power_ports >= 1:
-            my_powered = Powered.objects.get(asset=asset, special=1)
-            return str(my_powered.pdu.position) + str(my_powered.plug_number)
-        else:
+        try:
+            if asset.itmodel.power_ports >= 1:
+                my_powered = Powered.objects.get(asset=asset, special=1)
+                return str(my_powered.pdu.position) + str(my_powered.plug_number)
+            else:
+                return ''
+        except:
             return ''
 
     def dehydrate_power_port_connection_2(self, asset):
-        if asset.itmodel.power_ports >= 2:
-            my_powered = Powered.objects.get(asset=asset, special=2)
-            return str(my_powered.pdu.position) + str(my_powered.plug_number)
-        else:
+        try:
+            if asset.itmodel.power_ports >= 2:
+                my_powered = Powered.objects.get(asset=asset, special=2)
+                return str(my_powered.pdu.position) + str(my_powered.plug_number)
+            else:
+                return ''
+        except:
             return ''
 
     class Meta:
