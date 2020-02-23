@@ -206,10 +206,10 @@ class NetworkPortResource(resources.ModelResource):
             my_asset = Asset.objects.get(hostname=row['src_hostname'])
             return my_asset
 
-    class DestAssetForeignKeyWidget(ForeignKeyWidget):
-        def clean(self, value, row):
-            my_asset = Asset.objects.get(hostname=row['dest_hostname'])
-            return my_asset
+    # class DestAssetForeignKeyWidget(ForeignKeyWidget):
+    #     def clean(self, value, row):
+    #         my_asset = Asset.objects.get(hostname=row['dest_hostname'])
+    #         return my_asset
 
     class SrcLabelForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
@@ -220,14 +220,14 @@ class NetworkPortResource(resources.ModelResource):
                 itmodel__model_number__iexact=my_asset.itmodel.model_number
             )
 
-    class DestLabelForeignKeyWidget(ForeignKeyWidget):
-        def clean(self, value, row):
-            my_asset = Asset.objects.get(hostname=row['dest_hostname'])
-            return self.model.objects.get(
-                name__iexact=row['dest_port'],
-                itmodel__vendor__iexact=my_asset.itmodel.vendor,
-                itmodel__model_number__iexact=my_asset.itmodel.model_number
-            )
+    # class DestLabelForeignKeyWidget(ForeignKeyWidget):
+    #     def clean(self, value, row):
+    #         my_asset = Asset.objects.get(hostname=row['dest_hostname'])
+    #         return self.model.objects.get(
+    #             name__iexact=row['dest_port'],
+    #             itmodel__vendor__iexact=my_asset.itmodel.vendor,
+    #             itmodel__model_number__iexact=my_asset.itmodel.model_number
+    #         )
 
     src_hostname = fields.Field(
         column_name='src_hostname',
@@ -244,16 +244,26 @@ class NetworkPortResource(resources.ModelResource):
         attribute='asset',
         widget=SrcAssetForeignKeyWidget(Asset, 'mac_address')
     )
-    dest_hostname = fields.Field(
-        column_name='dest_hostname',
-        attribute='connection.asset',
-        widget=DestAssetForeignKeyWidget(Asset, 'hostname')
-    )
-    dest_port = fields.Field(
-        column_name='dest_port',
-        attribute='connection.label',
-        widget=DestLabelForeignKeyWidget(NetworkPortLabel, 'name')
-    )
+    dest_hostname = fields.Field()
+    dest_port = fields.Field()
+
+    def dehydrate_dest_hostname(self, networkport):
+        try:
+            if networkport.connection:
+                return networkport.connection.asset.hostname
+            else:
+                return ''
+        except:
+            return ''
+
+    def dehydrate_dest_port(self, networkport):
+        try:
+            if networkport.connection:
+                return networkport.connection.label.name
+            else:
+                return ''
+        except:
+            return ''
 
     class Meta:
         model = NetworkPort
