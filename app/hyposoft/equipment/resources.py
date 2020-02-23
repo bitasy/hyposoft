@@ -6,12 +6,34 @@ from import_export.widgets import ForeignKeyWidget
 
 class ITModelResource(resources.ModelResource):
 
+    network_port_name_1 = fields.Field()
+    network_port_name_2 = fields.Field()
+    network_port_name_3 = fields.Field()
+    network_port_name_4 = fields.Field()
+
+    def dehydrate_network_port_name_1(self, itmodel):
+        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=1)
+        return my_network_port_label.name
+
+    def dehydrate_network_port_name_2(self, itmodel):
+        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=2)
+        return my_network_port_label.name
+
+    def dehydrate_network_port_name_3(self, itmodel):
+        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=3)
+        return my_network_port_label.name
+
+    def dehydrate_network_port_name_4(self, itmodel):
+        my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=4)
+        return my_network_port_label.name
+
     class Meta:
         model = ITModel
         exclude = 'id'
         import_id_fields = ('vendor', 'model_number')
         export_order = ('vendor', 'model_number', 'height', 'display_color', 'network_ports',
-                        'power_ports', 'cpu', 'memory', 'storage', 'comment')
+                        'power_ports', 'cpu', 'memory', 'storage', 'comment',
+                        'network_port_name_1', 'network_port_name_2', 'network_port_name_3', 'network_port_name_4')
         skip_unchanged = True
         report_skipped = True
         clean_model_instances = True
@@ -207,4 +229,3 @@ class NetworkPortResource(resources.ModelResource):
         my_dest_network_port.connection = my_src_network_port
         my_src_network_port.save()
         my_dest_network_port.save()
-
