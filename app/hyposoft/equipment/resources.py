@@ -315,11 +315,17 @@ class NetworkPortResource(resources.ModelResource):
     def after_import_row(self, row, row_result, **kwargs):
         my_src_asset = Asset.objects.get(hostname=row['src_hostname'])
         my_src_label = NetworkPortLabel.objects.get(name=row['src_port'], itmodel=my_src_asset.itmodel)
-        my_src_network_port = NetworkPort.objects.get(asset=my_src_asset, label=my_src_label)
         my_dest_asset = Asset.objects.get(hostname=row['dest_hostname'])
         my_dest_label = NetworkPortLabel.objects.get(name=row['dest_port'], itmodel=my_dest_asset.itmodel)
-        my_dest_network_port = NetworkPort.objects.create(asset=my_dest_asset, label=my_dest_label)
-        my_src_network_port.connection = my_dest_network_port
-        my_dest_network_port.connection = my_src_network_port
+        my_src_network_port = NetworkPort.objects.get(asset=my_src_asset, label=my_src_label)
+        try:
+            exists_dest = NetworkPort.objects.get(asset=my_dest_asset, label=my_dest_label)
+            exists_dest.connection = my_src_network_port
+            my_src_network_port.connection = exists_dest
+            exists_dest.save()
+        except:
+            my_dest_network_port = NetworkPort.objects.create(asset=my_dest_asset, label=my_dest_label)
+            my_dest_network_port.connection = my_src_network_port
+            my_src_network_port.connection = my_dest_network_port
+            my_dest_network_port.save()
         my_src_network_port.save()
-        my_dest_network_port.save()
