@@ -41,12 +41,16 @@ function RackFormItem({
         initialValue: originalValue && originalValue.id
       })(
         <Select
+          showSearch
           disabled={disabled}
           onChange={v =>
             onChange({
               [schemaFrag.fieldName]: rackList.filter(m => m.id == v)[0]
             })
           }
+          filterOption={(input, option) => {
+            return option.props.children.includes(input);
+          }}
         >
           {filteredRackList.map(rack => (
             <Select.Option key={rack.id} value={rack.id}>
