@@ -71,32 +71,52 @@ class ITModelResource(resources.ModelResource):
                 my_name_1 = '1'
             else:
                 my_name_1 = row['network_port_name_1']
-            network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, special=1)
-            network_port_name_1.save()
+            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=1)
+            if exists:
+                exists.name = my_name_1
+                exists.save()
+            else:
+                network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, special=1)
+                network_port_name_1.save()
         # network_port_name_2
         if my_network_ports >= 2:
             if row['network_port_name_2'] == '':
                 my_name_2 = '2'
             else:
                 my_name_2 = row['network_port_name_2']
-            network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, special=2)
-            network_port_name_2.save()
+            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=2)
+            if exists:
+                exists.name = my_name_2
+                exists.save()
+            else:
+                network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, special=2)
+                network_port_name_2.save()
         # network_port_name_3
         if my_network_ports >= 3:
             if row['network_port_name_3'] == '':
                 my_name_3 = '3'
             else:
                 my_name_3 = row['network_port_name_3']
-            network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
-            network_port_name_3.save()
+            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=3)
+            if exists:
+                exists.name = my_name_3
+                exists.save()
+            else:
+                network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
+                network_port_name_3.save()
         # network_port_name_4
         if my_network_ports >= 4:
             if row['network_port_name_4'] == '':
                 my_name_4 = '4'
             else:
                 my_name_4 = row['network_port_name_4']
-            network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
-            network_port_name_4.save()
+            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=4)
+            if exists:
+                exists.name = my_name_4
+                exists.save()
+            else:
+                network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
+                network_port_name_4.save()
 
 
 class AssetResource(resources.ModelResource):
