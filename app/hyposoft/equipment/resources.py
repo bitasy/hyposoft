@@ -71,11 +71,11 @@ class ITModelResource(resources.ModelResource):
                 my_name_1 = '1'
             else:
                 my_name_1 = row['network_port_name_1']
-            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=1)
-            if exists:
-                exists.name = my_name_1
-                exists.save()
-            else:
+            try:
+                exists_1 = NetworkPortLabel.objects.get(itmodel=my_model, special=1)
+                exists_1.name = my_name_1
+                exists_1.save()
+            except:
                 network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, special=1)
                 network_port_name_1.save()
         # network_port_name_2
@@ -84,11 +84,11 @@ class ITModelResource(resources.ModelResource):
                 my_name_2 = '2'
             else:
                 my_name_2 = row['network_port_name_2']
-            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=2)
-            if exists:
-                exists.name = my_name_2
-                exists.save()
-            else:
+            try:
+                exists_2 = NetworkPortLabel.objects.get(itmodel=my_model, special=2)
+                exists_2.name = my_name_2
+                exists_2.save()
+            except:
                 network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, special=2)
                 network_port_name_2.save()
         # network_port_name_3
@@ -97,11 +97,11 @@ class ITModelResource(resources.ModelResource):
                 my_name_3 = '3'
             else:
                 my_name_3 = row['network_port_name_3']
-            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=3)
-            if exists:
-                exists.name = my_name_3
-                exists.save()
-            else:
+            try:
+                exists_3 = NetworkPortLabel.objects.get(itmodel=my_model, special=3)
+                exists_3.name = my_name_3
+                exists_3.save()
+            except:
                 network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
                 network_port_name_3.save()
         # network_port_name_4
@@ -110,11 +110,11 @@ class ITModelResource(resources.ModelResource):
                 my_name_4 = '4'
             else:
                 my_name_4 = row['network_port_name_4']
-            exists = NetworkPortLabel.objects.get(itmodel=my_model, special=4)
-            if exists:
-                exists.name = my_name_4
-                exists.save()
-            else:
+            try:
+                exists_4 = NetworkPortLabel.objects.get(itmodel=my_model, special=4)
+                exists_4.name = my_name_4
+                exists_4.save()
+            except:
                 network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
                 network_port_name_4.save()
 
@@ -179,7 +179,7 @@ class AssetResource(resources.ModelResource):
     class Meta:
         model = Asset
         exclude = ('id', 'itmodel', 'mac_address')
-        import_id_fields = 'asset_number'
+        import_id_fields = ('hostname', 'vendor', 'model_number')
         export_order = ('asset_number', 'datacenter', 'hostname', 'rack', 'rack_position', 'vendor', 'model_number',
                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2')
         skip_unchanged = True
@@ -197,26 +197,44 @@ class AssetResource(resources.ModelResource):
             my_position_1 = powered_1[0]
             my_plug_number_1 = powered_1[1:]
             my_pdu_1 = PDU.objects.get(rack=my_rack, position=my_position_1)
-            power_port_connection_1 = Powered.objects.create(
-                plug_number=my_plug_number_1,
-                pdu=my_pdu_1,
-                asset=my_asset,
-                special=1
-            )
-            power_port_connection_1.save()
+            try:
+                exists_1 = Powered.objects.get(
+                    pdu=my_pdu_1,
+                    asset=my_asset,
+                    special=1
+                )
+                exists_1.plug_number = my_plug_number_1
+                exists_1.save()
+            except:
+                power_port_connection_1 = Powered.objects.create(
+                    plug_number=my_plug_number_1,
+                    pdu=my_pdu_1,
+                    asset=my_asset,
+                    special=1
+                )
+                power_port_connection_1.save()
         # power_port_connection_2
         if my_model.power_ports >= 2:
             powered_2 = row['power_port_connection_2']
             my_position_2 = powered_2[0]
             my_plug_number_2 = powered_2[1:]
             my_pdu_2 = PDU.objects.get(rack=my_rack, position=my_position_2)
-            power_port_connection_2 = Powered.objects.create(
-                plug_number=my_plug_number_2,
-                pdu=my_pdu_2,
-                asset=my_asset,
-                special=2
-            )
-            power_port_connection_2.save()
+            try:
+                exists_2 = Powered.objects.get(
+                    pdu=my_pdu_2,
+                    asset=my_asset,
+                    special=2
+                )
+                exists_2.plug_number = my_plug_number_2
+                exists_2.save()
+            except:
+                power_port_connection_1 = Powered.objects.create(
+                    plug_number=my_plug_number_1,
+                    pdu=my_pdu_1,
+                    asset=my_asset,
+                    special=1
+                )
+                power_port_connection_1.save()
 
 
 class NetworkPortResource(resources.ModelResource):

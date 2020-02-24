@@ -219,8 +219,8 @@ class Asset(models.Model):
         ]
     )
 
-    # class Meta:
-    #     unique_together = ('hostname', 'itmodel')
+    class Meta:
+        unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
         return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
