@@ -15,7 +15,7 @@ function ModelManagementPage() {
     dispatch(fetchModels());
   }, []);
 
-  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   return (
     <div style={{ padding: 16 }}>

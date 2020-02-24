@@ -40,7 +40,7 @@ function AssetDetailPage() {
         updateRecord={updateAsset}
         deleteRecord={removeAsset}
         schema={assetSchema}
-        disabled={!user.is_superuser}
+        disabled={!user.is_staff}
       />
       <NetworkGraph assetID={id} />
     </div>

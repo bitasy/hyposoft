@@ -14,7 +14,7 @@ function AssetManagementPage() {
   const history = useHistory();
   const dispatch = useDispatch();
 
-  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   const currentDCID = datacenters.find(dc => dc.abbr === dcName)?.id;
   const filteredAssets = currentDCID

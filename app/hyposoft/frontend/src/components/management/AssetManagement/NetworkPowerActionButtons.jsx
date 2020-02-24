@@ -5,7 +5,7 @@ import API from "../../../api/API";
 import { useSelector } from "react-redux";
 
 function networkActions(asset, user, networkConnectedPDUs) {
-  if (asset.owner.username === user.username || user.is_superuser) {
+  if (asset.owner.username === user.username || user.is_staff) {
     const pdus = asset.rack.pdu_set;
     const pdu = pdus.find(
       pdu =>
