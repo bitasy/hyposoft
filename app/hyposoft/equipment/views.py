@@ -313,18 +313,29 @@ class NetworkConnectedPDUs(views.APIView):
         return Response(data=network_connected_pdus)
 
 
+
 @api_view()
 def net_graph(request, asset_id):
     asset = Asset.objects.get(id=asset_id)
     assets = set()
     for e in asset.networkport_set.select_related('asset'):
-        assets.add(e.connection.asset)
+        if e.connection:
+            assets.add(e.connection.asset)
+
     edges = NetworkPort.objects.filter(asset__in=assets).distinct()
     two_hops = set()
     for e in edges.select_related('asset'):
-        two_hops.add(e.asset)
-        two_hops.add(e.connection.asset)
+        if e and e.connection:
+            two_hops.add(e.asset)
+            two_hops.add(e.connection.asset)
+
+
+    def orderedEdge(edge):
+        a = edge.asset.id
+        b = edge.connection.asset.id
+        return (min(a, b), max(a, b))
+
     return Response({
         'verticies': [AssetSerializer(data).data for data in two_hops],
-        'edges': [EdgeSerializer(edge).data for edge in edges]
+        'edges': set([orderedEdge(edge) for edge in edges if edge.connection])
     })

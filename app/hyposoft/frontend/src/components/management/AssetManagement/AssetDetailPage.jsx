@@ -10,6 +10,7 @@ import {
 } from "../../../redux/assets/actions";
 import { useSelector, useDispatch } from "react-redux";
 import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
+import NetworkGraph from "./NetworkGraph";
 
 function AssetDetailPage() {
   const { id } = useParams();
@@ -41,6 +42,7 @@ function AssetDetailPage() {
         schema={assetSchema}
         disabled={!user.is_superuser}
       />
+      <NetworkGraph assetID={id} />
     </div>
   );
 }

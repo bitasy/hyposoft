@@ -103,6 +103,11 @@ class EdgeSerializer(NetworkPortSerializer):
     class Meta:
         model = NetworkPort
         fields = ['asset', 'connection']
+    
+    def to_representation(self, edge):
+        response = super().to_representation(edge)
+        response['connection'] = NodeSerializer(edge.connection).data
+        return response
 
 
 class PoweredSerializer(serializers.ModelSerializer):
