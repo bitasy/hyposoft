@@ -16,27 +16,25 @@ function PowerPortFormItem({
 
   const [freePorts, setFreePorts] = React.useState(null);
 
+  const rack = currentRecord.rack;
   React.useEffect(() => {
     onChange({ [schemaFrag.fieldName]: initialValue });
-  }, [currentRecord.rack?.id]);
-
+  }, [rack?.id]);
   React.useEffect(() => {
     if (currentRecord.rack) {
-      API.getFreePorts(currentRecord.rack.id, currentRecord.id)
+      API.getFreePowerPorts(currentRecord.rack.id, currentRecord.id)
         .then(flatten)
         .then(setFreePorts);
     } else {
       setFreePorts(null);
     }
-  }, [currentRecord.rack?.id, currentRecord.id]);
+  }, [rack?.id, currentRecord.id]);
 
-  const rules = schemaFrag.required
-    ? [{ required: true, message: "This field is required" }]
-    : [];
+  if (!rack) return null;
 
   return (
     <Form.Item label={schemaFrag.displayName} {...FORM_ITEM_LAYOUT}>
-      {form.getFieldDecorator(schemaFrag.fieldName, { rules, initialValue })(
+      {form.getFieldDecorator(schemaFrag.fieldName, { initialValue })(
         <Input
           disabled={disabled}
           currentRecord={currentRecord}

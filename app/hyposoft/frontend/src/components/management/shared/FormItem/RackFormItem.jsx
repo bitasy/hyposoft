@@ -17,26 +17,22 @@ function RackFormItem({
     : [];
 
   const dispatch = useDispatch();
+  const dcs = useSelector(s => s.datacenters);
+  const rackList = useSelector(s => Object.values(s.racks));
 
   const dcID = currentRecord.datacenter;
-  if (!dcID) return null;
-
-  const dcs = useSelector(s => s.datacenters);
-  const dc = dcs[dcID];
-
-  if (!dc) return null;
-
-  const dcName = dc.abbr;
+  const dc = dcID && dcs[dcID];
+  const dcName = dc?.abbr;
 
   React.useEffect(() => {
     dispatch(fetchRacks(dcName));
   }, [dcName]);
 
-  const rackList = useSelector(s =>
-    Object.values(s.racks)
-      .filter(r => r.datacenter == dcID)
-      .sort((r1, r2) => r1.rack.localeCompare(r2.rack))
-  );
+  if (!dcID || !dc) return null;
+
+  const filteredRackList = rackList
+    .filter(r => r.datacenter == dcID)
+    .sort((r1, r2) => r1.rack.localeCompare(r2.rack));
 
   return (
     <Form.Item label={schemaFrag.displayName} {...FORM_ITEM_LAYOUT} key={dcID}>
@@ -52,7 +48,7 @@ function RackFormItem({
             })
           }
         >
-          {rackList.map(rack => (
+          {filteredRackList.map(rack => (
             <Select.Option key={rack.id} value={rack.id}>
               {rack.rack}
             </Select.Option>

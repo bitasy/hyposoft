@@ -213,9 +213,14 @@ class Asset(models.Model):
         if self.asset_number == 0:
             max_an = Asset.objects.all().aggregate(Max('asset_number'))
             self.asset_number = (max_an['asset_number__max'] or 100000) + 1
-            if self.asset_number > 999999:
-                raise serializers.ValidationError(
-                    "The asset number is too large. Please try manually setting it to be 6 digits.")
+
+        if self.asset_number > 999999:
+            raise serializers.ValidationError(
+                "The asset number is too large. Please try manually setting it to be 6 digits.")
+
+        if self.asset_number < 100000:
+            raise serializers.ValidationError(
+                "The asset number is too small. Please try manually setting it to be 6 digits.")
 
         if 42 < self.rack_position + self.itmodel.height - 1:
             raise serializers.ValidationError(

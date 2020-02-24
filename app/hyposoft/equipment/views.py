@@ -10,7 +10,7 @@ from rest_framework import status, serializers
 
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
 from .models import ITModel, Datacenter, Asset, Powered, PDU, Rack, NetworkPort
-from .serializers import ITModelSerializer, AssetSerializer, PDUSerializer, PoweredSerializer, EdgeSerializer
+from .serializers import *
 
 import requests
 import re
@@ -229,7 +229,7 @@ class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
         return super().get(self, request, *args, **kwargs) if updated else response
 
 
-class RackFreePorts(views.APIView):
+class FreePowerPorts(views.APIView):
     def get(self, request, rack_id, asset_id):
         pdus = PDU.objects.filter(rack=rack_id)
         pdu_ids = [pdu.id for pdu in pdus]
@@ -242,9 +242,45 @@ class RackFreePorts(views.APIView):
         return Response(free_ports)
 
 
+def getNetworkPorts(datacenter_id, filter):
+   dc = Datacenter.objects.filter(id=datacenter_id).first()
+   if dc:
+       assets = Asset.objects.filter(datacenter=dc.id)
+       asset_ids = [a.id for a in assets]
+       free_network_ports = [
+           {
+               "id": network_port.id,
+               "label": NetworkPortLabelSerializer(instance=network_port.label).data,
+               "asset": network_port.asset.id,
+               "asset_str": str(network_port.asset)
+           }
+           for network_port 
+           in NetworkPort.objects.filter(asset__in=asset_ids, **filter)
+       ]
+       return Response(free_network_ports)
+   else: 
+       return Response([])
+
+
+class AllNetworkPorts(views.APIView):
+    def get(self, request, datacenter_id):
+        return getNetworkPorts(datacenter_id, {})
+
+
+class FreeNetworkPorts(views.APIView):
+    def get(self, request, datacenter_id):
+        return getNetworkPorts(datacenter_id, { "connection": None })
+
+
 class PoweredDeleteByAsset(views.APIView):
     def delete(self, request, asset_id):
         Powered.objects.filter(asset=asset_id).delete()
+        return Response()
+
+
+class NetworkPortDeleteByAsset(views.APIView):
+    def delete(self, request, asset_id):
+        NetworkPort.objects.filter(asset=asset_id).delete()
         return Response()
 
 

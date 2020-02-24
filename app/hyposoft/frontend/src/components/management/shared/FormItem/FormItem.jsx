@@ -11,6 +11,7 @@ import NetworkPortLabelFormItem from "./NetworkPortLabelFormItem";
 import AutogenNumberFormItem from "./AutogenNumberFormItem";
 import DatacenterFormItem from "./DatacenterFormItem";
 import PowerPortFormItem from "./PowerPortFormItem";
+import NetworkPortFormItem from "./NetworkPortFormItem";
 
 export const FORM_ITEM_LAYOUT = {
   labelCol: { span: 8 },
@@ -42,8 +43,8 @@ function FormItem(props) {
     <DatacenterFormItem {...props} />
   ) : props.schemaFrag.type === "power-connection" ? (
     <PowerPortFormItem {...props} />
-  ) : props.schemaFrag.type === "netowkr-connection" ? (
-    <PowerPortFormItem {...props} />
+  ) : props.schemaFrag.type === "network-port" ? (
+    <NetworkPortFormItem {...props} />
   ) : null;
 }
 

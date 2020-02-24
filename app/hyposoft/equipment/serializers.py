@@ -1,6 +1,6 @@
 from .models import *
 from django.contrib.auth.models import User
-
+from django.db.models import Q
 
 class DatacenterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,10 +56,23 @@ class AssetSerializer(serializers.ModelSerializer):
         response['rack'] = RackSerializer(asset.rack).data
         response['owner'] = UserSerializer(asset.owner).data
         response['power_connections'] = [
-            { "pdu_id": powered.pdu.id, "position": powered.plug_number } for
-            powered in
-            Powered.objects.filter(asset=asset.id)
-         ]
+            { "pdu_id": powered.pdu.id, "position": powered.plug_number } 
+            for powered 
+            in Powered.objects.filter(asset=asset.id)
+        ]
+        response['network_ports'] = [
+            {
+                "id": network_port.id,
+                "label": NetworkPortLabelSerializer(instance=network_port.label).data,
+                "connection": (
+                    network_port.connection 
+                    if network_port.connection is None 
+                    else NodeSerializer(instance=network_port.connection).data
+                )
+            } 
+            for network_port 
+            in NetworkPort.objects.filter(asset=asset.id)
+        ]
         return response
 
 
@@ -74,6 +87,14 @@ class NetworkPortSerializer(serializers.ModelSerializer):
         model = NetworkPort
         fields = '__all__'
 
+
+class NodeSerializer(NetworkPortSerializer):
+    #asset = AssetSerializer()
+    #connection = AssetSerializer(source='connection.asset')
+
+    class Meta:
+        model = NetworkPort
+        fields = ['id', 'label', 'asset']
 
 class EdgeSerializer(NetworkPortSerializer):
     #asset = AssetSerializer()

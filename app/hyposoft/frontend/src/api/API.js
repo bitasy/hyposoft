@@ -29,8 +29,6 @@ function logout() {
 
 // Model APIs
 function translateModel(model) {
-  model.network_port_labels =
-    model.network_port_labels && model.network_port_labels.map(l => l.name);
   return model;
 }
 
@@ -46,7 +44,7 @@ function getModel(id) {
     .then(translateModel);
 }
 
-function createModel(fields) {
+async function createModel(fields) {
   return Axios.post(`api/equipment/ITModelCreate`, fields)
     .then(getData)
     .then(model => model.id)
@@ -76,7 +74,7 @@ function updateModel(id, updates) {
   return destroyAllNetworkPortLabels(id)
     .then(() =>
       Promise.all(
-        updates.network_port_labels.map(name =>
+        updates.network_port_labels.map(({ name }) =>
           createNetworkPortLabel({ name, itmodel: id })
         )
       )
@@ -120,12 +118,22 @@ function createAsset(fields) {
 
   return Axios.post(`api/equipment/AssetCreate`, toCreate)
     .then(getData)
-    .then(translate);
+    .then(a => a.id)
+    .then(id => {
+      Promise.all([
+        Promise.all(
+          fields.power_connections.map(({ pdu_id, position }) =>
+            createPowered(position, pdu_id, id)
+          )
+        ),
+        Promise.all(fields.network_ports.map(np => createNetworkPort(id, np)))
+      ]).then(() => getAsset(id));
+    });
 }
 
 // updates has the whole model/rack by itself rather than just model_id and rack.
 // so we'll have to double check that here
-function updateAsset(id, updates) {
+async function updateAsset(id, updates) {
   const patch = produce(updates, draft => {
     if (draft.model) {
       draft.itmodel = updates.model.id;
@@ -139,15 +147,33 @@ function updateAsset(id, updates) {
     }
   });
 
-  return deleteAllPowered(id)
-    .then(() =>
-      Promise.all(
-        updates.power_connections.map(({ pdu_id, position }) =>
-          createPowered(position, pdu_id, id)
-        )
+  const prevAsset = await getAsset(id);
+  const didModelChange = prevAsset.model.id != patch.itmodel;
+
+  await deleteAllPowered(id).then(() =>
+    Promise.all(
+      updates.power_connections.map(({ pdu_id, position }) =>
+        createPowered(position, pdu_id, id)
       )
     )
-    .then(() => Axios.patch(`api/equipment/AssetUpdate/${id}`, patch))
+  );
+
+  if (didModelChange) {
+    await deleteAllNetworkPorts(id); // delete every networkports
+    await Promise.all(
+      updates.network_ports.map(np => createNetworkPort(id, np))
+    ); // and create everything
+  } else {
+    await Promise.all(
+      // Since the current api doesn't support transactions, we have to nullify everything first
+      updates.network_ports.map(np => updateNetworkPort(np.id, null))
+    );
+    await Promise.all(
+      updates.network_ports.map(np => updateNetworkPort(np.id, np.connection))
+    );
+  }
+
+  return Axios.patch(`api/equipment/AssetUpdate/${id}`, patch)
     .then(getData)
     .then(translate);
 }
@@ -294,14 +320,55 @@ function deleteAllPowered(assetID) {
 
 // Utilities control APIs
 
-function getFreePorts(rackID, assetID) {
-  return Axios.get(`api/equipment/Rack/FreePorts/${rackID}/${assetID}`).then(
-    getData
+function getFreePowerPorts(rackID, assetID) {
+  return Axios.get(
+    `api/equipment/FreePowerPorts/${rackID}/${assetID || 0}`
+  ).then(getData);
+}
+
+function getAllNetworkPorts(dcID) {
+  return Axios.get(`api/equipment/AllNetworkPorts/${dcID}`).then(getData);
+}
+
+function getFreeNetworkPorts(dcID) {
+  return Axios.get(`api/equipment/FreeNetworkPorts/${dcID}`).then(getData);
+}
+
+function deleteAllNetworkPorts(assetID) {
+  return Axios.delete(`api/equipment/NetworkPortDeleteByAsset/${assetID}`).then(
+    getData // probably null or undefined
   );
 }
 
 function getNetworkConnectedPDUs() {
   return Axios.get("api/equipment/NetworkConnectedPDUs").then(getData);
+}
+
+// Network Port APIs
+
+function createNetworkPort(asset_id, fields) {
+  /*
+  {
+    label, 
+    connection(null or id)
+  }
+  */
+  return Axios.post("api/equipment/NetworkPortCreate", {
+    asset: asset_id,
+    label: fields.label.id,
+    connection: fields.connection?.id
+  }).then(getData);
+}
+
+function updateNetworkPort(networkPortID, connection) {
+  const connID = connection != null ? connection.id : null;
+  return Axios.patch(`api/equipment/NetworkPortUpdate/${networkPortID}`, {
+    connection: connID
+  }).then(getData);
+}
+
+function getNetworkGraph(assetID) {
+  return Axios.get(`api/equipment/NetworkGraph/${assetID}`).then(getData);
 }
 
 const RealAPI = {
@@ -339,8 +406,12 @@ const RealAPI = {
   turnOff,
   cycle,
 
-  getFreePorts,
+  getFreePowerPorts,
+  getFreeNetworkPorts,
+  getAllNetworkPorts,
   getNetworkConnectedPDUs,
+
+  getNetworkGraph,
 
   getUsers
 };

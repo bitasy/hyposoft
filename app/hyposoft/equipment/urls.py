@@ -24,8 +24,11 @@ urlpatterns += [
     path('PDUNetwork/get/<rack>/<position>', getPDU),
     path('PDUNetwork/post', switchPDU),
     path('PDUNetwork/cycle', cycleAsset),
-    path('Rack/FreePorts/<int:rack_id>/<int:asset_id>', RackFreePorts.as_view()),
+    path('FreePowerPorts/<int:rack_id>/<int:asset_id>', FreePowerPorts.as_view()),
+    path('AllNetworkPorts/<int:datacenter_id>', AllNetworkPorts.as_view()),
+    path('FreeNetworkPorts/<int:datacenter_id>', FreeNetworkPorts.as_view()),
     path('PoweredDeleteByAsset/<int:asset_id>', PoweredDeleteByAsset.as_view()),
+    path('NetworkPortDeleteByAsset/<int:asset_id>', NetworkPortDeleteByAsset.as_view()),
     path('NetworkConnectedPDUs', NetworkConnectedPDUs.as_view()),
     path('NetworkGraph/<int:asset_id>', net_graph)
 ]
