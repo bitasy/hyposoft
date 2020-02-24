@@ -341,7 +341,9 @@ function deleteAllNetworkPorts(assetID) {
 }
 
 function getNetworkConnectedPDUs() {
-  return Axios.get("api/equipment/NetworkConnectedPDUs").then(getData);
+  return Axios.get("api/equipment/PDUList")
+    .then(getData)
+    .then(lst => lst.filter(a => a.networked).map(a => a.id));
 }
 
 // Network Port APIs

@@ -29,6 +29,5 @@ urlpatterns += [
     path('FreeNetworkPorts/<int:datacenter_id>', FreeNetworkPorts.as_view()),
     path('PoweredDeleteByAsset/<int:asset_id>', PoweredDeleteByAsset.as_view()),
     path('NetworkPortDeleteByAsset/<int:asset_id>', NetworkPortDeleteByAsset.as_view()),
-    path('NetworkConnectedPDUs', NetworkConnectedPDUs.as_view()),
     path('NetworkGraph/<int:asset_id>', net_graph)
 ]

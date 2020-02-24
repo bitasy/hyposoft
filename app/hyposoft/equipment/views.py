@@ -284,36 +284,6 @@ class NetworkPortDeleteByAsset(views.APIView):
         return Response()
 
 
-class NetworkConnectedPDUs(views.APIView):
-    def get(self, request):
-        try:
-            response = requests.get(PDU_url)
-            code = response.status_code
-            result = re.findall(r"<td><a.*>.*-(.*)-([a-zA-Z][0-9]{2})(.*)</a>", response.text, re.IGNORECASE)
-
-            dc_abbrs = [res[0] for res in result]
-            dcs = {
-                dc.abbr: dc
-                for dc
-                in Datacenter.objects.filter(abbr__in=dc_abbrs) 
-            }
-
-            network_connected_pdus = []
-            for [dc_abbr, rack_str, position] in result:
-                dc = dcs.get(dc_abbr)
-                if not dc: continue
-                rack = Rack.objects.filter(datacenter=dc.id, rack=rack_str).first()
-                if not rack: continue
-                pdu = PDU.objects.filter(rack=rack.id, position=position).first()
-                if not pdu: continue
-                network_connected_pdus.append(pdu.id)
-
-        except ConnectTimeout:
-            return Response(status=400)
-        return Response(data=network_connected_pdus)
-
-
-
 @api_view()
 def net_graph(request, asset_id):
     asset = Asset.objects.get(id=asset_id)
