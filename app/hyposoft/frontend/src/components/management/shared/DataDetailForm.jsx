@@ -2,27 +2,20 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import { objectEquals } from "object-equals";
 import { Form, Button, Icon } from "antd";
-import FormItem from "./FormItem";
 import { useDispatch, useSelector } from "react-redux";
+import FormItem from "./FormItem/FormItem";
 
 function DataDetailForm({
   form,
-  id,
-  selector,
-  getRecord,
+  record,
   updateRecord,
   deleteRecord,
-  schema
+  schema,
+  disabled
 }) {
   const dispatch = useDispatch();
   const history = useHistory();
-
-  const record = useSelector(s => id && selector(s, id));
   const [newRecord, setNewRecord] = React.useState(null);
-
-  React.useEffect(() => {
-    dispatch(getRecord(id));
-  }, [id]);
 
   React.useEffect(() => {
     record && setNewRecord(Object.assign({}, record));
@@ -35,7 +28,7 @@ function DataDetailForm({
     form.validateFields((err, values) => {
       if (!err) {
         if (confirm("You sure?")) {
-          dispatch(updateRecord(id, newRecord));
+          dispatch(updateRecord(record.id, newRecord));
         }
       }
     });
@@ -44,15 +37,17 @@ function DataDetailForm({
   function handleDelete(e) {
     e.preventDefault();
     if (confirm("You sure?")) {
-      dispatch(deleteRecord(id, () => history.goBack()));
+      dispatch(deleteRecord(record.id, () => history.goBack()));
     }
   }
 
+  console.log(newRecord);
+
   return record && newRecord ? (
     <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
-      {schema.map(schemaFrag => (
+      {schema.map((schemaFrag, idx) => (
         <FormItem
-          key={schemaFrag.fieldName}
+          key={idx}
           form={form}
           schemaFrag={schemaFrag}
           originalValue={record[schemaFrag.fieldName]}
@@ -60,18 +55,24 @@ function DataDetailForm({
           onChange={changeSet => {
             setNewRecord(Object.assign(newRecord, changeSet));
           }}
+          disabled={disabled}
         />
       ))}
       <Form.Item>
         <Button.Group style={{ width: "100%", display: "flex" }}>
           <Button
             htmlType="submit"
-            disabled={!canUpdate}
+            disabled={disabled || !canUpdate}
             style={{ flexGrow: 8 }}
           >
             Update
           </Button>
-          <Button htmlType="button" type="danger" onClick={handleDelete}>
+          <Button
+            htmlType="button"
+            type="danger"
+            onClick={handleDelete}
+            disabled={disabled}
+          >
             <Icon type="delete" />
           </Button>
         </Button.Group>

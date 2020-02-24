@@ -1,56 +1,25 @@
 import React from "react";
 import { Form, Input } from "antd";
 import { MAX_ROW, MAX_COL } from "./RackManagementPage";
-import {
-  split,
-  rowToIndex,
-  toIndex,
-  indexToRow,
-  indexToCol
-} from "./GridUtils";
+import { split, toIndex, indexToRow, indexToColNoZero } from "./GridUtils";
 
-// initialValue: [r1, r2, c1, c2]
-// onChange: ([r1, r2, c1, c2] | null) => ()
-// clearTrigger: 0 | 1
-function GridRangeSelector({ initialValue, onChange, clearTrigger }) {
-  const initialP1 = initialValue
-    ? indexToRow(initialValue[0]) + indexToCol(initialValue[2])
-    : "";
-
-  const initialP2 = initialValue
-    ? indexToRow(initialValue[1]) + indexToCol(initialValue[3])
-    : "";
-
-  const [p1, setP1] = React.useState(initialP1);
-  const [p2, setP2] = React.useState(initialP2);
-
-  const firstTime = React.useRef(true);
-  React.useEffect(() => {
-    if (!firstTime.current) {
-      setP1("");
-      setP2("");
-    }
-    firstTime.current = false;
-  }, [clearTrigger]);
-
-  React.useEffect(() => {
-    setP1(initialP1);
-    setP2(initialP2);
-  }, [initialP1, initialP2]);
-
-  React.useEffect(() => {
-    if (p1Error == null && p2Error == null) {
-      onChange(destructure(p1, p2));
-    } else {
-      onChange(null);
-    }
-  }, [p1, p2]);
-
+// setRange: ([r1, r2, c1, c2] | null) => ()
+// range: [r1, r2, c1, c2] | null
+function GridRangeSelector({ setRange, range }) {
+  const [p1, setP1] = React.useState("");
+  const [p2, setP2] = React.useState("");
   const [p1ErrMsg, setP1ErrMsg] = React.useState("");
   const [p2ErrMsg, setP2ErrMsg] = React.useState("");
 
-  const p1Error = validate(p1);
-  const p2Error = validate(p2);
+  React.useEffect(() => {
+    if (range) {
+      setP1(indexToRow(range[0]) + indexToColNoZero(range[2]));
+      setP2(indexToRow(range[1]) + indexToColNoZero(range[3]));
+    } else {
+      setP1("");
+      setP2("");
+    }
+  }, [range]);
 
   return (
     <Form style={{ width: 350 }}>
@@ -64,11 +33,16 @@ function GridRangeSelector({ initialValue, onChange, clearTrigger }) {
           value={p1}
           onChange={e => {
             const str = e.target.value;
-            const error = isValidSubstr(str);
-            if (error == null) {
-              setP1(str);
+            const res = validate(str);
+            if (res != null) {
+              setP1ErrMsg(res);
+            } else {
               setP1ErrMsg("");
-            } else setP1ErrMsg(error);
+              if (validate(p2) === null) {
+                setRange(destructure(str, p2));
+              }
+            }
+            setP1(str);
           }}
         />
       </Form.Item>
@@ -82,11 +56,16 @@ function GridRangeSelector({ initialValue, onChange, clearTrigger }) {
           value={p2}
           onChange={e => {
             const str = e.target.value;
-            const error = isValidSubstr(str);
-            if (error == null) {
-              setP2(str);
+            const res = validate(str);
+            if (res != null) {
+              setP2ErrMsg(res);
+            } else {
               setP2ErrMsg("");
-            } else setP2ErrMsg(error);
+              if (validate(p1) === null) {
+                setRange(destructure(p1, str));
+              }
+            }
+            setP2(str);
           }}
         />
       </Form.Item>
@@ -111,30 +90,11 @@ function validate(s) {
   return null;
 }
 
-function isValidSubstr(s) {
-  if (s.length == 0) {
-    return null;
-  } else if (s.length == 1) {
-    const r = rowToIndex(s);
-    if (0 <= r && r < MAX_ROW) return null;
-    else {
-      return "The first character must be a character between A-Z!";
-    }
-  } else {
-    return validate(s);
-  }
-}
-
 function destructure(p1, p2) {
   const [r1, c1] = toIndex(p1);
   const [r2, c2] = toIndex(p2);
 
-  return [
-    Math.min(r1, r2),
-    Math.max(r1, r2),
-    Math.min(c1, c2),
-    Math.max(c1, c2)
-  ];
+  return [r1, r2, c1, c2];
 }
 
 export default GridRangeSelector;

@@ -1,16 +1,49 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import PropTypes from "prop-types";
-import { Layout, Menu, Icon, Col, Button } from "antd";
-import { logout } from "../../redux/actions";
+import { Layout, Menu, Icon, Col, Button, Select } from "antd";
 import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchDatacenters,
+  switchDatacenter
+} from "../../redux/datacenters/actions";
+import { logout } from "../../redux/session/actions";
+import { GLOBAL_ABBR } from "../../api/API";
 
 const { Header, Content, Sider } = Layout;
+const { Option } = Select;
 
 function ManagementPageFrame({ children }) {
   const dispatch = useDispatch();
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
+  const datacenters = useSelector(s => Object.values(s.datacenters));
+  const dcName = useSelector(s => s.appState.dcName);
 
-  const username = useSelector(s => s.sessionInfo.username);
+  React.useEffect(() => {
+    dispatch(
+      fetchDatacenters(dcs => {
+        if (!dcs.find(dc => dc.abbr === dcName)) {
+          dispatch(switchDatacenter(GLOBAL_ABBR));
+        }
+      })
+    );
+  }, []);
+
+  function onLogout() {
+    dispatch(
+      logout(res => {
+        if (res.redirectTo) {
+          window.location.href = res.redirectTo;
+        } else {
+          window.location.href = "/";
+        }
+      })
+    );
+  }
+
+  function handleDCSelection(dcName) {
+    dispatch(switchDatacenter(dcName));
+  }
 
   return (
     <Layout>
@@ -21,13 +54,27 @@ function ManagementPageFrame({ children }) {
           </h1>
         </Col>
         <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
-          {username === "admin" ? (
+          {dcName ? (
+            <Select
+              value={dcName}
+              onChange={handleDCSelection}
+              style={{ width: 150, marginRight: 8 }}
+            >
+              <Option key={GLOBAL_ABBR}>Global</Option>
+              {datacenters.map(ds => (
+                <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
+                  {`${ds.name} (${ds.abbr})`}
+                </Option>
+              ))}
+            </Select>
+          ) : null}
+          {isAdmin ? (
             <Button ghost style={{ marginRight: 8 }} href="admin">
               <Icon type="eye" />
               Admin page
             </Button>
           ) : null}
-          <Button ghost onClick={() => dispatch(logout())}>
+          <Button ghost onClick={onLogout}>
             <Icon type="logout" />
             Logout
           </Button>
@@ -61,8 +108,7 @@ const EXTERNAL_LINKS = {
 function Sidebar() {
   const history = useHistory();
 
-  const username = useSelector(s => s.sessionInfo.username);
-  const isAdmin = username === "admin";
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   function handleClick(e) {
     const key = e.key;
@@ -86,9 +132,14 @@ function Sidebar() {
         <span>Models</span>
       </Menu.Item>
 
-      <Menu.Item key="/instances">
+      <Menu.Item key="/assets">
         <Icon type="database" />
-        <span>Instances</span>
+        <span>Assets</span>
+      </Menu.Item>
+
+      <Menu.Item key="/datacenters">
+        <Icon type="build" />
+        <span>Datacenters</span>
       </Menu.Item>
 
       <Menu.Item key="/racks">

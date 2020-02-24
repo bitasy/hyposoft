@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Icon, Input, Button, Row, Col, Typography } from "antd";
 import { useDispatch } from "react-redux";
-import { login } from "../../../redux/actions";
+import { login } from "../../../redux/session/actions";
 
 const { Title, Paragraph } = Typography;
 
@@ -10,7 +10,7 @@ function LoginPage() {
     <Row type="flex" align="middle" justify="center" className="h100">
       <Col xs={22} lg={10} xl={6}>
         <Title className="center-text" level={2}>
-          HypoSoft
+          Hyposoft
         </Title>
         <Paragraph className="center-text">
           IT Asset Management System
@@ -34,6 +34,11 @@ function LoginForm({ form }) {
         dispatch(login(username, password));
       }
     });
+  }
+
+  function sso(e) {
+    e.preventDefault();
+    window.location.href = "/auth/shib_login";
   }
 
   return (
@@ -62,6 +67,11 @@ function LoginForm({ form }) {
       <Form.Item>
         <Button type="primary" htmlType="submit" className="w100">
           Log in
+        </Button>
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" onClick={sso} className="w100">
+          Duke SSO
         </Button>
       </Form.Item>
     </Form>

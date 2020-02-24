@@ -11,8 +11,13 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAdminUser
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -23,11 +28,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 DEBUG = False
-ALLOWED_HOSTS = ["localhost", "brian.bitasy.me", "carter.bitasy.me", "amber.bitasy.me",
-                 "inchan.bitasy.me", "dev.bitasy.me", "prod.bitasy.me", "hyposoft.tech"]
-
+ALLOWED_HOSTS = ["localhost", "hyposoft.tech"]
 
 # Application definition
 
@@ -40,10 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
     'hyposoft',
     'import_export',
     'frontend',
     'equipment',
+    'hypo_auth'
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -56,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'hypo_auth.middleware.ShibbolethRemoteUserMiddleware',
 ]
 
 ROOT_URLCONF = 'hyposoft.urls'
@@ -112,14 +117,46 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
-    #'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    #'PAGE_SIZE': 50
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'hypo_auth.backends.ShibbolethRemoteUserBackend',
+)
+
+SHIBBOLETH_ATTRIBUTE_MAP = {
+    "uid": (True, "username"),
+    "givenName": (True, "first_name"),
+    "sn": (True, "last_name"),
 }
 
+SHIB_URL = (
+    'https://vcm-13060.vm.duke.edu/Shibboleth.sso'
+    if DEBUG else
+    'https://hyposoft.tech/Shibboleth.sso'
+)
+
+SHIB_LOGIN_URL = SHIB_URL+"/Login"
+SHIB_LOGOUT_URL = SHIB_URL+"/Logout"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication'
+    ],
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 50,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
+
+
+class ReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
+
+
+if not DEBUG:
+    REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
+        'rest_framework.permissions.IsAdminUser',
+        'hyposoft.settings.ReadOnly'
+    ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -141,3 +178,5 @@ USE_TZ = True
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 STATIC_URL = '/static/'
+
+LOGOUT_REDIRECT_URL = "/"
