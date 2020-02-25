@@ -88,6 +88,6 @@ def check_connection(sender, instance, *args, **kwargs):
 @receiver(post_save, sender=NetworkPort)
 def set_connection(sender, instance, *args, **kwargs):
     if instance.connection:
-        if instance.connection.connection is None or instance.connection.connection.id is not instance.id: 
+        if instance.connection.connection is None or instance.connection.connection.id is not instance.id:
             instance.connection.connection = instance
             instance.connection.save()
