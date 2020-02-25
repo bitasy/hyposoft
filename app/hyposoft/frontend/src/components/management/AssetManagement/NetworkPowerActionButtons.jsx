@@ -1,6 +1,5 @@
 import React from "react";
-import { displayError, displayInfo } from "../../../global/message";
-import { Button, message } from "antd";
+import { Button } from "antd";
 import API from "../../../api/API";
 import { useSelector } from "react-redux";
 
@@ -23,27 +22,56 @@ function networkActions(asset, user, networkConnectedPDUs) {
   return null;
 }
 
-function preventing(op) {
+function preventing(op, onSuccess) {
   return e => {
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    op(e);
+    op(e).then(onSuccess);
   };
 }
 
-function NetworkPowerActionButtons({ asset, user }) {
+const ON = "On";
+const OFF = "Off";
+
+function NetworkPowerActionButtons({ asset, user, displayState }) {
   const networkConnectedPDUs = useSelector(s => s.networkConnectedPDUs);
   const actions = networkActions(asset, user, networkConnectedPDUs);
+
+  const [trigger, setTrigger] = React.useState(0);
+  const refetch = () => setTrigger(1 - trigger);
+  const refetchLater = () => setTimeout(refetch, 2000);
+  const [powerState, setPowerState] = React.useState("");
+
+  React.useEffect(() => {
+    if (displayState) {
+      API.getPowerState(asset.id).then(setPowerState);
+    }
+  }, [trigger]);
 
   if (actions) {
     const [on, off, cycle] = actions;
 
     return (
-      <Button.Group>
-        <Button onClick={preventing(on)}>On</Button>
-        <Button onClick={preventing(off)}>Off</Button>
-        <Button onClick={preventing(cycle)}>Cycle</Button>
-      </Button.Group>
+      <>
+        <Button.Group>
+          <Button
+            onClick={preventing(on, refetch)}
+            type={powerState === ON && displayState ? "primary" : "default"}
+          >
+            On
+          </Button>
+          <Button
+            onClick={preventing(off, refetch)}
+            type={powerState === OFF && displayState ? "dashed" : "default"}
+          >
+            Off
+          </Button>
+          <Button onClick={preventing(cycle, refetchLater)}>Cycle</Button>
+        </Button.Group>
+        {displayState && ![ON, OFF].includes(powerState) ? (
+          <span style={{ color: "gray" }}>Power state unknown!</span>
+        ) : null}
+      </>
     );
   } else {
     return null;
