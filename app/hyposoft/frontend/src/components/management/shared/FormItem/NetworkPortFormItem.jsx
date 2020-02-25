@@ -88,7 +88,7 @@ const Input = React.forwardRef(
               ? [currentConn, ...freePorts, ...residue]
               : [...freePorts, ...residue],
             c => c.id
-          );
+          ).filter(p => p.asset != assetID);
 
           return (
             <NetworkPortInput

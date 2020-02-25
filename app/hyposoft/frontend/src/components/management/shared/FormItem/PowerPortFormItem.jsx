@@ -69,26 +69,64 @@ function nameFreePorts(freePorts, pdus) {
   });
 }
 
+function flatList(lst) {
+  return lst.reduce((acc, elm) => [...acc, ...elm], []);
+}
+
 // numPorts: number
 // freePorts: [pduID, position, name][]
 // currentSelections: {pdu_id, position}[]
 // returns: [{pdu_id, position}[] of size numPorts, suggestion indices]
 function suggestion(numPorts, freePorts, currentSelections) {
-  return freePorts.reduce(
-    ([acc, suggestions], fp, idx) => {
-      if (
-        acc.length < numPorts &&
-        !acc.find(
-          ({ pdu_id, position }) => pdu_id == fp[0] && position === fp[1]
-        )
-      ) {
-        acc.push({ pdu_id: fp[0], position: fp[1] });
-        suggestions.push(idx);
-      }
-      return [acc, suggestions];
-    },
-    [[...currentSelections], []]
-  );
+  const groupByPosition = freePorts.reduce((acc, elm) => {
+    const toPut = acc[elm[1]] || [];
+    toPut.push(elm);
+    acc[elm[1]] = toPut;
+    return acc;
+  }, {});
+
+  console.log("groupByPosition", groupByPosition);
+
+  const doubles = Object.entries(groupByPosition)
+    .filter(([, group]) => group.length >= 2)
+    .sort((a, b) => a[0] - b[0]);
+
+  if (doubles.length == 0) {
+    // no doubles, so just list them out in sequence
+    return freePorts.reduce(
+      ([acc, suggestions], fp, idx) => {
+        if (
+          acc.length < numPorts &&
+          !acc.find(
+            ({ pdu_id, position }) => pdu_id == fp[0] && position === fp[1]
+          )
+        ) {
+          acc.push({ pdu_id: fp[0], position: fp[1] });
+          suggestions.push(idx);
+        }
+        return [acc, suggestions];
+      },
+      [[...currentSelections], []]
+    );
+  } else {
+    return flatList(doubles.map(([, v]) => v)).reduce(
+      ([acc, suggestions], fp) => {
+        if (
+          acc.length < numPorts &&
+          !acc.find(
+            ({ pdu_id, position }) => pdu_id == fp[0] && position === fp[1]
+          )
+        ) {
+          acc.push({ pdu_id: fp[0], position: fp[1] });
+          suggestions.push(
+            freePorts.findIndex(p => p[0] == fp[0] && p[1] == fp[1])
+          );
+        }
+        return [acc, suggestions];
+      },
+      [[...currentSelections], []]
+    );
+  }
 }
 
 const Input = React.forwardRef(

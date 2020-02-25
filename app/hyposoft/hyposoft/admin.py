@@ -11,7 +11,7 @@ admin.site.index_title = "Hyposoft Administration"
 
 
 class MyUserAdmin(UserAdmin):
-    list_display = ('username', 'first_name', 'last_name', 'email', 'is_admin')
+    list_display = ('username', 'first_name', 'last_name', 'email', 'is_staff')
     list_filter = ()
     fieldsets = (
         ('Account', {
@@ -31,8 +31,9 @@ class MyUserAdmin(UserAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(MyUserAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['is_staff'].label = 'Is Admin'
-        form.base_fields['is_staff'].help_text = 'Allows this user to modify objects on the site and in the admin page.'
+        # base_fields don't have the field is_staff
+        # form.base_fields['is_staff'].label = 'Is Admin'
+        # form.base_fields['is_staff'].help_text = 'Allows this user to modify objects on the site and in the admin page.'
         return form
 
 
