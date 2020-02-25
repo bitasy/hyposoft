@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from equipment.models import Asset
+
 
 def username(user):
     return user.username if user.is_authenticated else "_anonymous"
@@ -31,6 +33,9 @@ class ActionLog(models.Model):
         max_length=128
     )
     instance_id = models.IntegerField()
+    identifier = models.CharField(
+        max_length=128
+    )
     field_changed = models.CharField(
         blank=True,
         max_length=64
@@ -46,3 +51,10 @@ class ActionLog(models.Model):
     timestamp = models.DateTimeField(
         auto_now_add=True
     )
+
+    def save(self, *args, **kwargs):
+        if self.model == 'Asset' and not self.action == self.Action.DESTROY:
+            asset = Asset.objects.get(self.instance_id)
+            self.identifier = asset.hostname if asset.hostname is not None else "#" + str(asset.asset_number)
+        else:
+            self.identifier = self.__str__()

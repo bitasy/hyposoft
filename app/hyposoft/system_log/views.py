@@ -69,27 +69,27 @@ class LogView(generics.ListAPIView):
     queryset = ActionLog.objects.all()
     serializer_class = LogSerializer
 
-    # class TempPag(PageNumberPagination):
-    #     page_size = 5
-
-
-    # pagination_class = TempPag
-
-
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = [
         'timestamp'
     ]
     ordering = ['-timestamp']
 
+    class LogPagination(PageNumberPagination):
+        page_size = 10
+        max_page_size = 100
+
+    pagination_class = LogPagination
+
     class LogFilter(pkg_filters.FilterSet):
-        username = pkg_filters.CharFilter()
-        display_name = pkg_filters.CharFilter()
-        model = pkg_filters.CharFilter()
 
         class Meta:
             model = ActionLog
-            fields = ['username', 'display_name', 'model']
+            fields = {
+                'username': ['iexact'],
+                'display_name': ['contains'],
+                'model': ['iexact'],
+                'identifier': ['iexact', 'contains']
+            }
 
     filterset_class = LogFilter
-
