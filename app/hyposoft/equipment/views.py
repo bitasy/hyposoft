@@ -92,11 +92,11 @@ def process_asset(asset_id, func):
 
 @api_view(['POST'])
 def switchPDU(request):
-    if request.data['state'].upper() not in ("ON", "OFF"):
+    if request.data['state'].lower() not in ("on", "off"):
         raise serializers.ValidationError(
-            "Powered state must be either ON or OFF"
+            "Powered state must be either 'on' or 'off'"
         )
-    state = request.data['state'].upper()
+    state = request.data['state'].lower()
     responses = {}
 
     def process_port(rack, port):
