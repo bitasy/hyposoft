@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from import_export import resources, fields
 from .models import ITModel, Asset, Rack, NetworkPortLabel, Datacenter, Powered, PDU, NetworkPort
 from import_export.widgets import ForeignKeyWidget
@@ -77,7 +78,6 @@ class ITModelResource(resources.ModelResource):
                 exists_1.save()
             except:
                 network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, special=1)
-                network_port_name_1.save()
         # network_port_name_2
         if my_network_ports >= 2:
             if row['network_port_name_2'] == '':
@@ -90,7 +90,6 @@ class ITModelResource(resources.ModelResource):
                 exists_2.save()
             except:
                 network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, special=2)
-                network_port_name_2.save()
         # network_port_name_3
         if my_network_ports >= 3:
             if row['network_port_name_3'] == '':
@@ -103,7 +102,6 @@ class ITModelResource(resources.ModelResource):
                 exists_3.save()
             except:
                 network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
-                network_port_name_3.save()
         # network_port_name_4
         if my_network_ports >= 4:
             if row['network_port_name_4'] == '':
@@ -116,7 +114,6 @@ class ITModelResource(resources.ModelResource):
                 exists_4.save()
             except:
                 network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
-                network_port_name_4.save()
 
 
 class AssetResource(resources.ModelResource):
@@ -229,7 +226,6 @@ class AssetResource(resources.ModelResource):
                     asset=my_asset,
                     special=1
                 )
-                power_port_connection_1.save()
         # power_port_connection_2
         if my_model.power_ports >= 2:
             powered_2 = row['power_port_connection_2']
@@ -245,13 +241,12 @@ class AssetResource(resources.ModelResource):
                 exists_2.plug_number = my_plug_number_2
                 exists_2.save()
             except:
-                power_port_connection_1 = Powered.objects.create(
-                    plug_number=my_plug_number_1,
-                    pdu=my_pdu_1,
+                power_port_connection_2 = Powered.objects.create(
+                    plug_number=my_plug_number_2,
+                    pdu=my_pdu_2,
                     asset=my_asset,
-                    special=1
+                    special=2
                 )
-                power_port_connection_1.save()
 
 
 class NetworkPortResource(resources.ModelResource):
@@ -320,6 +315,10 @@ class NetworkPortResource(resources.ModelResource):
         my_src_label = NetworkPortLabel.objects.get(name=row['src_port'], itmodel=my_src_asset.itmodel)
         my_src_network_port = NetworkPort.objects.get(asset=my_src_asset, label=my_src_label)
 
+        if (row['dest_hostname'] == '' and row['dest_port'] != '') or (row['dest_hostname'] != '' and row['dest_port'] == ''):
+            raise ValidationError(
+                "These fields must both be empty or set")
+
         if row['dest_hostname'] != '' and row['dest_port'] != '':
             my_dest_asset = Asset.objects.get(hostname=row['dest_hostname'])
             my_dest_label = NetworkPortLabel.objects.get(name=row['dest_port'], itmodel=my_dest_asset.itmodel)
@@ -345,3 +344,16 @@ class NetworkPortResource(resources.ModelResource):
             except:
                 my_src_network_port.connection = None
                 my_src_network_port.save()
+
+    def export(self, queryset = None, *args, **kwargs):
+        for network_connection in queryset.all():
+            src = network_connection
+            dest = network_connection.connection
+            if dest:
+                if src.asset.itmodel.network_ports > dest.asset.itmodel.network_ports:
+                    queryset = queryset.exclude(id=src.id)
+                elif src.asset.itmodel.network_ports == dest.asset.itmodel.network_ports:
+                    if src.asset.asset_number > dest.asset.asset_number:
+                        queryset = queryset.exclude(id=src.id)
+        return super(NetworkPortResource, self).export(queryset, *args, **kwargs)
+

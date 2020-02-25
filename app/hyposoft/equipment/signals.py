@@ -25,6 +25,9 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
 
 @receiver(pre_save, sender=Powered)
 def check_pdu(sender, instance, *args, **kwargs):
+    num_powered = len(Powered.objects.filter(asset=instance.asset))
+    if instance not in Powered.objects.all() and num_powered == instance.asset.itmodel.power_ports:
+        raise serializers.ValidationError("All the power port connections have already been used.")
     if instance.pdu.assets.count() > 24:
         raise serializers.ValidationError("This PDU is already full.")
     if instance.pdu.rack != instance.asset.rack:
@@ -34,21 +37,20 @@ def check_pdu(sender, instance, *args, **kwargs):
 
 @receiver(pre_save, sender=NetworkPortLabel)
 def set_default_npl(sender, instance, *args, **kwargs):
-    if instance.special:
-        return
     num_labels = len(NetworkPortLabel.objects.filter(itmodel=instance.itmodel))
-    if num_labels >= instance.itmodel.network_ports:
+    if instance not in NetworkPortLabel.objects.all() and num_labels == instance.itmodel.network_ports:
         raise serializers.ValidationError("All the network ports have already been labeled.")
     else:
         if instance.name == "":
             labels = sender.objects.filter(itmodel=instance.itmodel)
-            highest = 0
+            nums = []
             for label in labels:
-                if label.name.isnumeric():
+                if label.name.isdigit():
                     digit = int(label.name[0])
-                    if digit > highest:
-                        highest = digit
-            instance.name = str(highest + 1)
+                    nums.append(digit)
+            for i in range(1, instance.itmodel.network_ports):
+                if i not in nums:
+                    instance.name = str(i)
 
 
 @receiver(pre_save, sender=PDU)

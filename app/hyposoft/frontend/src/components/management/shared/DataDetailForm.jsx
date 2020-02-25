@@ -1,9 +1,10 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { objectEquals } from "object-equals";
-import { Form, Button, Icon } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { Form, Button, Icon, Tooltip } from "antd";
+import { useDispatch } from "react-redux";
 import FormItem from "./FormItem/FormItem";
+import CreateTooltip from "../../../global/CreateTooltip";
 
 function DataDetailForm({
   form,
@@ -59,14 +60,15 @@ function DataDetailForm({
         />
       ))}
       <Form.Item>
+        <CreateTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
         <Button.Group style={{ width: "100%", display: "flex" }}>
-          <Button
-            htmlType="submit"
-            disabled={disabled || !canUpdate}
-            style={{ flexGrow: 8 }}
-          >
-            Update
-          </Button>
+              <Button
+                  htmlType="submit"
+                  disabled={disabled || !canUpdate}
+                  style={{ flexGrow: 8 }}
+              >
+                Update
+              </Button>
           <Button
             htmlType="button"
             type="danger"
@@ -76,6 +78,7 @@ function DataDetailForm({
             <Icon type="delete" />
           </Button>
         </Button.Group>
+          </CreateTooltip>
       </Form.Item>
     </Form>
   ) : null;
