@@ -10,6 +10,7 @@ import {
   removeRacks
 } from "../../../redux/racks/actions";
 import { GLOBAL_ABBR } from "../../../api/API";
+import CreateTooltip from "../../../global/CreateTooltip";
 
 const { Option } = Select;
 
@@ -201,29 +202,35 @@ function RackManagementPage() {
             range={range}
           />
           <div style={{ marginTop: 16 }}>
-            <Button
-              disabled={!isAdmin || !range}
-              type="primary"
-              style={{ marginRight: 8 }}
-              onClick={() => create(range)}
-            >
-              Create
-            </Button>
-            <Button
-              disabled={!isAdmin || selectedRacks.length === 0}
-              type="danger"
-              style={{ marginRight: 8 }}
-              onClick={() => remove(selectedRacks)}
-            >
-              Remove
-            </Button>
-            <Button
-              disabled={selectedRacks.length == 0}
-              type="default"
-              onClick={() => showRacks(selectedRacks)}
-            >
-              View
-            </Button>
+            <CreateTooltip isVisible={!isAdmin} tooltipText={"Only users with admin privileges can create racks"}>
+              <Button
+                disabled={!isAdmin || !range}
+                type="primary"
+                style={{ marginRight: 8 }}
+                onClick={() => create(range)}
+              >
+                Create
+              </Button>
+            </CreateTooltip>
+            <CreateTooltip isVisible={!isAdmin} tooltipText={"Only users with admin privileges can delete racks"}>
+              <Button
+                disabled={!isAdmin || selectedRacks.length === 0}
+                type="danger"
+                style={{ marginRight: 8 }}
+                onClick={() => remove(selectedRacks)}
+              >
+                Remove
+              </Button>
+            </CreateTooltip>
+            <CreateTooltip isVisible={!range} tooltipText={"Open printable rack view"}>
+              <Button
+                disabled={selectedRacks.length == 0}
+                type="default"
+                onClick={() => showRacks(selectedRacks)}
+              >
+                View
+              </Button>
+              </CreateTooltip>
           </div>
         </>
       ) : null}

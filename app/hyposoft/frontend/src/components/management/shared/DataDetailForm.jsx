@@ -4,18 +4,7 @@ import { objectEquals } from "object-equals";
 import { Form, Button, Icon, Tooltip } from "antd";
 import { useDispatch } from "react-redux";
 import FormItem from "./FormItem/FormItem";
-
-function WithTooltip({isVisible, tooltipText, children}) {
-  const ret = isVisible ? (
-      <Tooltip title={tooltipText}>
-        {children}
-      </Tooltip>
-  ): children;
-
-  console.log(isVisible, ret);
-
-  return ret;
-}
+import CreateTooltip from "../../../global/CreateTooltip";
 
 function DataDetailForm({
   form,
@@ -71,7 +60,7 @@ function DataDetailForm({
         />
       ))}
       <Form.Item>
-        <WithTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
+        <CreateTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
         <Button.Group style={{ width: "100%", display: "flex" }}>
               <Button
                   htmlType="submit"
@@ -89,7 +78,7 @@ function DataDetailForm({
             <Icon type="delete" />
           </Button>
         </Button.Group>
-          </WithTooltip>
+          </CreateTooltip>
       </Form.Item>
     </Form>
   ) : null;

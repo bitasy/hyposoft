@@ -8,6 +8,8 @@ import {
   switchDatacenter
 } from "../../../redux/datacenters/actions";
 import { GLOBAL_ABBR } from "../../../api/API";
+import CreateTooltip from "../../../global/CreateTooltip";
+
 
 function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
@@ -28,7 +30,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
 
   const ExtraButtons = (
     <>
-      <WithTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can edit a data center"}>
+      <CreateTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can edit a data center"}>
           <Button
             size="small"
             shape="circle"
@@ -37,8 +39,8 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
           >
             {isEditing ? <Icon type="close" /> : <Icon type="edit" />}
           </Button>
-      </WithTooltip>
-      <WithTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can delete a data center"}>
+      </CreateTooltip>
+      <CreateTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can delete a data center"}>
          <Button
              style={{ marginLeft: 4 }}
              size="small"
@@ -53,7 +55,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
          >
               <Icon type="delete" />
          </Button>
-      </WithTooltip>
+      </CreateTooltip>
     </>
   );
 
@@ -90,35 +92,23 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   );
 }
 
-function WithTooltip({isVisible, tooltipText, children}) {
-    const ret = isVisible ? (
-        <Tooltip placement="right" title={tooltipText}>
-            {children}
-        </Tooltip>
-    ): children;
-
-    console.log(isVisible, ret);
-    return ret;
-}
-
 function AddCard({ onCreate, disabled }) {
   return (
-      <WithTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can add a data center"}>
-    <Card
-      style={{ padding: 0, height: "100px" }}
-      bodyStyle={{ padding: 0, width: "100%", height: "100%" }}
-    >
-          <Button
-            style={{ width: "100%", height: "100%" }}
-            onClick={onCreate}
-            disabled={disabled}
-          >
-            <Icon type="plus" />
-            Add Datacenter
-          </Button>
-    </Card>
-
-      </WithTooltip>
+      <CreateTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can add a data center"}>
+        <Card
+          style={{ padding: 0, height: "100px" }}
+          bodyStyle={{ padding: 0, width: "100%", height: "100%" }}
+        >
+              <Button
+                style={{ width: "100%", height: "100%" }}
+                onClick={onCreate}
+                disabled={disabled}
+              >
+                <Icon type="plus" />
+                Add Datacenter
+              </Button>
+        </Card>
+      </CreateTooltip>
   );
 }
 

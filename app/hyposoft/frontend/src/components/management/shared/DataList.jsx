@@ -2,6 +2,7 @@ import React from "react";
 import { Table, Button, Icon, Collapse } from "antd";
 import Filter from "./Filters";
 import { useSelector } from "react-redux";
+import CreateTooltip from "../../../global/CreateTooltip";
 
 function decorateColumns(columns, currentUser) {
   return columns.map(column => {
@@ -15,9 +16,11 @@ function decorateColumns(columns, currentUser) {
 function ListFooter({ onCreate, createDisabled }) {
   return (
     <div>
-      <Button onClick={onCreate} disabled={createDisabled}>
-        <Icon type="plus"></Icon>
-      </Button>
+      <CreateTooltip isVisible={createDisabled} tooltipText={"Only users with admin privileges can create a new item"}>
+        <Button onClick={onCreate} disabled={createDisabled}>
+          <Icon type="plus"></Icon>
+        </Button>
+      </CreateTooltip>
     </div>
   );
 }
