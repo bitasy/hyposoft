@@ -344,3 +344,16 @@ class NetworkPortResource(resources.ModelResource):
             except:
                 my_src_network_port.connection = None
                 my_src_network_port.save()
+
+    def export(self, queryset = None, *args, **kwargs):
+        for network_connection in queryset.all():
+            src = network_connection
+            dest = network_connection.connection
+            if dest:
+                if src.asset.itmodel.network_ports > dest.asset.itmodel.network_ports:
+                    queryset = queryset.exclude(id=src.id)
+                elif src.asset.itmodel.network_ports == dest.asset.itmodel.network_ports:
+                    if src.asset.asset_number > dest.asset.asset_number:
+                        queryset = queryset.exclude(id=src.id)
+        return super(NetworkPortResource, self).export(queryset, *args, **kwargs)
+
