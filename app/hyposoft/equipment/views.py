@@ -137,7 +137,7 @@ def checkState(request, asset_id):
         if res[1] < 400:
             networked[0] = True
             state = dict(res[0])
-            if state[port.plug_number] == "ON":
+            if state.get(port.plug_number) == "ON":
                 powered[0] = True
 
     process_asset(asset_id, process_port)

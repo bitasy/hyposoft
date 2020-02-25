@@ -12,6 +12,7 @@ import { useSelector, useDispatch } from "react-redux";
 import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 import NetworkGraph from "./NetworkGraph";
 import RealAPI from "../../../api/API";
+import { fetchNetworkConnectedPDUs } from "../../../redux/racks/actions";
 
 function AssetDetailPage() {
   const { id } = useParams();
@@ -25,6 +26,7 @@ function AssetDetailPage() {
 
   React.useEffect(() => {
     dispatch(fetchAsset(id));
+    dispatch(fetchNetworkConnectedPDUs());
     RealAPI.getPowerState(id).then(setCurrentPower);
   }, [id]);
 
