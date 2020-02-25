@@ -137,13 +137,13 @@ def checkState(request, asset_id):
         if res[1] < 400:
             networked[0] = True
             state = dict(res[0])
-            if state.get(port.plug_number) == "ON":
+            if state.get(str(port.plug_number)) == "ON":
                 powered[0] = True
 
     process_asset(asset_id, process_port)
 
-    if networked:
-        return Response("On" if powered else "Off", HTTP_200_OK)
+    if networked[0]:
+        return Response("On" if powered[0] else "Off", HTTP_200_OK)
     else:
         return Response("PDUs are not network controlled", 399)
 
