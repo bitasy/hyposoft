@@ -12,7 +12,7 @@ function strcmp(a, b) {
 }
 
 function assetToLocation(asset) {
-  return `${asset.rack.rack} U${asset.rack_position}`;
+  return `${asset.dcName} ${asset.rack.rack} U${asset.rack_position}`;
 }
 
 export const assetSchema = [
@@ -140,10 +140,14 @@ export const assetColumns = [
 
 function assetKeywordMatch(value, record) {
   const lowercase = value.toLowerCase();
-  return assetSchema
+  const strMatch = assetSchema
     .filter(frag => frag.type === "string" && record[frag.fieldName])
     .map(frag => (record[frag.fieldName] || "").toLowerCase())
     .some(str => str.includes(lowercase));
+  const locationMatch = assetToLocation(record)
+    .toLowerCase()
+    .includes(lowercase);
+  return strMatch || locationMatch;
 }
 
 function isInside([minR, maxR, minC, maxC], asset) {
