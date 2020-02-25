@@ -95,7 +95,11 @@ function updateModel(id, updates) {
       .then(() =>
         Promise.all(
           updates.network_port_labels.map(({ name }) =>
-            createNetworkPortLabel({ name, itmodel: id })
+            createNetworkPortLabel({
+              name,
+              special: null,
+              itmodel: id
+            })
           )
         )
       )
