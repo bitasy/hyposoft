@@ -43,7 +43,7 @@ function ReportManagementPage() {
       }
   ];
 
-  return rackSpace != null ? (
+  return rackSpace != 0 ? (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Reports</Typography.Title>
       <div>
@@ -72,7 +72,7 @@ function ReportManagementPage() {
       </div>
     </div>
   ) : (
-    <Typography.Title level={4}>There's nothing to report!</Typography.Title>
+    <Typography.Title level={4}>No rack space used</Typography.Title>
   );
 }
 
