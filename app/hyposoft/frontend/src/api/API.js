@@ -15,7 +15,7 @@ function makeHeaders(dcName) {
 }
 
 async function withLoading(op) {
-  const handle = message.loading("Action in progress...");
+  const handle = message.loading("Action in progress...", 0);
   try {
     const res = await op();
     message.success("Success!");
@@ -220,39 +220,45 @@ function getRacks(dcName) {
 }
 
 function createRack(rack) {
-  return Axios.post("api/equipment/RackCreate", rack).then(getData);
+  return Axios.post("api/equipment/RackCreate", rack)
+    .then(getData)
+    .catch(() => null);
 }
 
 function createRacks(r1, r2, c1, c2, dcID) {
-  const fromRow = Math.min(r1, r2);
-  const toRow = Math.max(r1, r2);
-  const fromNumber = Math.min(c1, c2);
-  const toNumber = Math.max(c1, c2);
+  return withLoading(() => {
+    const fromRow = Math.min(r1, r2);
+    const toRow = Math.max(r1, r2);
+    const fromNumber = Math.min(c1, c2);
+    const toNumber = Math.max(c1, c2);
 
-  const toCreate = [];
-  for (let i = fromRow; i <= toRow; i++) {
-    const row = String.fromCharCode(i + "A".charCodeAt(0));
-    for (let j = fromNumber; j <= toNumber; j++) {
-      const col = j + 1;
-      toCreate.push({
-        rack: row + (col < 10 ? "0" : "") + col,
-        datacenter: dcID
-      });
+    const toCreate = [];
+    for (let i = fromRow; i <= toRow; i++) {
+      const row = String.fromCharCode(i + "A".charCodeAt(0));
+      for (let j = fromNumber; j <= toNumber; j++) {
+        const col = j + 1;
+        toCreate.push({
+          rack: row + (col < 10 ? "0" : "") + col,
+          datacenter: dcID
+        });
+      }
     }
-  }
 
-  return withLoading(() =>
-    Promise.all(toCreate.map(createRack)).then(removeNulls)
-  );
+    return Promise.all(toCreate.map(createRack)).then(removeNulls);
+  });
 }
 
 function deleteRack(rackID) {
-  return Axios.delete(`api/equipment/RackDestroy/${rackID}`).then(getData);
+  return Axios.delete(`api/equipment/RackDestroy/${rackID}`)
+    .then(getData)
+    .catch(err => {
+      return { err };
+    });
 }
 
 function deleteRacks(rackIDs) {
   return withLoading(() =>
-    Promise.all(rackIDs.map(deleteRack)).then(removeNulls)
+    Promise.all(rackIDs.map(deleteRack)).then(removeNullsAndDisplayErrors)
   );
 }
 
@@ -263,6 +269,13 @@ function getUsers() {
 
 function removeNulls(arr) {
   return arr.filter(a => a != null);
+}
+
+function removeNullsAndDisplayErrors(arr) {
+  const errors = arr.filter(a => a.err != null);
+  errors.forEach(({ err }) => displayError(err));
+  const results = arr.filter(a => a.err == null);
+  return results;
 }
 
 function getData(res) {
