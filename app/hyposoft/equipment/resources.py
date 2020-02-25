@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from import_export import resources, fields
 from .models import ITModel, Asset, Rack, NetworkPortLabel, Datacenter, Powered, PDU, NetworkPort
 from import_export.widgets import ForeignKeyWidget
@@ -313,6 +314,10 @@ class NetworkPortResource(resources.ModelResource):
         my_src_asset = Asset.objects.get(hostname=row['src_hostname'])
         my_src_label = NetworkPortLabel.objects.get(name=row['src_port'], itmodel=my_src_asset.itmodel)
         my_src_network_port = NetworkPort.objects.get(asset=my_src_asset, label=my_src_label)
+
+        if (row['dest_hostname'] == '' and row['dest_port'] != '') or (row['dest_hostname'] != '' and row['dest_port'] == ''):
+            raise ValidationError(
+                "These fields must both be empty or set")
 
         if row['dest_hostname'] != '' and row['dest_port'] != '':
             my_dest_asset = Asset.objects.get(hostname=row['dest_hostname'])
