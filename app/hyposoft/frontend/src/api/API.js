@@ -1,5 +1,7 @@
 import Axios from "axios";
 import produce from "immer";
+import { message } from "antd";
+import { displayError } from "../global/message";
 export const GLOBAL_ABBR = "global";
 
 function makeHeaders(dcName) {
@@ -9,6 +11,20 @@ function makeHeaders(dcName) {
     };
   } else {
     return {};
+  }
+}
+
+async function withLoading(op) {
+  const handle = message.loading("Action in progress...");
+  try {
+    const res = await op();
+    message.success("Success!");
+    handle();
+    return res;
+  } catch (e) {
+    displayError(e);
+    handle();
+    return e;
   }
 }
 
@@ -45,20 +61,22 @@ function getModel(id) {
 
 async function createModel(fields) {
   fields.network_ports = fields.network_port_labels?.length || 0;
-  return Axios.post(`api/equipment/ITModelCreate`, fields)
-    .then(getData)
-    .then(model => model.id)
-    .then(id =>
-      Promise.all(
-        (fields.network_port_labels || []).map(v => {
-          return createNetworkPortLabel({
-            itmodel: id,
-            special: null,
-            name: v.name
-          });
-        })
-      ).then(() => getModel(id))
-    );
+  return withLoading(() =>
+    Axios.post(`api/equipment/ITModelCreate`, fields)
+      .then(getData)
+      .then(model => model.id)
+      .then(id =>
+        Promise.all(
+          (fields.network_port_labels || []).map(v => {
+            return createNetworkPortLabel({
+              itmodel: id,
+              special: null,
+              name: v.name
+            });
+          })
+        ).then(() => getModel(id))
+      )
+  );
 }
 
 function destroyAllNetworkPortLabels(modelID) {
@@ -72,20 +90,24 @@ function destroyAllNetworkPortLabels(modelID) {
 }
 
 function updateModel(id, updates) {
-  return destroyAllNetworkPortLabels(id)
-    .then(() =>
-      Promise.all(
-        updates.network_port_labels.map(({ name }) =>
-          createNetworkPortLabel({ name, itmodel: id })
+  return withLoading(() =>
+    destroyAllNetworkPortLabels(id)
+      .then(() =>
+        Promise.all(
+          updates.network_port_labels.map(({ name }) =>
+            createNetworkPortLabel({ name, itmodel: id })
+          )
         )
       )
-    )
-    .then(() => Axios.patch(`api/equipment/ITModelUpdate/${id}`, updates))
-    .then(getData);
+      .then(() => Axios.patch(`api/equipment/ITModelUpdate/${id}`, updates))
+      .then(getData)
+  );
 }
 
 function deleteModel(id) {
-  return Axios.delete(`api/equipment/ITModelDestroy/${id}`).then(getData);
+  return withLoading(() =>
+    Axios.delete(`api/equipment/ITModelDestroy/${id}`).then(getData)
+  );
 }
 
 // Asset APIs
@@ -117,19 +139,21 @@ function createAsset(fields) {
     delete draft.model;
   });
 
-  return Axios.post(`api/equipment/AssetCreate`, toCreate)
-    .then(getData)
-    .then(a => a.id)
-    .then(id => {
-      Promise.all([
-        Promise.all(
-          fields.power_connections.map(({ pdu_id, position }) =>
-            createPowered(position, pdu_id, id)
-          )
-        ),
-        Promise.all(fields.network_ports.map(np => createNetworkPort(id, np)))
-      ]).then(() => getAsset(id));
-    });
+  return withLoading(() =>
+    Axios.post(`api/equipment/AssetCreate`, toCreate)
+      .then(getData)
+      .then(a => a.id)
+      .then(id => {
+        Promise.all([
+          Promise.all(
+            fields.power_connections.map(({ pdu_id, position }) =>
+              createPowered(position, pdu_id, id)
+            )
+          ),
+          Promise.all(fields.network_ports.map(np => createNetworkPort(id, np)))
+        ]).then(() => getAsset(id));
+      })
+  );
 }
 
 // updates has the whole model/rack by itself rather than just model_id and rack.
@@ -148,41 +172,45 @@ async function updateAsset(id, updates) {
     }
   });
 
-  const prevAsset = await getAsset(id);
-  const didModelChange = prevAsset.model.id != patch.itmodel;
+  return withLoading(async () => {
+    const prevAsset = await getAsset(id);
+    const didModelChange = prevAsset.model.id != patch.itmodel;
 
-  await deleteAllPowered(id).then(() =>
-    Promise.all(
-      updates.power_connections.map(({ pdu_id, position }) =>
-        createPowered(position, pdu_id, id)
+    await deleteAllPowered(id).then(() =>
+      Promise.all(
+        updates.power_connections.map(({ pdu_id, position }) =>
+          createPowered(position, pdu_id, id)
+        )
       )
-    )
-  );
-
-  if (didModelChange) {
-    await deleteAllNetworkPorts(id); // delete every networkports
-    await Promise.all(
-      updates.network_ports.map(np => createNetworkPort(id, np))
-    ); // and create everything
-  } else {
-    await Promise.all(
-      // Since the current api doesn't support transactions, we have to nullify everything first
-      updates.network_ports.map(np => updateNetworkPort(np.id, null))
     );
-    await Promise.all(
-      updates.network_ports.map(np => updateNetworkPort(np.id, np.connection))
-    );
-  }
 
-  return Axios.patch(`api/equipment/AssetUpdate/${id}`, patch)
-    .then(getData)
-    .then(translate);
+    if (didModelChange) {
+      await deleteAllNetworkPorts(id); // delete every networkports
+      await Promise.all(
+        updates.network_ports.map(np => createNetworkPort(id, np))
+      ); // and create everything
+    } else {
+      await Promise.all(
+        // Since the current api doesn't support transactions, we have to nullify everything first
+        updates.network_ports.map(np => updateNetworkPort(np.id, null))
+      );
+      await Promise.all(
+        updates.network_ports.map(np => updateNetworkPort(np.id, np.connection))
+      );
+    }
+
+    return Axios.patch(`api/equipment/AssetUpdate/${id}`, patch)
+      .then(getData)
+      .then(translate);
+  });
 }
 
 function deleteAsset(id) {
-  return Axios.delete(`api/equipment/AssetDestroy/${id}`)
-    .then(getData)
-    .then(translate);
+  return withLoading(() =>
+    Axios.delete(`api/equipment/AssetDestroy/${id}`)
+      .then(getData)
+      .then(translate)
+  );
 }
 
 // Rack APIs
@@ -213,7 +241,9 @@ function createRacks(r1, r2, c1, c2, dcID) {
     }
   }
 
-  return Promise.all(toCreate.map(createRack)).then(removeNulls);
+  return withLoading(() =>
+    Promise.all(toCreate.map(createRack)).then(removeNulls)
+  );
 }
 
 function deleteRack(rackID) {
@@ -221,7 +251,9 @@ function deleteRack(rackID) {
 }
 
 function deleteRacks(rackIDs) {
-  return Promise.all(rackIDs.map(deleteRack)).then(removeNulls);
+  return withLoading(() =>
+    Promise.all(rackIDs.map(deleteRack)).then(removeNulls)
+  );
 }
 
 // User APIs
@@ -247,17 +279,21 @@ function getDatacenter(id) {
 }
 
 function createDatacenter(fields) {
-  return Axios.post(`api/equipment/DatacenterCreate`, fields).then(getData);
+  return withLoading(() =>
+    Axios.post(`api/equipment/DatacenterCreate`, fields).then(getData)
+  );
 }
 
 function updateDatacenter(id, updates) {
-  return Axios.patch(`api/equipment/DatacenterUpdate/${id}`, updates).then(
-    getData
+  return withLoading(() =>
+    Axios.patch(`api/equipment/DatacenterUpdate/${id}`, updates).then(getData)
   );
 }
 
 function deleteDatacenter(id) {
-  return Axios.delete(`api/equipment/DatacenterDestroy/${id}`).then(getData);
+  return withLoading(() =>
+    Axios.delete(`api/equipment/DatacenterDestroy/${id}`).then(getData)
+  );
 }
 
 // Network port label APIs
@@ -282,10 +318,12 @@ function removeNetworkPortLabel(id) {
 
 // Power control APIs
 function switchPower(assetID, state) {
-  return Axios.post(`api/equipment/PDUNetwork/post`, {
-    asset: assetID,
-    state
-  }).then(getData);
+  return withLoading(() =>
+    Axios.post(`api/equipment/PDUNetwork/post`, {
+      asset: assetID,
+      state
+    }).then(getData)
+  );
 }
 
 function turnOn(assetID) {
@@ -297,9 +335,11 @@ function turnOff(assetID) {
 }
 
 function cycle(assetID) {
-  return Axios.post(`api/equipment/PDUNetwork/cycle`, {
-    asset: assetID
-  }).then(getData);
+  return withLoading(() =>
+    Axios.post(`api/equipment/PDUNetwork/cycle`, {
+      asset: assetID
+    }).then(getData)
+  );
 }
 
 // Powereds
