@@ -34,10 +34,8 @@ def check_pdu(sender, instance, *args, **kwargs):
 
 @receiver(pre_save, sender=NetworkPortLabel)
 def set_default_npl(sender, instance, *args, **kwargs):
-    print(instance)
     num_labels = len(NetworkPortLabel.objects.filter(itmodel=instance.itmodel))
-    print(num_labels)
-    if num_labels == instance.itmodel.network_ports:
+    if instance not in NetworkPortLabel.objects.all() and num_labels == instance.itmodel.network_ports:
         raise serializers.ValidationError("All the network ports have already been labeled.")
     else:
         if instance.name == "":
