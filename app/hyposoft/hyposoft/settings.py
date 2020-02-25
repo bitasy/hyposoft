@@ -153,12 +153,11 @@ REST_FRAMEWORK = {
 
 class ReadOnly(BasePermission):
     def has_permission(self, request, view):
-        return request.method in SAFE_METHODS
+        return request.method in SAFE_METHODS or request.user.is_staff
 
 
 if not DEBUG:
     REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
-        'rest_framework.permissions.IsAdminUser',
         'hyposoft.settings.ReadOnly'
     ]
 

@@ -16,6 +16,7 @@ from urllib.parse import quote
 
 class SessionView(views.APIView):
     authentication_classes = []
+    permission_classes = []
 
     def get(self, request):
         u = auth.get_user(request)
@@ -28,6 +29,7 @@ class SessionView(views.APIView):
 
 class LoginView(views.APIView):
     authentication_classes = []
+    permission_classes = []
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -39,6 +41,7 @@ class LoginView(views.APIView):
 
 class LogoutView(views.APIView):
     authentication_classes = []
+    permission_classes = []
 
     def post(self, request):
         auth.logout(request)
@@ -52,6 +55,7 @@ class LogoutView(views.APIView):
 
 class ShibbolethView(TemplateView):
     authentication_classes = []
+    permission_classes = []
 
     template_name = 'user_info.html'
 
@@ -73,6 +77,7 @@ class ShibbolethView(TemplateView):
 
 class ShibbolethLoginView(TemplateView):
     authentication_classes = []
+    permission_classes = []
 
     redirect_field_name = "target"
 
@@ -91,6 +96,7 @@ class ShibbolethLogoutView(TemplateView):
     https://github.com/stefanfoulis/django-class-based-auth-views.
     """
     authentication_classes = []
+    permission_classes = []
 
     redirect_field_name = "target"
 
