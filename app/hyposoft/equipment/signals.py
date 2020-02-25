@@ -32,10 +32,10 @@ def check_pdu(sender, instance, *args, **kwargs):
             "PDU must be on the same rack as the asset.")
 
 
-@receiver(post_save, sender=NetworkPortLabel)
-def set_default_npl(sender, instance, created, *args, **kwargs):
+@receiver(pre_save, sender=NetworkPortLabel)
+def set_default_npl(sender, instance, *args, **kwargs):
     num_labels = len(NetworkPortLabel.objects.filter(itmodel=instance.itmodel))
-    if created and num_labels == instance.itmodel.network_ports:
+    if instance not in NetworkPortLabel.objects.all() and num_labels == instance.itmodel.network_ports:
         raise serializers.ValidationError("All the network ports have already been labeled.")
     else:
         if instance.name == "":
