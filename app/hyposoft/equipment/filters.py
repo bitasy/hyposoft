@@ -6,13 +6,13 @@ from .models import ITModel, Asset, Powered
 class ITModelFilter(filters.FilterSet):
 
     height = filters.RangeFilter()
-    ethernet_ports = filters.RangeFilter()
+    network_ports = filters.RangeFilter()
     power_ports = filters.RangeFilter()
     memory = filters.RangeFilter()
 
     class Meta:
         model = ITModel
-        fields = ['height', 'ethernet_ports', 'power_ports', 'memory']
+        fields = ['height', 'network_ports', 'power_ports', 'memory']
 
 
 class CharRangeFilter(filters.RangeFilter):

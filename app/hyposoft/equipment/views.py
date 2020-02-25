@@ -219,6 +219,7 @@ class ITModelFilterView(generics.ListAPIView):
         'height',
         'display_color',
         'power_ports',
+        'network_ports',
         'cpu',
         'memory',
         'storage'
