@@ -27,7 +27,7 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
 def check_pdu(sender, instance, *args, **kwargs):
     num_powered = len(Powered.objects.filter(asset=instance.asset))
     if instance not in Powered.objects.all() and num_powered == instance.asset.itmodel.power_ports:
-        raise serializers.ValidationError("All the power ports have already been used.")
+        raise serializers.ValidationError("All the power port connections have already been used.")
     if instance.pdu.assets.count() > 24:
         raise serializers.ValidationError("This PDU is already full.")
     if instance.pdu.rack != instance.asset.rack:
