@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { Typography } from "antd";
 import s from "./CreateTable.module.css";
 
-//Old - ToolingPage now uses Ant-Design Table component
+//Old - ReportManagementPage now uses Ant-Design Table component
 
 class CreateTable extends Component {
   constructor(props) {

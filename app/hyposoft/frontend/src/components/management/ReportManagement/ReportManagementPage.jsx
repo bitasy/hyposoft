@@ -9,7 +9,7 @@ import { fetchRacks } from "../../../redux/racks/actions";
 import { fetchAssets } from "../../../redux/assets/actions";
 
 
-function ToolingPage() {
+function ReportManagementPage() {
   const dispatch = useDispatch();
 
   const users = useSelector(s => Object.values(s.users));
@@ -43,11 +43,8 @@ function ToolingPage() {
       }
   ]
 
-<<<<<<< HEAD
-=======
-  console.log("assets", assets);
-  console.log("assets size", assets.length);
->>>>>>> dev
+  // console.log("assets", assets);
+  // console.log("assets size", assets.length);
 
   return rackSpace != null ? (
     <div style={{ padding: 16 }}>
@@ -66,7 +63,7 @@ function ToolingPage() {
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Vendor</Typography.Title>
-        <Table dataSource={RackUsageByModel(rackSpace, assets, models)} columns={columns} />;
+        <Table dataSource={RackUsageByVendor(rackSpace, assets, models)} columns={columns} />;
       </div>
     </div>
   ) : (
@@ -232,4 +229,4 @@ function RackUsageByVendor(rackSpace, assets, models) {
   return vendorUsage;
 }
 
-export default ToolingPage;
+export default ReportManagementPage;

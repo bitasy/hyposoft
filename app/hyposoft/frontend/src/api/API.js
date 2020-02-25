@@ -1,6 +1,7 @@
 import Axios from "axios";
 
 import produce from "immer";
+import CreateLogData from "../components/management/LogManagement/CreateLogData";
 export const GLOBAL_ABBR = "global";
 
 function makeHeaders(dcName) {
@@ -246,7 +247,6 @@ function removeNetworkPortLabel(id) {
 }
 
 // Power control APIs
-
 function turnOn(assetID) {
   return Axios.post(`api/equipment/PowerOn/${assetID}`).then(getData);
 }

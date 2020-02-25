@@ -7,6 +7,7 @@ import {
   fetchDatacenters,
   switchDatacenter
 } from "../../redux/datacenters/actions";
+
 import { logout } from "../../redux/session/actions";
 import { GLOBAL_ABBR } from "../../api/API";
 
@@ -148,11 +149,16 @@ function Sidebar() {
       </Menu.Item>
 
       <Menu.Item key="/reports">
-        <Icon type="tool" />
+        <Icon type="book" />
         <span>Reports</span>
       </Menu.Item>
 
-      {isAdmin ? (
+      <Menu.Item key="/logs">
+          <Icon type="bars" />
+          <span>Logs</span>
+      </Menu.Item>
+
+        {isAdmin ? (
         <Menu.Item key="/user">
           <Icon type="user" />
           Users
