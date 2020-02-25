@@ -282,7 +282,7 @@ class NetworkPortLabel(models.Model):
     )
 
     class Meta:
-        unique_together = ['name', 'itmodel', 'special']
+        unique_together = (('name', 'itmodel'), ('itmodel', 'special'))
 
     def __str__(self):
         return '{} : {}'.format(self.name, self.itmodel)

@@ -44,6 +44,11 @@ async function createLogArray() {
     return logArray;
 }
 
+const MAPPING = {
+    ITModel: "models",
+    Asset: "assets"
+};
+
 // a class to build a table searchable by column
 class LogManagementPage extends React.Component {
 
@@ -151,6 +156,9 @@ class LogManagementPage extends React.Component {
                 title: 'Instance ID',
                 dataIndex: 'instance_id',
                 key: 'instance_id',
+                render: (text, record) => (MAPPING[record.model] ? (
+                    <a href={`/#/${MAPPING[record.model]}/${text}`}>{text}</a>
+                ): text),
                 ...this.getColumnSearchProps('instance_id'),
             },
             {
