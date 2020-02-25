@@ -218,7 +218,8 @@ class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
         'mac_address',
         'owner__username',
         'owner__first_name',
-        'owner__last_name'
+        'owner__last_name',
+        'asset_number'
     ]
     ordering_fields = [
         'itmodel__vendor',
