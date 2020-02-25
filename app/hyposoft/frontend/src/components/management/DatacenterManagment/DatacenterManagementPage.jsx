@@ -149,7 +149,7 @@ function DatacenterManagementPage() {
   const showGhostCard = () => setIsAdding(true);
   const showAddCard = () => setIsAdding(false);
 
-  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   const datacenters = useSelector(s => Object.values(s.datacenters));
   const dcName = useSelector(s => s.appState.dcName);

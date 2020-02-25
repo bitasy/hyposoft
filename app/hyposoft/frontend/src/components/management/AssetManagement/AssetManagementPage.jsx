@@ -5,6 +5,7 @@ import { Typography, Button } from "antd";
 import { assetColumns, assetFilters } from "./AssetSchema";
 import DataList from "../shared/DataList";
 import { fetchAssets } from "../../../redux/assets/actions";
+import { fetchNetworkConnectedPDUs } from "../../../redux/racks/actions";
 
 function AssetManagementPage() {
   const assets = useSelector(s => Object.values(s.assets));
@@ -13,7 +14,7 @@ function AssetManagementPage() {
   const history = useHistory();
   const dispatch = useDispatch();
 
-  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   const currentDCID = datacenters.find(dc => dc.abbr === dcName)?.id;
   const filteredAssets = currentDCID
@@ -22,6 +23,7 @@ function AssetManagementPage() {
 
   React.useEffect(() => {
     dispatch(fetchAssets(dcName));
+    dispatch(fetchNetworkConnectedPDUs());
   }, []);
 
   return (

@@ -1,5 +1,10 @@
 import { genAsyncReducer, genFetchAllReducer, applyAll } from "../reducers";
-import { REMOVE_RACKS, CREATE_RACKS, FETCH_ALL_RACKS } from "./actions";
+import {
+  REMOVE_RACKS,
+  CREATE_RACKS,
+  FETCH_ALL_RACKS,
+  FETCH_NETWORK_CONNECTED_PDUS
+} from "./actions";
 import produce from "immer";
 
 function FetchAllRacksReducer(s, a) {
@@ -44,10 +49,22 @@ function RemoveRacksReducer(s, a) {
   });
 }
 
+function FetchNetworkConnectedPDUsReducer(s, a) {
+  return produce(s, draft => {
+    draft.networkConnectedPDUs = genAsyncReducer(
+      FETCH_NETWORK_CONNECTED_PDUS,
+      s => s,
+      (s, res) => res,
+      (s, err) => s
+    )(s.networkConnectedPDUs, a);
+  });
+}
+
 const RackReducer = applyAll([
   FetchAllRacksReducer,
   CreateRacksReducer,
-  RemoveRacksReducer
+  RemoveRacksReducer,
+  FetchNetworkConnectedPDUsReducer
 ]);
 
 export default RackReducer;
