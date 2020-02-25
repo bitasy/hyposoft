@@ -134,13 +134,6 @@ export const modelColumns = [
     sortDirections: ["ascend", "descend"]
   },
   {
-    title: "Ethernet Ports",
-    key: "ethernet_ports",
-    render: s => (s.ethernet_ports || "").toString(),
-    sorter: (a, b) => (a.ethernet_ports || 0) - (b.ethernet_ports || 0),
-    sortDirections: ["ascend", "descend"]
-  },
-  {
     title: "Power Ports",
     key: "power_ports",
     render: s => (s.power_ports || "").toString(),
@@ -203,26 +196,6 @@ export const modelFilters = [
       Math.max(...records.map(r => r.height))
     ],
     shouldInclude: ([l, r], record) => l <= record.height && record.height <= r
-  },
-  {
-    title: "# of ethernet ports",
-    fieldName: "ethernet_ports",
-    type: "nullable-range",
-    min: 0,
-    max: 99,
-    marks: { 0: "0", 50: "50", 99: "99" },
-    step: 1,
-    extractDefaultValue: records => [
-      [
-        handleWeirdInf(Math.min(...collect(records, r => r.ethernet_ports)), 0),
-        handleWeirdInf(Math.max(...collect(records, r => r.ethernet_ports)), 99)
-      ],
-      true
-    ],
-    shouldInclude: ([[l, r], includeNull], record) =>
-      record.ethernet_ports
-        ? l <= record.ethernet_ports && record.ethernet_ports <= r
-        : includeNull
   },
   {
     title: "# of power ports",
