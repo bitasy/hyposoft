@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'import_export',
     'frontend',
     'equipment',
+    'system_log',
     'hypo_auth'
 ]
 

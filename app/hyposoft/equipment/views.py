@@ -1,6 +1,7 @@
 import threading
 import time
 
+from django.contrib.auth.models import AnonymousUser
 from django_filters.rest_framework import DjangoFilterBackend
 from requests import ConnectTimeout
 from rest_framework import filters
@@ -11,7 +12,8 @@ from rest_framework import status, serializers
 
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
 from .models import ITModel, Datacenter, Asset, Powered, PDU
-from .serializers import ITModelSerializer, AssetSerializer, PDUSerializer, PoweredSerializer
+from system_log.models import ActionLog, display_name, username
+from .serializers import ITModelSerializer, AssetSerializer, PoweredSerializer
 
 import requests
 import re
@@ -90,16 +92,35 @@ def process_asset(asset_id, func):
 
 @api_view(['POST'])
 def switchPDU(request):
+    if request.data['state'].upper() not in ("ON", "OFF"):
+        raise serializers.ValidationError(
+            "Powered state must be either ON or OFF"
+        )
+    state = request.data['state'].upper()
     responses = {}
 
     def process_port(rack, port):
-        res = post_pdu(rack, port.pdu.position, port.plug_number, request.data['state'])
+        res = post_pdu(rack, port.pdu.position, port.plug_number, state)
         responses[str(port.id)] = (
             port.pdu.id,
             port.asset.id,
             res[0],
             res[1]
         )
+        if res[1] < 400:
+            old = "ON" if port.on else "OFF"
+            port.on = state == 'ON'
+            port.save()
+            ActionLog.objects.create(
+                action=ActionLog.Action.UPDATE,
+                username=username(request.user),
+                display_name=display_name(request.user),
+                model=port.__class__.__name__,
+                instance_id=port.id,
+                field_changed="on",
+                old_value=old,
+                new_value=state
+            ).save()
 
     process_asset(request.data['asset'], process_port)
     return Response(responses)
@@ -112,7 +133,20 @@ def cycleAsset(request):
 
     def delay_start(rack, position, port):
         time.sleep(2)
-        post_pdu(rack, position, port, 'on')
+        res = post_pdu(rack, position, port, 'on')
+        if res[1] < 400:
+            port.on = True
+            port.save()
+            ActionLog.objects.create(
+                action=ActionLog.Action.UPDATE,
+                username=username(request.user),
+                display_name=display_name(request.user),
+                model=port.__class__.__name__,
+                instance_id=port.id,
+                field_changed="on",
+                old_value="OFF",
+                new_value="ON"
+            ).save()
 
     def process_port(rack, port):
         res = post_pdu(rack, port.pdu.position, port.plug_number, 'off')
@@ -122,6 +156,20 @@ def cycleAsset(request):
             res[0],
             res[1]
         )
+        if res[1] < 400 and port.on:
+            old = "ON" if port.on else "OFF"
+            port.on = False
+            port.save()
+            ActionLog.objects.create(
+                action=ActionLog.Action.UPDATE,
+                username=username(request.user),
+                display_name=display_name(request.user),
+                model=port.__class__.__name__,
+                instance_id=port.id,
+                field_changed="on",
+                old_value=old,
+                new_value="OFF"
+            ).save()
         t = threading.Thread(target=delay_start, args=(rack, port.position, port.plug_number))
         t.start()
 
@@ -222,9 +270,22 @@ class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
                     entry = Powered.objects.get(pdu__rack__rack=pdu[0], pdu__position=pdu[1], plug_number=state[0])
                 except Powered.DoesNotExist:
                     continue
-                updated = entry.on != (state[1] == 'ON')
-                entry.on = state[1] == 'ON'
-                entry.save()
+                old = "ON" if entry.on else "OFF"
+                if old != state[1]:
+                    updated = True
+                    entry.on = state[1] == 'ON'
+                    entry.save()
+                    anon = AnonymousUser()
+                    ActionLog.objects.create(
+                        action=ActionLog.Action.UPDATE,
+                        username=username(anon),
+                        display_name=display_name(anon),
+                        model=entry.__class__.__name__,
+                        instance_id=entry.id,
+                        field_changed="on",
+                        old_value=old,
+                        new_value=state[1]
+                    ).save()
 
         # Recalculate response if necessary
         return super().get(self, request, *args, **kwargs) if updated else response

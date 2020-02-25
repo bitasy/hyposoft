@@ -1,7 +1,5 @@
 import Axios from "axios";
-
 import produce from "immer";
-import CreateLogData from "../components/management/LogManagement/CreateLogData";
 export const GLOBAL_ABBR = "global";
 
 function makeHeaders(dcName) {
