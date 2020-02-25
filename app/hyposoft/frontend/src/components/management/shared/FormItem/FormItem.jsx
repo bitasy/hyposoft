@@ -10,6 +10,8 @@ import UserFormItem from "./UserFormItem";
 import NetworkPortLabelFormItem from "./NetworkPortLabelFormItem";
 import AutogenNumberFormItem from "./AutogenNumberFormItem";
 import DatacenterFormItem from "./DatacenterFormItem";
+import PowerPortFormItem from "./PowerPortFormItem";
+import NetworkPortFormItem from "./NetworkPortFormItem";
 
 export const FORM_ITEM_LAYOUT = {
   labelCol: { span: 8 },
@@ -39,6 +41,10 @@ function FormItem(props) {
     <AutogenNumberFormItem {...props} />
   ) : props.schemaFrag.type === "datacenter" ? (
     <DatacenterFormItem {...props} />
+  ) : props.schemaFrag.type === "power-connection" ? (
+    <PowerPortFormItem {...props} />
+  ) : props.schemaFrag.type === "network-port" ? (
+    <NetworkPortFormItem {...props} />
   ) : null;
 }
 

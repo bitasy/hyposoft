@@ -12,8 +12,10 @@ const initialState = {
   },
   models: {},
   assets: {},
+  datacenters: {},
   racks: {},
-  users: {}
+  users: {},
+  networkConnectedPDUs: []
 };
 
 const store = createStore(

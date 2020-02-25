@@ -63,7 +63,9 @@ const SwitchingInput = React.forwardRef(
                       draft.splice(v, draft.length - v);
                     } else {
                       for (let i = draft.length; i < v; i++) {
-                        draft.push((i + 1).toString());
+                        draft.push({
+                          name: (i + 1).toString()
+                        });
                       }
                     }
                     draft.length;
@@ -76,12 +78,12 @@ const SwitchingInput = React.forwardRef(
             <Input
               key={idx}
               style={{ marginTop: 4 }}
-              value={port}
+              value={port.name}
               disabled={disabled}
               onChange={e =>
                 onChange(
                   produce(value, draft => {
-                    draft[idx] = e.target.value;
+                    draft[idx].name = e.target.value;
                   })
                 )
               }

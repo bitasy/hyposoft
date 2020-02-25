@@ -160,7 +160,6 @@ class NetworkPortLabelListView(generics.ListAPIView):
     serializer_class = NetworkPortLabelSerializer
 
 
-# NetworkPort
 class NetworkPortCreateView(generics.CreateAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
@@ -172,11 +171,6 @@ class NetworkPortRetrieveView(generics.RetrieveAPIView):
 
 
 class NetworkPortUpdateView(generics.UpdateAPIView):
-    queryset = NetworkPort.objects.all()
-    serializer_class = NetworkPortSerializer
-
-
-class NetworkPortDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
 

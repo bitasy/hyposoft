@@ -15,14 +15,8 @@ function DatacenterFormItem({
     ? [{ required: true, message: "This field is required" }]
     : [];
 
-  // const dispatch = useDispatch();
-
   const initialValue = originalValue && originalValue.toString();
-
   const dcs = useSelector(s => Object.values(s.datacenters));
-  // React.useEffect(() => {
-  //   dispatch(fetchDatacenters());
-  // }, []);
 
   return (
     <Form.Item label={schemaFrag.displayName} {...FORM_ITEM_LAYOUT}>
@@ -32,13 +26,13 @@ function DatacenterFormItem({
           disabled={disabled}
           onChange={v => {
             onChange({
-              [schemaFrag.fieldName]: v,
+              [schemaFrag.fieldName]: parseInt(v),
               rack: null,
-              rack_u: null
+              rack_position: null
             });
             form.setFieldsValue({
               rack: null,
-              rack_u: null
+              rack_position: null
             });
           }}
           filterOption={(input, option) => {

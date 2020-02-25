@@ -114,9 +114,7 @@ export function genCrudReducer(crudActionTypes) {
 function probe(reducer) {
   return (s, a) => {
     console.log(a);
-    // console.log(s);
     const newS = reducer(s, a);
-    // console.log(newS);
     return newS;
   };
 }

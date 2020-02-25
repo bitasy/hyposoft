@@ -83,7 +83,7 @@ function RackManagementPage() {
   )?.id;
   const filteredRacks = racks.filter(r => r.datacenter === selectedDCID);
 
-  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);

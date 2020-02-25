@@ -41,6 +41,8 @@ function DataDetailForm({
     }
   }
 
+  console.log(newRecord);
+
   return record && newRecord ? (
     <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
       {schema.map((schemaFrag, idx) => (

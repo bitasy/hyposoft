@@ -20,7 +20,7 @@ function ModelDetailPage() {
   const assets = useSelector(s =>
     Object.values(s.assets).filter(inst => inst.model.id == id)
   );
-  const isAdmin = useSelector(s => s.currentUser.is_superuser);
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   React.useEffect(() => {
     dispatch(fetchModel(id));

@@ -1,6 +1,6 @@
 import React from "react";
 import { Typography } from "antd";
-import { Table } from 'antd';
+import { Table } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { modelToString } from "../ModelManagement/ModelSchema";
 import { fetchUsers } from "../../../redux/users/actions";
@@ -8,8 +8,7 @@ import { fetchModels } from "../../../redux/models/actions";
 import { fetchRacks } from "../../../redux/racks/actions";
 import { fetchAssets } from "../../../redux/assets/actions";
 
-
-function ToolingPage() {
+function ReportManagementPage() {
   const dispatch = useDispatch();
 
   const users = useSelector(s => Object.values(s.users));
@@ -26,25 +25,22 @@ function ToolingPage() {
 
   const rackSpace = racks.length * 42; //total rack space, type: number
   const columns = [
-      {
-        title: 'Category',
-        dataIndex: 'category',
-        key: 'category',
-      },
-      {
-        title: '% Used',
-        dataIndex: 'used',
-        key: 'used',
-      },
-      {
-        title: "% Free",
-        dataIndex: 'free',
-        key: 'free',
-      }
-  ]
-
-  console.log("assets", assets);
-  console.log("assets size", assets.length);
+    {
+      title: "Category",
+      dataIndex: "category",
+      key: "category"
+    },
+    {
+      title: "% Used",
+      dataIndex: "used",
+      key: "used"
+    },
+    {
+      title: "% Free",
+      dataIndex: "free",
+      key: "free"
+    }
+  ];
 
   return rackSpace != null ? (
     <div style={{ padding: 16 }}>
@@ -55,15 +51,27 @@ function ToolingPage() {
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Model</Typography.Title>
-        <Table dataSource={RackUsageByModel(rackSpace, assets, models)} columns={columns} />;
+        <Table
+          dataSource={RackUsageByModel(rackSpace, assets, models)}
+          columns={columns}
+        />
+        ;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Owner</Typography.Title>
-        <Table dataSource={RackUsageByOwner(rackSpace, assets, users)} columns={columns} />;
+        <Table
+          dataSource={RackUsageByOwner(rackSpace, assets, users)}
+          columns={columns}
+        />
+        ;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Vendor</Typography.Title>
-        <Table dataSource={RackUsageByModel(rackSpace, assets, models)} columns={columns} />;
+        <Table
+          dataSource={RackUsageByModel(rackSpace, assets, models)}
+          columns={columns}
+        />
+        ;
       </div>
     </div>
   ) : (
@@ -86,10 +94,10 @@ function RackUsage(rackSpace, assets) {
 
   if (assets.length != 0) {
     rackUsage.push({
-      key: '1',
+      key: "1",
       category: "All racks",
       used: percentUsed,
-      free: percentFree,
+      free: percentFree
     });
   }
 
@@ -129,7 +137,7 @@ function RackUsageByModel(rackSpace, assets, models) {
   //add row data to array
   for (let i = 0; i < models.length; i++) {
     modelUsage.push({
-      key: i+1,
+      key: i + 1,
       category: modelToString(models[i]),
       used: percentUsed[i],
       free: percentFree
@@ -229,4 +237,4 @@ function RackUsageByVendor(rackSpace, assets, models) {
   return vendorUsage;
 }
 
-export default ToolingPage;
+export default ReportManagementPage;

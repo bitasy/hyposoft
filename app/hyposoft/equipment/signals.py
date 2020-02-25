@@ -10,11 +10,12 @@ from rest_framework import serializers
 def auto_fill_asset(sender, instance, *args, **kwargs):
     if instance.asset_number == 0:
         max_an = Asset.objects.all().aggregate(Max('asset_number'))
-        instance.asset_number = max_an + 1
+        instance.asset_number = (max_an['asset_number__max'] or 100000) + 1
 
     if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
         raise serializers.ValidationError(
             "Asset datacenter cannot be different from rack datacenter.")
+
     instance.datacenter = instance.rack.datacenter
     if not instance.mac_address == "":
         new = (instance.mac_address or "").lower().replace('-', '').replace('_', '').replace(':', '')
@@ -61,6 +62,32 @@ def add_PDUs(sender, instance, created, *args, **kwargs):
 
 @receiver(pre_save, sender=NetworkPort)
 def check_connection(sender, instance, *args, **kwargs):
-    if instance.connection.asset.datacenter != instance.asset.datacenter:
-        raise serializers.ValidationError(
-            "Connections must be in the same datacenter.")
+    if instance.connection:
+        if instance.asset == instance.connection.asset:
+            raise serializers.ValidationError(
+                "Connections must be between different assets.")
+
+        if instance.connection.asset.datacenter != instance.asset.datacenter:
+            raise serializers.ValidationError(
+                "Connections must be in the same datacenter.")
+
+        if instance.connection.connection is not None and instance.connection.connection.id is not instance.id:
+            raise serializers.ValidationError(
+                "{} is already connected to {} on {}".format(
+                    instance.connection.asset,
+                    instance.connection.connection.asset,
+                    instance.connection.label.name
+                )
+            )
+
+    old = NetworkPort.objects.filter(id=instance.id).first()
+    if old and old.connection is not None:
+        NetworkPort.objects.filter(id=old.connection.id).update(connection=None) # Doesn't trigger pre-save signal 
+
+
+@receiver(post_save, sender=NetworkPort)
+def set_connection(sender, instance, *args, **kwargs):
+    if instance.connection:
+        if instance.connection.connection is None or instance.connection.connection.id is not instance.id: 
+            instance.connection.connection = instance
+            instance.connection.save()

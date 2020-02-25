@@ -81,7 +81,6 @@ function Grid({ columns, rows, colorMap, setRange, range }) {
 
       <GridRangeSelector
         setRange={r => {
-          console.log(r);
           setRange(r);
         }}
         range={range}

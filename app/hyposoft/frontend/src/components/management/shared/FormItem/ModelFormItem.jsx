@@ -2,9 +2,13 @@ import { FORM_ITEM_LAYOUT } from "./FormItem";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { Form, Select, Button, Icon, Row, Col } from "antd";
-import { modelKeywordMatch, modelToString } from "../../ModelManagement/ModelSchema";
+import {
+  modelKeywordMatch,
+  modelToString
+} from "../../ModelManagement/ModelSchema";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchModels } from "../../../../redux/models/actions";
+import { constructDefaultPorts } from "./NetworkPortFormItem";
 
 function ModelFormItem({
   form,
@@ -41,13 +45,22 @@ function ModelFormItem({
         <Col span={22}>
           {form.getFieldDecorator(schemaFrag.fieldName, {
             rules,
-            initialValue: initialValue
+            initialValue
           })(
             <Select
               showSearch
               disabled={disabled}
               onChange={v => {
-                onChange({ [schemaFrag.fieldName]: modelsByID[v] });
+                const model = modelsByID[v];
+                onChange({
+                  [schemaFrag.fieldName]: model,
+                  rack_position: null,
+                  network_ports: constructDefaultPorts(model)
+                });
+                form.setFieldsValue({
+                  rack_position: null,
+                  network_ports: constructDefaultPorts(model)
+                });
               }}
               filterOption={(input, option) => {
                 return modelKeywordMatch(input, modelsByID[option.props.value]);
