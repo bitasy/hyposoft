@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, List, Card, Input, Button, Icon } from "antd";
+import { Typography, List, Card, Input, Button, Icon, Tooltip } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import {
   updateDatacenter,
@@ -28,28 +28,32 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
 
   const ExtraButtons = (
     <>
-      <Button
-        size="small"
-        shape="circle"
-        onClick={() => setIsEditing(!isEditing)}
-        disabled={disabled}
-      >
-        {isEditing ? <Icon type="close" /> : <Icon type="edit" />}
-      </Button>
-      <Button
-        style={{ marginLeft: 4 }}
-        size="small"
-        shape="circle"
-        type="danger"
-        disabled={disabled}
-        onClick={() => {
-          if (confirm("You sure?")) {
-            onRemove(dc.id, dc.abbr);
-          }
-        }}
-      >
-        <Icon type="delete" />
-      </Button>
+      <Tooltip placement="right" title={"Only users with admin privileges can edit a data center"}>
+          <Button
+            size="small"
+            shape="circle"
+            onClick={() => setIsEditing(!isEditing)}
+            disabled={disabled}
+          >
+            {isEditing ? <Icon type="close" /> : <Icon type="edit" />}
+          </Button>
+      </Tooltip>
+      <Tooltip placement="right" title={"Only users with admin privileges can delete a data center"}>
+         <Button
+             style={{ marginLeft: 4 }}
+             size="small"
+             shape="circle"
+             type="danger"
+             disabled={disabled}
+             onClick={() => {
+                 if (confirm("You sure?")) {
+                     onRemove(dc.id, dc.abbr);
+                 }
+             }}
+         >
+              <Icon type="delete" />
+         </Button>
+      </Tooltip>
     </>
   );
 
@@ -92,14 +96,16 @@ function AddCard({ onCreate, disabled }) {
       style={{ padding: 0, height: "100px" }}
       bodyStyle={{ padding: 0, width: "100%", height: "100%" }}
     >
-      <Button
-        style={{ width: "100%", height: "100%" }}
-        onClick={onCreate}
-        disabled={disabled}
-      >
-        <Icon type="plus" />
-        Add Datacenter
-      </Button>
+        <Tooltip placement="right" title={"Only users with admin privileges can add a data center"}>
+          <Button
+            style={{ width: "100%", height: "100%" }}
+            onClick={onCreate}
+            disabled={disabled}
+          >
+            <Icon type="plus" />
+            Add Datacenter
+          </Button>
+        </Tooltip>
     </Card>
   );
 }
