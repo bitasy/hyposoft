@@ -2,8 +2,20 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import { objectEquals } from "object-equals";
 import { Form, Button, Icon, Tooltip } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import FormItem from "./FormItem/FormItem";
+
+function WithTooltip({isVisible, tooltipText, children}) {
+  const ret = isVisible ? (
+      <Tooltip title={tooltipText}>
+        {children}
+      </Tooltip>
+  ): children;
+
+  console.log(isVisible, ret);
+
+  return ret;
+}
 
 function DataDetailForm({
   form,
@@ -60,15 +72,15 @@ function DataDetailForm({
       ))}
       <Form.Item>
         <Button.Group style={{ width: "100%", display: "flex" }}>
-          <Tooltip placement="right" title={"Edit a field before clicking update"}>
-            <Button
-              htmlType="submit"
-              disabled={disabled || !canUpdate}
-              style={{ flexGrow: 8 }}
-            >
-              Update
-            </Button>
-          </Tooltip>
+            <WithTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
+              <Button
+                  htmlType="submit"
+                  disabled={disabled || !canUpdate}
+                  style={{ flexGrow: 8 }}
+              >
+                Update
+              </Button>
+            </WithTooltip>
           <Button
             htmlType="button"
             type="danger"
