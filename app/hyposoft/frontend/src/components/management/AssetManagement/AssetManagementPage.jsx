@@ -29,20 +29,40 @@ function AssetManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Assets</Typography.Title>
-      <Button
-        shape="round"
-        style={{ marginBottom: 8, marginRight: 8 }}
-        href="admin/equipment/asset/import/"
-      >
-        Import
-      </Button>
-      <Button
-        shape="round"
-        style={{ marginBottom: 8, marginRight: 8 }}
-        href="admin/equipment/asset/export/"
-      >
-        Export
-      </Button>
+      <div>
+        <Button
+          shape="round"
+          style={{ marginBottom: 8, marginRight: 8 }}
+          href="admin/equipment/asset/import/"
+        >
+          Import Assets
+        </Button>
+        <Button
+          shape="round"
+          style={{ marginBottom: 8, marginRight: 8 }}
+          href="admin/equipment/asset/export/"
+        >
+          Export Assets
+        </Button>
+      </div>
+
+      <div>
+        <Button
+          shape="round"
+          style={{ marginBottom: 8, marginRight: 8 }}
+          href="admin/equipment/networkport/import/"
+        >
+          Import Networks
+        </Button>
+        <Button
+          shape="round"
+          style={{ marginBottom: 8, marginRight: 8 }}
+          href="admin/equipment/networkport/export/"
+        >
+          Export Networks
+        </Button>
+      </div>
+
       <DataList
         columns={assetColumns}
         filters={assetFilters}
