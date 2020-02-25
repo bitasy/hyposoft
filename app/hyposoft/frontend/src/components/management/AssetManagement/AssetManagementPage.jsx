@@ -29,6 +29,13 @@ function AssetManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Assets</Typography.Title>
+
+      <div style={{ marginBottom: 8 }}>
+        <span style={{ color: "orange" }}>
+          Filters don't transfer to Export!!
+        </span>
+      </div>
+
       <div>
         <Button
           shape="round"
@@ -46,7 +53,7 @@ function AssetManagementPage() {
         </Button>
       </div>
 
-      <div>
+      <div style={{ marginBottom: 8 }}>
         <Button
           shape="round"
           style={{ marginBottom: 8, marginRight: 8 }}
