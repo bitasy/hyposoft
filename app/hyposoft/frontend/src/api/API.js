@@ -317,6 +317,10 @@ function removeNetworkPortLabel(id) {
 }
 
 // Power control APIs
+function getPowerState(assetID) {
+  return Axios.get(`api/equipment/PDUNetwork/get/${assetID}`).then(getData);
+}
+
 function switchPower(assetID, state) {
   return withLoading(() =>
     Axios.post(`api/equipment/PDUNetwork/post`, {
@@ -442,6 +446,7 @@ const RealAPI = {
   updateNetworkPortLabel,
   removeNetworkPortLabel,
 
+  getPowerState,
   turnOn,
   turnOff,
   cycle,
