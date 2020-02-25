@@ -44,6 +44,7 @@ function getModel(id) {
 }
 
 async function createModel(fields) {
+  fields.network_ports = fields.network_port_labels?.length || 0;
   return Axios.post(`api/equipment/ITModelCreate`, fields)
     .then(getData)
     .then(model => model.id)
@@ -52,6 +53,7 @@ async function createModel(fields) {
         (fields.network_port_labels || []).map(v => {
           return createNetworkPortLabel({
             itmodel: id,
+            special: null,
             name: v.name
           });
         })
@@ -305,6 +307,7 @@ function createPowered(plugNumber, pduID, assetID) {
   return Axios.post(`api/equipment/PoweredCreate`, {
     plug_number: plugNumber,
     pdu: pduID,
+    special: null,
     asset: assetID
   }).then(getData);
 }
