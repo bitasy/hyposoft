@@ -1,16 +1,7 @@
 from rest_framework import generics
-from .models import *
 from .serializers import *
-from rest_framework.response import Response
-from rest_framework import status
-
-
-# This mixin makes the destroy view return the deleted item
-class DestroyWithPayloadMixin(object):
-    def destroy(self, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object())
-        super().destroy(*args, **kwargs)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+from .models import *
+from .views import DestroyWithPayloadMixin, FilterByDatacenterMixin
 
 
 # Datacenter
@@ -86,7 +77,7 @@ class AssetDestroyView(generics.DestroyAPIView):
     serializer_class = AssetSerializer
 
 
-class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView):
+class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView, FilterByDatacenterMixin):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -112,7 +103,7 @@ class RackDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
     serializer_class = RackSerializer
 
 
-class RackListView(generics.ListAPIView):
+class RackListView(generics.ListAPIView, FilterByDatacenterMixin):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
@@ -169,7 +160,6 @@ class NetworkPortLabelListView(generics.ListAPIView):
     serializer_class = NetworkPortLabelSerializer
 
 
-# NetworkPort
 class NetworkPortCreateView(generics.CreateAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
@@ -185,11 +175,6 @@ class NetworkPortUpdateView(generics.UpdateAPIView):
     serializer_class = NetworkPortSerializer
 
 
-class NetworkPortDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
-    queryset = NetworkPort.objects.all()
-    serializer_class = NetworkPortSerializer
-
-
 class NetworkPortListView(generics.ListAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
@@ -200,21 +185,11 @@ class PoweredCreateView(generics.CreateAPIView):
     serializer_class = PoweredSerializer
 
 
-class PoweredRetrieveView(generics.RetrieveAPIView):
-    queryset = Powered.objects.all()
-    serializer_class = PoweredSerializer
-
-
 class PoweredUpdateView(generics.UpdateAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
 
 
 class PoweredDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
-    queryset = Powered.objects.all()
-    serializer_class = PoweredSerializer
-
-
-class PoweredListView(generics.ListAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer

@@ -4,7 +4,7 @@ import { Typography, Button, Icon } from "antd";
 import { modelColumns, modelFilters } from "./ModelSchema";
 import DataList from "../shared/DataList";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchModels } from "../../../redux/actions";
+import { fetchModels } from "../../../redux/models/actions";
 
 function ModelManagementPage() {
   const models = useSelector(s => Object.values(s.models));
@@ -14,6 +14,8 @@ function ModelManagementPage() {
   React.useEffect(() => {
     dispatch(fetchModels());
   }, []);
+
+  const isAdmin = useSelector(s => s.currentUser.is_staff);
 
   return (
     <div style={{ padding: 16 }}>
@@ -38,6 +40,7 @@ function ModelManagementPage() {
         data={models}
         onSelect={id => history.push(`/models/${id}`)}
         onCreate={() => history.push("/models/create")}
+        createDisabled={!isAdmin}
       />
     </div>
   );

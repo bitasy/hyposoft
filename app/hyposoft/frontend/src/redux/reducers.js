@@ -1,17 +1,13 @@
-import {
-  genAsyncActionTypes,
-  FETCH_ALL_RACKS,
-  CREATE_RACKS,
-  REMOVE_RACKS,
-  FETCH_ALL_USERS,
-  LOGIN,
-  LOGOUT
-} from "./actions";
+import { genAsyncActionTypes } from "./actions";
 import produce from "immer";
-import { modelCRUDActionTypes, assetCRUDActionTypes } from "./actions";
-import { combineReducers } from "redux";
+import SessionReducer from "./session/reducer";
+import UserReducer from "./users/reducer";
+import RackReducer from "./racks/reducer";
+import ModelReducer from "./models/reducer";
+import AssetReducer from "./assets/reducer";
+import DatacenterReducer from "./datacenters/reducer";
 
-function genAsyncReducer(actionType, started, success, failure) {
+export function genAsyncReducer(actionType, started, success, failure) {
   const [STARTED, SUCCESS, FAILURE] = genAsyncActionTypes(actionType);
 
   return (state = {}, action) => {
@@ -35,7 +31,7 @@ function groupByID(arr) {
   }, {});
 }
 
-function genFetchAllReducer(fetchAllActionType) {
+export function genFetchAllReducer(fetchAllActionType) {
   return genAsyncReducer(
     fetchAllActionType,
     s => s,
@@ -44,7 +40,7 @@ function genFetchAllReducer(fetchAllActionType) {
   );
 }
 
-function genFetchReducer(fetchActionType) {
+export function genFetchReducer(fetchActionType) {
   return genAsyncReducer(
     fetchActionType,
     s => s,
@@ -58,7 +54,7 @@ function genFetchReducer(fetchActionType) {
   );
 }
 
-function genCreateReducer(createActionType) {
+export function genCreateReducer(createActionType) {
   return genAsyncReducer(
     createActionType,
     s => s,
@@ -72,7 +68,7 @@ function genCreateReducer(createActionType) {
   );
 }
 
-function genUpdateReducer(updateActionType) {
+export function genUpdateReducer(updateActionType) {
   return genAsyncReducer(
     updateActionType,
     s => s,
@@ -86,7 +82,7 @@ function genUpdateReducer(updateActionType) {
   );
 }
 
-function genRemoveReducer(removeActionType) {
+export function genRemoveReducer(removeActionType) {
   return genAsyncReducer(
     removeActionType,
     s => s,
@@ -100,11 +96,11 @@ function genRemoveReducer(removeActionType) {
   );
 }
 
-function applyAll(reducers) {
+export function applyAll(reducers) {
   return (state, action) => reducers.reduce((s, r) => r(s, action), state);
 }
 
-function genCrudReducer(crudActionTypes) {
+export function genCrudReducer(crudActionTypes) {
   const [fetchAll, fetch, create, update, remove] = crudActionTypes;
   return applyAll([
     genFetchAllReducer(fetchAll),
@@ -115,84 +111,23 @@ function genCrudReducer(crudActionTypes) {
   ]);
 }
 
-function createRacksReducer() {
-  return genAsyncReducer(
-    CREATE_RACKS,
-    s => s,
-    (s, res) =>
-      produce(s, ds => {
-        res.forEach(rack => {
-          if (rack && rack.id) {
-            ds[rack.id] = rack;
-          }
-        });
-      }),
-    (s, err) => s
-  );
+function probe(reducer) {
+  return (s, a) => {
+    console.log(a);
+    const newS = reducer(s, a);
+    return newS;
+  };
 }
 
-function removeRacksReducer() {
-  return genAsyncReducer(
-    REMOVE_RACKS,
-    s => s,
-    (s, res) =>
-      produce(s, ds => {
-        res.forEach(rack => {
-          if (rack && rack.id) {
-            delete ds[rack.id];
-          }
-        });
-      }),
-    (s, err) => s
-  );
-}
-
-function genRackReducer() {
-  return applyAll([
-    genFetchAllReducer(FETCH_ALL_RACKS),
-    createRacksReducer(),
-    removeRacksReducer()
-  ]);
-}
-
-function genUserReducer() {
-  return applyAll([genFetchAllReducer(FETCH_ALL_USERS)]);
-}
-
-function loginReducer() {
-  return genAsyncReducer(
-    LOGIN,
-    s => s,
-    (s, res) => res,
-    (s, err) => s
-  );
-}
-
-function logoutReducer() {
-  return genAsyncReducer(
-    LOGOUT,
-    s => s,
-    (s, res) => null,
-    (s, err) => s
-  );
-}
-
-function genSessionReducer() {
-  return applyAll([loginReducer(), logoutReducer()]);
-}
-
-const sessionReducer = genSessionReducer();
-const modelReducer = genCrudReducer(modelCRUDActionTypes);
-const assetReducer = genCrudReducer(assetCRUDActionTypes);
-const rackReducer = genRackReducer();
-const userReducer = genUserReducer();
-
-const HyposoftApp = combineReducers({
-  sessionInfo: sessionReducer,
-  models: modelReducer,
-  assets: assetReducer,
-  racks: rackReducer,
-  users: userReducer
-});
+const HyposoftApp = probe(
+  applyAll([
+    SessionReducer,
+    UserReducer,
+    RackReducer,
+    ModelReducer,
+    AssetReducer,
+    DatacenterReducer
+  ])
+);
 
 export default HyposoftApp;

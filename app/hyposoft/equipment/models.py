@@ -1,12 +1,14 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
 
 class Datacenter(models.Model):
     abbr = models.CharField(
-        max_length=6
+        max_length=6,
+        unique=True
     )
     name = models.CharField(
         max_length=64
@@ -74,8 +76,8 @@ class ITModel(models.Model):
     comment = models.TextField(
         blank=True,
         validators=[
-                   RegexValidator("(?m)""(?![ \t]*(,|$))",
-                                  message="Comments must be enclosed by double quotes if comment contains line breaks.")
+            RegexValidator("(?m)""(?![ \t]*(,|$))",
+                           message="Comments must be enclosed by double quotes if comment contains line breaks.")
         ]
     )
 
@@ -89,28 +91,11 @@ class ITModel(models.Model):
 
 
 class Rack(models.Model):
-    class RackManager(models.Manager):
-        def in_racks(self, start_rack, end_rack):
-            from django.db import connection
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT id, rack
-                    FROM equipment_rack
-                    WHERE rack BETWEEN '{}' AND '{}';
-                    """.format(start_rack, end_rack))
-                result_list = []
-                for row in cursor.fetchall():
-                    r = self.model(id=row[0], rack=row[1])
-                    result_list.append(r)
-                return result_list
-
-    objects = RackManager()
-
     rack = models.CharField(
         unique=True,
         max_length=4,
         validators=[
-            RegexValidator("^[A-Z]{1,2}[1-9][0-9]{0,1}$",
+            RegexValidator("^[A-Z]{1,2}[0-9]{2}$",
                            message="Row number must be specified by one or two capital letters.")
         ],
         default="A0"
@@ -123,6 +108,9 @@ class Rack(models.Model):
 
     def __str__(self):
         return "Rack {}".format(self.rack)
+
+    class Meta:
+        unique_together = ['rack', 'datacenter']
 
 
 class PDU(models.Model):
@@ -141,6 +129,8 @@ class PDU(models.Model):
         on_delete=models.CASCADE
     )
 
+    networked = models.BooleanField()
+
     class Position(models.TextChoices):
         LEFT = 'L', 'Left'
         RIGHT = 'R', 'Right'
@@ -154,10 +144,10 @@ class PDU(models.Model):
         unique_together = ['rack', 'position']
 
     def __str__(self):
-        return "{} PDU on Rack {} in {}".format(
+        return "{} PDU on {} in {}".format(
             self.position,
             str(self.rack),
-            self.rack.datacenter.abbr
+            self.rack.datacenter
         )
 
 
@@ -209,8 +199,6 @@ class Asset(models.Model):
         ]
     )
     mac_address = models.CharField(
-        unique=True,
-        null=True,
         blank=True,
         max_length=17,
         validators=[
@@ -223,39 +211,49 @@ class Asset(models.Model):
         unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
-        return "{}: Rack {} U{} in {}".format(self.hostname, self.rack.rack, self.rack_position, self.datacenter)
+        if self.hostname is not None and len(self.hostname) > 0:
+            return self.hostname
+        return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
 
     def save(self, *args, **kwargs):
         if self.asset_number == 0:
-            nums = Asset.objects.all()
-            highest = 99999
-            for asset in nums:
-                if asset.asset_number > highest:
-                    highest = asset.asset_number
-            self.asset_number = highest + 1
-            if self.asset_number > 999999:
-                raise serializers.ValidationError("The asset number is too large. Please try manually setting it to be 6 digits.")
+            max_an = Asset.objects.all().aggregate(Max('asset_number'))
+            self.asset_number = (max_an['asset_number__max'] or 100000) + 1
+
+        if self.asset_number > 999999:
+            raise serializers.ValidationError(
+                "The asset number is too large. Please try manually setting it to be 6 digits.")
+
+        if self.asset_number < 100000:
+            raise serializers.ValidationError(
+                "The asset number is too small. Please try manually setting it to be 6 digits.")
 
         if 42 < self.rack_position + self.itmodel.height - 1:
-            raise serializers.ValidationError("The asset does not fit on the specified rack from the given position.")
+            raise serializers.ValidationError(
+                "The asset does not fit on the specified rack from the given position.")
 
         blocked = Asset.objects.filter(
             rack=self.rack,
-            rack_position__range=(self.rack_position, self.rack_position + self.itmodel.height))
+            rack_position__range=(self.rack_position,
+                                  self.rack_position + self.itmodel.height),
+        ).exclude(id=self.id)
 
         if len(blocked) > 0:
-            raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+            raise serializers.ValidationError(
+                "There is already an asset in this area of the specified rack.")
 
         i = self.rack_position - 1
         while i > 0:
             under = Asset.objects.filter(
                 rack=self.rack,
                 rack_position=i
-            )
+            ).exclude(id=self.id)
             if len(under) > 0:
-                asset = under.values_list('rack_position', 'itmodel__height')[0]
+                asset = under.values_list(
+                    'rack_position', 'itmodel__height')[0]
                 if asset[0] + asset[1] > self.rack_position:
-                    raise serializers.ValidationError("There is already an asset in this area of the specified rack.")
+                    raise serializers.ValidationError(
+                        "There is already an asset in this area of the specified rack.")
                 else:
                     break
             i -= 1

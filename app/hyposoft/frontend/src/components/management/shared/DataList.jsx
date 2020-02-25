@@ -1,20 +1,21 @@
 import React from "react";
 import { Table, Button, Icon, Collapse } from "antd";
 import Filter from "./Filters";
+import { useSelector } from "react-redux";
 
-function decorateColumns(columns) {
+function decorateColumns(columns, currentUser) {
   return columns.map(column => {
     return {
       ...column,
-      render: (txt, record, idx) => <span>{column.toString(record)}</span>
+      render: (txt, record, idx) => column.render(record, currentUser)
     };
   });
 }
 
-function ListFooter({ onCreate }) {
+function ListFooter({ onCreate, createDisabled }) {
   return (
     <div>
-      <Button onClick={onCreate}>
+      <Button onClick={onCreate} disabled={createDisabled}>
         <Icon type="plus"></Icon>
       </Button>
     </div>
@@ -29,7 +30,15 @@ function getDefaults(data, filters) {
   }, {});
 }
 
-function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
+function DataList({
+  columns,
+  filters,
+  data,
+  onSelect,
+  onCreate,
+  noCreate,
+  createDisabled
+}) {
   const paginationConfig = {
     position: "top",
     defaultPageSize: 10,
@@ -39,6 +48,8 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
   const defaults = getDefaults(data, filters);
 
   const [filterValues, setFilterValues] = React.useState(defaults);
+
+  const currentUser = useSelector(s => s.currentUser);
 
   React.useEffect(() => {
     setFilterValues(getDefaults(data, filters));
@@ -77,7 +88,7 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
       ) : null}
       <Table
         rowKey={r => r.id}
-        columns={decorateColumns(columns)}
+        columns={decorateColumns(columns, currentUser)}
         dataSource={filteredData}
         onRow={r => {
           return {
@@ -86,7 +97,9 @@ function DataList({ columns, filters, data, onSelect, onCreate, noCreate }) {
         }}
         pagination={paginationConfig}
         className="pointer-on-hover"
-        footer={() => (noCreate ? null : ListFooter({ onCreate }))}
+        footer={() =>
+          noCreate ? null : ListFooter({ onCreate, createDisabled })
+        }
       />
     </>
   );
