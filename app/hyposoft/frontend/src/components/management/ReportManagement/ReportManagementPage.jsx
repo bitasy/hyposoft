@@ -8,6 +8,7 @@ import { fetchModels } from "../../../redux/models/actions";
 import { fetchRacks } from "../../../redux/racks/actions";
 import { fetchAssets } from "../../../redux/assets/actions";
 
+
 function ReportManagementPage() {
   const dispatch = useDispatch();
 
@@ -25,21 +26,21 @@ function ReportManagementPage() {
 
   const rackSpace = racks.length * 42; //total rack space, type: number
   const columns = [
-    {
-      title: "Category",
-      dataIndex: "category",
-      key: "category"
-    },
-    {
-      title: "% Used",
-      dataIndex: "used",
-      key: "used"
-    },
-    {
-      title: "% Free",
-      dataIndex: "free",
-      key: "free"
-    }
+      {
+        title: 'Category',
+        dataIndex: 'category',
+        key: 'category',
+      },
+      {
+        title: '% Used',
+        dataIndex: 'used',
+        key: 'used',
+      },
+      {
+        title: "% Free",
+        dataIndex: 'free',
+        key: 'free',
+      }
   ];
 
   return rackSpace != null ? (
@@ -67,11 +68,7 @@ function ReportManagementPage() {
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Vendor</Typography.Title>
-        <Table
-          dataSource={RackUsageByModel(rackSpace, assets, models)}
-          columns={columns}
-        />
-        ;
+        <Table dataSource={RackUsageByVendor(rackSpace, assets, models)} columns={columns} />;
       </div>
     </div>
   ) : (
@@ -135,13 +132,15 @@ function RackUsageByModel(rackSpace, assets, models) {
   let modelUsage = [];
 
   //add row data to array
-  for (let i = 0; i < models.length; i++) {
-    modelUsage.push({
-      key: i + 1,
-      category: modelToString(models[i]),
-      used: percentUsed[i],
-      free: percentFree
-    });
+  if (assets.length != 0) {
+    for (let i = 0; i < models.length; i++) {
+      modelUsage.push({
+        key: i + 1,
+        category: modelToString(models[i]),
+        used: percentUsed[i],
+        free: percentFree
+      });
+    }
   }
 
   return modelUsage;
@@ -225,13 +224,15 @@ function RackUsageByVendor(rackSpace, assets, models) {
   let vendorUsage = [];
 
   //add row data to array
-  for (let i = 0; i < uniqueVendors.length; i++) {
-    vendorUsage[i] = {
-      key: i + 1,
-      category: uniqueVendors[i],
-      used: percentUsed[i],
-      free: percentFree
-    };
+  if (assets.length != 0) {
+    for (let i = 0; i < uniqueVendors.length; i++) {
+      vendorUsage[i] = {
+        key: i + 1,
+        category: uniqueVendors[i],
+        used: percentUsed[i],
+        free: percentFree
+      };
+    }
   }
 
   return vendorUsage;

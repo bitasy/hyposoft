@@ -1,5 +1,4 @@
 import Axios from "axios";
-
 import produce from "immer";
 export const GLOBAL_ABBR = "global";
 
@@ -280,7 +279,6 @@ function removeNetworkPortLabel(id) {
 }
 
 // Power control APIs
-
 function switchPower(assetID, state) {
   return Axios.post(`api/equipment/PDUNetwork/post`, {
     asset: assetID,
@@ -303,7 +301,6 @@ function cycle(assetID) {
 }
 
 // Powereds
-
 function createPowered(plugNumber, pduID, assetID) {
   return Axios.post(`api/equipment/PoweredCreate`, {
     plug_number: plugNumber,
@@ -319,7 +316,6 @@ function deleteAllPowered(assetID) {
 }
 
 // Utilities control APIs
-
 function getFreePowerPorts(rackID, assetID) {
   return Axios.get(
     `api/equipment/FreePowerPorts/${rackID}/${assetID || 0}`
@@ -347,7 +343,6 @@ function getNetworkConnectedPDUs() {
 }
 
 // Network Port APIs
-
 function createNetworkPort(asset_id, fields) {
   /*
   {

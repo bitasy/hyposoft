@@ -48,6 +48,14 @@ class ITModel(models.Model):
                               message="Number of power ports must be at least 0.")
         ]
     )
+    network_ports = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(0,
+                              message="Number of network ports must be at least 0.")
+        ]
+    )
     cpu = models.CharField(
         max_length=64,
         blank=True
@@ -89,11 +97,13 @@ class Rack(models.Model):
         validators=[
             RegexValidator("^[A-Z]{1,2}[0-9]{2}$",
                            message="Row number must be specified by one or two capital letters.")
-        ]
+        ],
+        default="A0"
     )
     datacenter = models.ForeignKey(
         Datacenter,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        default=""
     )
 
     def __str__(self):
@@ -142,36 +152,38 @@ class PDU(models.Model):
 
 
 class Asset(models.Model):
-    itmodel = models.ForeignKey(
-        ITModel,
-        on_delete=models.PROTECT,
-        verbose_name="Model"
+    asset_number = models.IntegerField(
+        unique=True,
+        default=0
     )
     hostname = models.CharField(
         unique=True,
-        null=True,
         blank=True,
+        null=False,
         max_length=64,
         validators=[
             RegexValidator(r"^&|([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
                            message="Hostname must be compliant with RFC 1034.")
         ]
     )
+    datacenter = models.ForeignKey(
+        Datacenter,
+        on_delete=models.PROTECT,
+    )
     rack = models.ForeignKey(
         Rack,
         on_delete=models.PROTECT
-    )
-
-    datacenter = models.ForeignKey(
-        Datacenter,
-        blank=True,
-        on_delete=models.PROTECT,
     )
     rack_position = models.IntegerField(
         validators=[
             MinValueValidator(1,
                               message="Rack position must be at least 1.")
         ]
+    )
+    itmodel = models.ForeignKey(
+        ITModel,
+        on_delete=models.PROTECT,
+        verbose_name="Model"
     )
     owner = models.ForeignKey(
         User,
@@ -190,15 +202,9 @@ class Asset(models.Model):
         blank=True,
         max_length=17,
         validators=[
-            RegexValidator("^$|^([0-9a-fA-F]{2}[:-_]{0,1}){5}[0-9a-fA-F]{2}$",
+            RegexValidator("^$|^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
-    )
-
-    asset_number = models.IntegerField(
-        blank=True,
-        unique=True,
-        default=0
     )
 
     class Meta:
@@ -264,28 +270,42 @@ class NetworkPortLabel(models.Model):
         ITModel,
         on_delete=models.CASCADE
     )
+    special = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1,
+                              message="Special network port ID must be at least 1"),
+            MaxValueValidator(4,
+                              message="Special network port ID must be no greater than 4")
+        ]
+    )
 
     class Meta:
-        unique_together = ['name', 'itmodel']
+        unique_together = ['name', 'itmodel', 'special']
+
+    def __str__(self):
+        return '{} : {}'.format(self.name, self.itmodel)
 
 
 class NetworkPort(models.Model):
-    label = models.ForeignKey(
-        NetworkPortLabel,
-        on_delete=models.PROTECT
-    )
     asset = models.ForeignKey(
         Asset,
         on_delete=models.CASCADE
     )
+    label = models.ForeignKey(
+        NetworkPortLabel,
+        on_delete=models.PROTECT
+    )
     connection = models.OneToOneField(
         "self",
         null=True,
+        blank=True,
         on_delete=models.SET_NULL
     )
 
     class Meta:
-        unique_together = ['label', 'asset']
+        unique_together = ['asset', 'label']
 
 
 class Powered(models.Model):
@@ -308,6 +328,16 @@ class Powered(models.Model):
     on = models.BooleanField(
         default=False
     )
+    special = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1,
+                              message="Special network port ID must be at least 1"),
+            MaxValueValidator(2,
+                              message="Special network port ID must be no greater than 2")
+        ]
+    )
 
     class Meta:
-        unique_together = ['plug_number', 'pdu']
+        unique_together = ['plug_number', 'pdu', 'special']

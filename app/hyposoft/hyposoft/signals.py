@@ -9,3 +9,4 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     print("test")
     if created:
         Token.objects.get_or_create(user=instance)
+

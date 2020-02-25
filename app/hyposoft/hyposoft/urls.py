@@ -24,4 +24,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/equipment/', include('equipment.urls')),
     path('api/users/UserList/', UserList.as_view()),
+    path('log', include('system_log.urls'))
 ]

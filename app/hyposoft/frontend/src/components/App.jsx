@@ -6,16 +6,19 @@ import ManagementPageFrame from "./management/ManagementPageFrame";
 import ModelManagementPage from "./management/ModelManagement/ModelManagementPage";
 import ModelDetailPage from "./management/ModelManagement/ModelDetailPage";
 import AssetManagementPage from "./management/AssetManagement/AssetManagementPage";
-import ToolingPage from "./management/Tooling/ToolingPage";
+import ReportManagementPage from "./management/ReportManagement/ReportManagementPage";
 import OverviewPage from "./management/Overview/OverviewPage";
 import AssetDetailPage from "./management/AssetManagement/AssetDetailPage";
 import CreateModelPage from "./management/ModelManagement/CreateModelPage";
 import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
+import LogManagementPage from "./management/LogManagement/LogManagementPage";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../redux/session/actions";
 import DatacenterManagementPage from "./management/DatacenterManagment/DatacenterManagementPage";
+
+
 
 export default function App() {
   return <Routes />;
@@ -79,7 +82,11 @@ function Routes() {
               </Route>
 
               <Route exact path="/reports">
-                <ToolingPage />
+                <ReportManagementPage />
+              </Route>
+
+              <Route exact path="/logs">
+                <LogManagementPage />
               </Route>
 
               <Route>
@@ -93,4 +100,10 @@ function Routes() {
   ) : (
     <LoginPage />
   );
+
+
+
 }
+
+const app = document.getElementsByClassName('App'); //returns list
+console.log(" app elements", app);

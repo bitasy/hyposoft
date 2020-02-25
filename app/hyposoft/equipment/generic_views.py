@@ -1,11 +1,13 @@
 from rest_framework import generics
 from .serializers import *
+from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin
+
 from .models import *
 from .views import DestroyWithPayloadMixin, FilterByDatacenterMixin
 
 
 # Datacenter
-class DatacenterCreateView(generics.CreateAPIView):
+class DatacenterCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
 
@@ -15,12 +17,12 @@ class DatacenterRetrieveView(generics.RetrieveAPIView):
     serializer_class = DatacenterSerializer
 
 
-class DatacenterUpdateView(generics.UpdateAPIView):
+class DatacenterUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
 
 
-class DatacenterDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+class DatacenterDestroyView(DeleteAndLogMixin, DestroyWithPayloadMixin, generics.DestroyAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
 
@@ -31,7 +33,7 @@ class DatacenterListView(generics.ListAPIView):
 
 
 # ITModel
-class ITModelCreateView(generics.CreateAPIView):
+class ITModelCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
@@ -41,12 +43,12 @@ class ITModelRetrieveView(generics.RetrieveAPIView):
     serializer_class = ITModelSerializer
 
 
-class ITModelUpdateView(generics.UpdateAPIView):
+class ITModelUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class ITModelDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+class ITModelDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
@@ -57,7 +59,7 @@ class ITModelListView(generics.ListAPIView):
 
 
 # Asset
-class AssetCreateView(generics.CreateAPIView):
+class AssetCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -67,12 +69,12 @@ class AssetRetrieveView(generics.RetrieveAPIView):
     serializer_class = AssetSerializer
 
 
-class AssetUpdateView(generics.UpdateAPIView):
+class AssetUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
 
-class AssetDestroyView(generics.DestroyAPIView):
+class AssetDestroyView(DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -83,7 +85,7 @@ class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView, FilterByDatac
 
 
 # Rack
-class RackCreateView(generics.CreateAPIView):
+class RackCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
@@ -93,12 +95,12 @@ class RackRetrieveView(generics.RetrieveAPIView):
     serializer_class = RackSerializer
 
 
-class RackUpdateView(generics.UpdateAPIView):
+class RackUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
 
-class RackDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+class RackDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
@@ -109,7 +111,7 @@ class RackListView(generics.ListAPIView, FilterByDatacenterMixin):
 
 
 # PDU
-class PDUCreateView(generics.CreateAPIView):
+class PDUCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = PDU.objects.all()
     serializer_class = PDUSerializer
 
@@ -119,12 +121,12 @@ class PDURetrieveView(generics.RetrieveAPIView):
     serializer_class = PDUSerializer
 
 
-class PDUUpdateView(generics.UpdateAPIView):
+class PDUUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = PDU.objects.all()
     serializer_class = PDUSerializer
 
 
-class PDUDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+class PDUDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = PDU.objects.all()
     serializer_class = PDUSerializer
 
@@ -135,7 +137,7 @@ class PDUListView(generics.ListAPIView):
 
 
 # NetworkPortLabel
-class NetworkPortLabelCreateView(generics.CreateAPIView):
+class NetworkPortLabelCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = NetworkPortLabel.objects.all()
     serializer_class = NetworkPortLabelSerializer
 
@@ -145,12 +147,12 @@ class NetworkPortLabelRetrieveView(generics.RetrieveAPIView):
     serializer_class = NetworkPortLabelSerializer
 
 
-class NetworkPortLabelUpdateView(generics.UpdateAPIView):
+class NetworkPortLabelUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = NetworkPortLabel.objects.all()
     serializer_class = NetworkPortLabelSerializer
 
 
-class NetworkPortLabelDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+class NetworkPortLabelDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = NetworkPortLabel.objects.all()
     serializer_class = NetworkPortLabelSerializer
 
@@ -160,7 +162,8 @@ class NetworkPortLabelListView(generics.ListAPIView):
     serializer_class = NetworkPortLabelSerializer
 
 
-class NetworkPortCreateView(generics.CreateAPIView):
+# NetworkPort
+class NetworkPortCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
 
@@ -170,7 +173,12 @@ class NetworkPortRetrieveView(generics.RetrieveAPIView):
     serializer_class = NetworkPortSerializer
 
 
-class NetworkPortUpdateView(generics.UpdateAPIView):
+class NetworkPortUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
+    queryset = NetworkPort.objects.all()
+    serializer_class = NetworkPortSerializer
+
+
+class NetworkPortDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = NetworkPort.objects.all()
     serializer_class = NetworkPortSerializer
 
@@ -180,16 +188,16 @@ class NetworkPortListView(generics.ListAPIView):
     serializer_class = NetworkPortSerializer
 
 
-class PoweredCreateView(generics.CreateAPIView):
+class PoweredCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
 
 
-class PoweredUpdateView(generics.UpdateAPIView):
+class PoweredUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
 
 
-class PoweredDestroyView(DestroyWithPayloadMixin, generics.DestroyAPIView):
+class PoweredDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
     queryset = Powered.objects.all()
     serializer_class = PoweredSerializer
