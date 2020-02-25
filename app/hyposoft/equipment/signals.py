@@ -8,9 +8,6 @@ from rest_framework import serializers
 
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
-    if instance.asset_number == 0:
-        max_an = Asset.objects.all().aggregate(Max('asset_number'))
-        instance.asset_number = (max_an['asset_number__max'] or 100000) + 1
 
     if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
         raise serializers.ValidationError(

@@ -207,9 +207,6 @@ class Asset(models.Model):
         ]
     )
 
-    class Meta:
-        unique_together = ('hostname', 'itmodel')
-
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:
             return self.hostname
