@@ -121,6 +121,19 @@ class ITModelResource(resources.ModelResource):
 
 class AssetResource(resources.ModelResource):
 
+    class RackForeignKeyWidget(ForeignKeyWidget):
+        def clean(self, value, row):
+            my_rack = row['rack']
+            if not my_rack[-2].isdigit() and my_rack[-1].isdigit():
+                new_rack = my_rack[:-1] + '0' + my_rack[-1:]
+                return self.model.objects.get(
+                    rack__iexact=new_rack
+                )
+            else:
+                return self.model.objects.get(
+                    rack__iexact=my_rack
+                )
+
     class ITModelForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             return self.model.objects.get(
@@ -136,7 +149,7 @@ class AssetResource(resources.ModelResource):
     rack = fields.Field(
         column_name='rack',
         attribute='rack',
-        widget=ForeignKeyWidget(Rack, 'rack')
+        widget=RackForeignKeyWidget(Rack, 'rack')
     )
     vendor = fields.Field(
         column_name='vendor',
@@ -190,7 +203,11 @@ class AssetResource(resources.ModelResource):
         my_model = ITModel.objects.get(model_number=row['model_number'], vendor=row['vendor'])
         my_asset = Asset.objects.get(asset_number=row['asset_number'])
         my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter)
+        if not row['rack'][-2].isdigit() and row['rack'][-1].isdigit():
+            new_rack = row['rack'][:-1] + '0' + row['rack'][-1:]
+            my_rack = Rack.objects.get(rack=new_rack, datacenter=my_datacenter)
+        else:
+            my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter)
         # power_port_connection_1
         if my_model.power_ports >= 1:
             powered_1 = row['power_port_connection_1']
