@@ -225,7 +225,6 @@ class AssetResource(resources.ModelResource):
                     asset=my_asset,
                     special=1
                 )
-                power_port_connection_1.save()
         # power_port_connection_2
         if my_model.power_ports >= 2:
             powered_2 = row['power_port_connection_2']
@@ -241,13 +240,12 @@ class AssetResource(resources.ModelResource):
                 exists_2.plug_number = my_plug_number_2
                 exists_2.save()
             except:
-                power_port_connection_1 = Powered.objects.create(
-                    plug_number=my_plug_number_1,
-                    pdu=my_pdu_1,
+                power_port_connection_2 = Powered.objects.create(
+                    plug_number=my_plug_number_2,
+                    pdu=my_pdu_2,
                     asset=my_asset,
-                    special=1
+                    special=2
                 )
-                power_port_connection_1.save()
 
 
 class NetworkPortResource(resources.ModelResource):
