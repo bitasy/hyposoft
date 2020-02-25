@@ -132,13 +132,15 @@ function RackUsageByModel(rackSpace, assets, models) {
   let modelUsage = [];
 
   //add row data to array
-  for (let i = 0; i < models.length; i++) {
-    modelUsage.push({
-      key: i + 1,
-      category: modelToString(models[i]),
-      used: percentUsed[i],
-      free: percentFree
-    });
+  if (assets.length != 0) {
+    for (let i = 0; i < models.length; i++) {
+      modelUsage.push({
+        key: i + 1,
+        category: modelToString(models[i]),
+        used: percentUsed[i],
+        free: percentFree
+      });
+    }
   }
 
   return modelUsage;
@@ -222,13 +224,15 @@ function RackUsageByVendor(rackSpace, assets, models) {
   let vendorUsage = [];
 
   //add row data to array
-  for (let i = 0; i < uniqueVendors.length; i++) {
-    vendorUsage[i] = {
-      key: i + 1,
-      category: uniqueVendors[i],
-      used: percentUsed[i],
-      free: percentFree
-    };
+  if (assets.length != 0) {
+    for (let i = 0; i < uniqueVendors.length; i++) {
+      vendorUsage[i] = {
+        key: i + 1,
+        category: uniqueVendors[i],
+        used: percentUsed[i],
+        free: percentFree
+      };
+    }
   }
 
   return vendorUsage;
