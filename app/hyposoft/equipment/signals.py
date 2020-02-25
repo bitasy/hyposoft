@@ -19,7 +19,7 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
     instance.datacenter = instance.rack.datacenter
     if not instance.mac_address == "":
         new = (instance.mac_address or "").lower().replace('-', '').replace('_', '').replace(':', '')
-        new = ':'.join([new[b:b+2] for b in range(0, 12, 2)])
+        new = ':'.join([new[b:b + 2] for b in range(0, 12, 2)])
         instance.mac_address = new
 
 
@@ -42,13 +42,14 @@ def set_default_npl(sender, instance, *args, **kwargs):
     else:
         if instance.name == "":
             labels = sender.objects.filter(itmodel=instance.itmodel)
-            highest = 0
+            nums = []
             for label in labels:
-                if label.name.isnumeric():
+                if label.name.isdigit():
                     digit = int(label.name[0])
-                    if digit > highest:
-                        highest = digit
-            instance.name = str(highest + 1)
+                    nums.append(digit)
+            for i in range(1, instance.itmodel.network_ports):
+                if i not in nums:
+                    instance.name = str(i)
 
 
 @receiver(pre_save, sender=PDU)
@@ -88,7 +89,7 @@ def check_connection(sender, instance, *args, **kwargs):
 
     old = NetworkPort.objects.filter(id=instance.id).first()
     if old and old.connection is not None:
-        NetworkPort.objects.filter(id=old.connection.id).update(connection=None) # Doesn't trigger pre-save signal 
+        NetworkPort.objects.filter(id=old.connection.id).update(connection=None)  # Doesn't trigger pre-save signal
 
 
 @receiver(post_save, sender=NetworkPort)
