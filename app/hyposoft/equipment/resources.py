@@ -356,4 +356,3 @@ class NetworkPortResource(resources.ModelResource):
                     if src.asset.asset_number > dest.asset.asset_number:
                         queryset = queryset.exclude(id=src.id)
         return super(NetworkPortResource, self).export(queryset, *args, **kwargs)
-
