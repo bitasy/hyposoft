@@ -23,21 +23,6 @@ function networkActions(asset, user, networkConnectedPDUs) {
   return null;
 }
 
-function decorate(op) {
-  return () => {
-    const hide = message.loading("Operation in progress...");
-    op()
-      .then(() => {
-        hide();
-        displayInfo("Success!");
-      })
-      .catch(e => {
-        hide();
-        displayError(e);
-      });
-  };
-}
-
 function preventing(op) {
   return e => {
     e.stopPropagation();
@@ -55,9 +40,9 @@ function NetworkPowerActionButtons({ asset, user }) {
 
     return (
       <Button.Group>
-        <Button onClick={preventing(decorate(on))}>On</Button>
-        <Button onClick={preventing(decorate(off))}>Off</Button>
-        <Button onClick={preventing(decorate(cycle))}>Cycle</Button>
+        <Button onClick={preventing(on)}>On</Button>
+        <Button onClick={preventing(off)}>Off</Button>
+        <Button onClick={preventing(cycle)}>Cycle</Button>
       </Button.Group>
     );
   } else {

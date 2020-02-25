@@ -18,7 +18,6 @@ export function genAsyncAction(actionType, op, args, onSuccess, onFailure) {
       },
       err => {
         dispatch({ type: FAILURE, err });
-        displayError(err);
         onFailure(err);
       }
     );
