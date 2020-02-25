@@ -37,6 +37,8 @@ export const MAX_COL = 99;
 const ROWS = range(0, MAX_ROW).map(indexToRow);
 const COLS = range(0, MAX_COL).map(v => (v + 1).toString());
 
+
+
 function isInside([r1, r2, c1, c2], r, c) {
   return r1 <= r && r <= r2 && c1 <= c && c <= c2;
 }
@@ -85,6 +87,17 @@ function RackManagementPage() {
   const filteredRacks = racks.filter(r => r.datacenter === selectedDCID);
 
   const isAdmin = useSelector(s => s.currentUser.is_staff);
+  let textCreate = "";
+  let textDelete = ""
+
+  if (isAdmin) {
+    textCreate = "Select range to create racks";
+    textDelete = "Select range to delete racks";
+  }
+  if (!isAdmin) {
+    textCreate = "Only users with admin privileges can create racks";
+    textDelete = "Only users with admin privileges can delete racks";
+  }
 
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
@@ -202,7 +215,7 @@ function RackManagementPage() {
             range={range}
           />
           <div style={{ marginTop: 16 }}>
-            <CreateTooltip isVisible={!isAdmin} tooltipText={"Only users with admin privileges can create racks"}>
+            <CreateTooltip isVisible={!isAdmin || !range} tooltipText={textCreate}>
               <Button
                 disabled={!isAdmin || !range}
                 type="primary"
@@ -212,7 +225,7 @@ function RackManagementPage() {
                 Create
               </Button>
             </CreateTooltip>
-            <CreateTooltip isVisible={!isAdmin} tooltipText={"Only users with admin privileges can delete racks"}>
+            <CreateTooltip isVisible={!isAdmin || !range} tooltipText={textDelete}>
               <Button
                 disabled={!isAdmin || selectedRacks.length === 0}
                 type="danger"
@@ -222,7 +235,7 @@ function RackManagementPage() {
                 Remove
               </Button>
             </CreateTooltip>
-            <CreateTooltip isVisible={!range} tooltipText={"Open printable rack view"}>
+            <CreateTooltip isVisible={!range} tooltipText={"Select range to open printable rack view"}>
               <Button
                 disabled={selectedRacks.length == 0}
                 type="default"
