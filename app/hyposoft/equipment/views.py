@@ -8,6 +8,8 @@ from rest_framework import filters, generics, views
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, serializers
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
 from system_log.models import ActionLog, display_name, username
 from .models import ITModel, Datacenter, Asset, Powered, PDU, Rack, NetworkPort
@@ -122,6 +124,28 @@ def switchPDU(request):
 
     process_asset(request.data['asset'], process_port)
     return Response(responses)
+
+
+@api_view()
+def checkState(request, asset_id):
+
+    networked = [False]
+    powered = [False]
+
+    def process_port(rack, port):
+        res = get_pdu(rack, port.pdu.position)
+        if res[1] < 400:
+            networked[0] = True
+            state = dict(res[0])
+            if state[port.plug_number] == "ON":
+                powered[0] = True
+
+    process_asset(asset_id, process_port)
+
+    if networked:
+        return Response("On" if powered else "Off", HTTP_200_OK)
+    else:
+        return Response("PDUs are not network controlled", 399)
 
 
 @api_view(['POST'])
