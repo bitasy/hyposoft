@@ -11,17 +11,23 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 import NetworkGraph from "./NetworkGraph";
+import RealAPI from "../../../api/API";
+import { fetchNetworkConnectedPDUs } from "../../../redux/racks/actions";
 
 function AssetDetailPage() {
   const { id } = useParams();
 
   const dispatch = useDispatch();
 
+  const [currentPower, setCurrentPower] = React.useState("Unknown");
+
   const user = useSelector(s => s.currentUser);
   const assets = useSelector(s => s.assets);
 
   React.useEffect(() => {
     dispatch(fetchAsset(id));
+    dispatch(fetchNetworkConnectedPDUs());
+    RealAPI.getPowerState(id).then(setCurrentPower);
   }, [id]);
 
   const record = assets[id];
@@ -34,6 +40,9 @@ function AssetDetailPage() {
       <div style={{ padding: "8px 0" }}>
         <span>Manage power: </span>
         <NetworkPowerActionButtons asset={record} user={user} />
+      </div>
+      <div style={{ padding: "8px 0", marginBottom: "8px" }}>
+        <span>Current power: {currentPower}</span>
       </div>
       <DataDetailForm
         record={record}

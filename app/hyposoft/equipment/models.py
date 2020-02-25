@@ -202,7 +202,7 @@ class Asset(models.Model):
         blank=True,
         max_length=17,
         validators=[
-            RegexValidator("^$|^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
+            RegexValidator("^$|^([0-9a-fA-F]{2}[:-_]{0,1}){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
     )
@@ -282,7 +282,7 @@ class NetworkPortLabel(models.Model):
     )
 
     class Meta:
-        unique_together = ['name', 'itmodel', 'special']
+        unique_together = (('name', 'itmodel'), ('itmodel', 'special'))
 
     def __str__(self):
         return '{} : {}'.format(self.name, self.itmodel)
@@ -306,6 +306,9 @@ class NetworkPort(models.Model):
 
     class Meta:
         unique_together = ['asset', 'label']
+
+    def __str__(self):
+        return '{} : {}'.format(self.asset.hostname, self.label.name)
 
 
 class Powered(models.Model):

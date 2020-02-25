@@ -8,6 +8,8 @@ from rest_framework import filters, generics, views
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, serializers
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
 from system_log.models import ActionLog, display_name, username
 from .models import ITModel, Datacenter, Asset, Powered, PDU, Rack, NetworkPort
@@ -90,11 +92,11 @@ def process_asset(asset_id, func):
 
 @api_view(['POST'])
 def switchPDU(request):
-    if request.data['state'].upper() not in ("ON", "OFF"):
+    if request.data['state'].lower() not in ("on", "off"):
         raise serializers.ValidationError(
-            "Powered state must be either ON or OFF"
+            "Powered state must be either 'on' or 'off'"
         )
-    state = request.data['state'].upper()
+    state = request.data['state'].lower()
     responses = {}
 
     def process_port(rack, port):
@@ -122,6 +124,28 @@ def switchPDU(request):
 
     process_asset(request.data['asset'], process_port)
     return Response(responses)
+
+
+@api_view()
+def checkState(request, asset_id):
+
+    networked = [False]
+    powered = [False]
+
+    def process_port(rack, port):
+        res = get_pdu(rack, port.pdu.position)
+        if res[1] < 400:
+            networked[0] = True
+            state = dict(res[0])
+            if state.get(str(port.plug_number)) == "ON":
+                powered[0] = True
+
+    process_asset(asset_id, process_port)
+
+    if networked[0]:
+        return Response("On" if powered[0] else "Off", HTTP_200_OK)
+    else:
+        return Response("PDUs are not network controlled", 399)
 
 
 @api_view(['POST'])
@@ -218,7 +242,8 @@ class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
         'mac_address',
         'owner__username',
         'owner__first_name',
-        'owner__last_name'
+        'owner__last_name',
+        'asset_number'
     ]
     ordering_fields = [
         'itmodel__vendor',
