@@ -1,18 +1,28 @@
 import { createStore, applyMiddleware } from "redux";
 import HyposoftApp from "./reducers";
 import thunk from "redux-thunk";
-import { getToken } from "../global/Session";
+
+export const DATACENTER_SESSION_KEY = "DATACENTER";
 
 // we take care of only the "big" states for now
 const initialState = {
-  sessionInfo: getToken(),
+  currentUser: null,
+  appState: {
+    dcName: sessionStorage.getItem(DATACENTER_SESSION_KEY) || "global"
+  },
   models: {},
-  instances: {},
+  assets: {},
+  datacenters: {},
   racks: {},
-  users: {}
+  users: {},
+  networkConnectedPDUs: []
 };
 
-const store = createStore(HyposoftApp, initialState, applyMiddleware(thunk));
+const store = createStore(
+  (s, a) => HyposoftApp(s || initialState, a),
+  initialState,
+  applyMiddleware(thunk)
+);
 window.store = store; // for debugging
 
 export default store;

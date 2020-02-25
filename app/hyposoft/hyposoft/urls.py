@@ -15,14 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.authtoken import views as auth_views
 from .users import UserList
+from django.conf.urls import url
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', include('frontend.urls')),
+    path('auth/', include('hypo_auth.urls')),
+    path('admin/', admin.site.urls),
     path('api/equipment/', include('equipment.urls')),
-    path('auth/', include('django.contrib.auth.urls')),
-    path('api/auth/token/', auth_views.obtain_auth_token),
-    path('api/users/UserList/', UserList.as_view())
+    path('api/users/UserList/', UserList.as_view()),
 ]
