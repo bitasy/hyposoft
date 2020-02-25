@@ -28,7 +28,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
 
   const ExtraButtons = (
     <>
-      <Tooltip placement="right" title={"Only users with admin privileges can edit a data center"}>
+      <WithTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can edit a data center"}>
           <Button
             size="small"
             shape="circle"
@@ -37,8 +37,8 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
           >
             {isEditing ? <Icon type="close" /> : <Icon type="edit" />}
           </Button>
-      </Tooltip>
-      <Tooltip placement="right" title={"Only users with admin privileges can delete a data center"}>
+      </WithTooltip>
+      <WithTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can delete a data center"}>
          <Button
              style={{ marginLeft: 4 }}
              size="small"
@@ -53,7 +53,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
          >
               <Icon type="delete" />
          </Button>
-      </Tooltip>
+      </WithTooltip>
     </>
   );
 
@@ -90,13 +90,24 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   );
 }
 
+function WithTooltip({isVisible, tooltipText, children}) {
+    const ret = isVisible ? (
+        <Tooltip placement="right" title={tooltipText}>
+            {children}
+        </Tooltip>
+    ): children;
+
+    console.log(isVisible, ret);
+    return ret;
+}
+
 function AddCard({ onCreate, disabled }) {
   return (
+      <WithTooltip isVisible={disabled} tooltipText={"Only users with admin privileges can add a data center"}>
     <Card
       style={{ padding: 0, height: "100px" }}
       bodyStyle={{ padding: 0, width: "100%", height: "100%" }}
     >
-        <Tooltip placement="right" title={"Only users with admin privileges can add a data center"}>
           <Button
             style={{ width: "100%", height: "100%" }}
             onClick={onCreate}
@@ -105,8 +116,9 @@ function AddCard({ onCreate, disabled }) {
             <Icon type="plus" />
             Add Datacenter
           </Button>
-        </Tooltip>
     </Card>
+
+      </WithTooltip>
   );
 }
 

@@ -71,8 +71,8 @@ function DataDetailForm({
         />
       ))}
       <Form.Item>
+        <WithTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
         <Button.Group style={{ width: "100%", display: "flex" }}>
-            <WithTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
               <Button
                   htmlType="submit"
                   disabled={disabled || !canUpdate}
@@ -80,7 +80,6 @@ function DataDetailForm({
               >
                 Update
               </Button>
-            </WithTooltip>
           <Button
             htmlType="button"
             type="danger"
@@ -90,6 +89,7 @@ function DataDetailForm({
             <Icon type="delete" />
           </Button>
         </Button.Group>
+          </WithTooltip>
       </Form.Item>
     </Form>
   ) : null;
