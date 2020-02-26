@@ -346,7 +346,7 @@ def getNetworkPorts(datacenter_id, filter):
                "asset_str": str(network_port.asset)
            }
            for network_port 
-           in NetworkPort.objects.filter(asset__in=asset_ids, **filter)
+           in NetworkPort.objects.filter(asset_id__in=asset_ids, **filter)
        ]
        return Response(free_network_ports)
    else: 
