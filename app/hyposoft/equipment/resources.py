@@ -341,6 +341,15 @@ class NetworkPortResource(resources.ModelResource):
     dest_hostname = fields.Field()
     dest_port = fields.Field()
 
+    def dehydrate_src_mac(self, networkport):
+        try:
+            if networkport.asset.mac_address:
+                return networkport.asset.mac_address
+            else:
+                return ''
+        except:
+            return ''
+
     def dehydrate_dest_hostname(self, networkport):
         try:
             if networkport.connection:
@@ -370,6 +379,8 @@ class NetworkPortResource(resources.ModelResource):
 
     def after_import_row(self, row, row_result, **kwargs):
         my_src_asset = Asset.objects.get(hostname=row['src_hostname'])
+        my_src_asset.mac_address = row['src_mac']
+        my_src_asset.save()
         my_src_label = NetworkPortLabel.objects.get(name=row['src_port'], itmodel=my_src_asset.itmodel)
         my_src_network_port = NetworkPort.objects.get(asset=my_src_asset, label=my_src_label)
 
