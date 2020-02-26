@@ -44,7 +44,7 @@ class AssetFilter(filters.FilterSet):
 
     class Meta:
         model = Asset
-        fields = ['itmodel__id', 'rack__rack', 'rack_position, asset_number']
+        fields = ['itmodel__id', 'rack__rack', 'rack_position', 'asset_number']
 
 
 class PoweredFilter(filters.FilterSet):
