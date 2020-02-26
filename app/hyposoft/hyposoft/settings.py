@@ -92,9 +92,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'prod',
-        'USER': 'postgres',
+        'USER': 'vcm',
         'PASSWORD': 'hyposoft',
-        'HOST': 'database-1.clf9gopmww58.us-east-1.rds.amazonaws.com',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
