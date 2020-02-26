@@ -21,6 +21,15 @@ function ModelManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Models</Typography.Title>
+
+      <div style={{ marginBottom: 8 }}>
+        <span style={{ color: "orange" }}>
+          Filters for bulk export must be set independently! Those set here will
+          not follow over.
+        </span>
+        <br />
+        <a href="/static/bulk_format_proposal.pdf">See the format here.</a>
+      </div>
       <Button
         shape="round"
         style={{ marginBottom: 8, marginRight: 8 }}

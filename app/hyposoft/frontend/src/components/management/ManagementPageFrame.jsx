@@ -154,21 +154,14 @@ function Sidebar() {
       </Menu.Item>
 
       <Menu.Item key="/logs">
-          <Icon type="bars" />
-          <span>Logs</span>
+        <Icon type="bars" />
+        <span>Logs</span>
       </Menu.Item>
 
-        {isAdmin ? (
+      {isAdmin ? (
         <Menu.Item key="/user">
           <Icon type="user" />
           Users
-        </Menu.Item>
-      ) : null}
-
-      {isAdmin ? (
-        <Menu.Item key="/import">
-          <Icon type="import" />
-          Bulk format
         </Menu.Item>
       ) : null}
     </Menu>
