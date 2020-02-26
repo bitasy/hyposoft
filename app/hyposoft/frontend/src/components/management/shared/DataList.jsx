@@ -55,7 +55,7 @@ function DataList({
 
   const [total, setTotal] = React.useState(0);
   const [limit, setLimit] = React.useState(10);
-  const [offset, setOffset] = React.useState(undefined);
+  const [offset, setOffset] = React.useState(0);
   const [data, setData] = React.useState([]);
 
   const [orderField, setOrderField] = React.useState(undefined);
@@ -84,11 +84,18 @@ function DataList({
     });
   }, [filterValues, offset, limit, isAscending, orderField]);
 
+  React.useEffect(() => {
+    setOffset(0);
+  }, [filterValues, isAscending, orderField]);
+
+  const currentPage =
+    Math.floor(offset / limit) + (offset % limit == 0 ? 1 : 0);
+
   const paginationConfig = {
     position: "top",
-    defaultPageSize: limit,
     total,
-    current: Math.floor(offset / limit) + (offset % limit == 0 ? 0 : 1),
+    pageSize: limit,
+    current: currentPage,
     onChange: (page, pageSize) => {
       const ofs = (page - 1) * pageSize;
       if (ofs != offset) {
