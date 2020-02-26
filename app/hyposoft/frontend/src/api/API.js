@@ -432,6 +432,18 @@ function getNetworkGraph(assetID) {
   return Axios.get(`api/equipment/NetworkGraph/${assetID}`).then(getData);
 }
 
+//Log API
+function getLog(username, displayName, model, identifier, page) {
+  username = username ? username : "";
+  displayName = displayName ? displayName : "";
+  model = model ? model : "";
+  identifier = identifier ? identifier : "";
+
+  const query = `log?username__iexact=${username}&display_name__contains=${displayName}&model__iexact=${model}&identifier__contains=${identifier}&page=${page}`;
+
+  return Axios.get(query).then(getData);  //returns a list
+}
+
 const RealAPI = {
   fetchCurrentUser,
   login,
@@ -475,7 +487,9 @@ const RealAPI = {
 
   getNetworkGraph,
 
-  getUsers
+  getUsers,
+
+  getLog
 };
 
 export default RealAPI;
