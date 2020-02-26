@@ -13,6 +13,7 @@ import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 import NetworkGraph from "./NetworkGraph";
 import { fetchNetworkConnectedPDUs } from "../../../redux/racks/actions";
 
+
 function AssetDetailPage() {
   const { id } = useParams();
 

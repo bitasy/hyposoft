@@ -64,11 +64,13 @@ function DataList({
   const realm = React.useRef(0);
 
   const currentUser = useSelector(s => s.currentUser);
+  const dcName = useSelector(s => s.appState.dcName);
 
   React.useEffect(() => {
     realm.current++;
     const t = realm.current;
     fetchData(
+      dcName,
       limit,
       offset,
       filterValues,
