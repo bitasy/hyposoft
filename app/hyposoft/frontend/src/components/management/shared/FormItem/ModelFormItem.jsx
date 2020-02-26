@@ -9,6 +9,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchModels } from "../../../../redux/models/actions";
 import { constructDefaultPorts } from "./NetworkPortFormItem";
+import CreateTooltip from "../../../../global/CreateTooltip";
 
 function ModelFormItem({
   form,
@@ -75,6 +76,7 @@ function ModelFormItem({
           )}
         </Col>
         <Col span={2}>
+          <CreateTooltip isVisible={true} tooltipText={"View model details"}>
           <Button
             size="small"
             shape="circle"
@@ -84,6 +86,7 @@ function ModelFormItem({
           >
             <Icon type="link" />
           </Button>
+        </CreateTooltip>
         </Col>
       </Row>
     </Form.Item>

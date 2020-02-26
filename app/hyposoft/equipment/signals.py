@@ -1,4 +1,3 @@
-from django.db.models import Max
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from .models import ITModel, Asset, Powered, NetworkPortLabel, Rack, PDU, NetworkPort
@@ -8,9 +7,12 @@ from rest_framework import serializers
 
 @receiver(pre_save, sender=ITModel)
 def check_deployed_assets(sender, instance, *args, **kwargs):
+    if instance.asset_set.count() == 0:
+        return
+
     def throw():
         raise serializers.ValidationError(
-            "Cannot modify interconnected ITModel attributes while instances are deployed."
+            "Cannot modify interconnected ITModel attributes while assets are deployed."
         )
 
     try:
@@ -67,12 +69,16 @@ def set_default_npl(sender, instance, *args, **kwargs):
             for i in range(1, instance.itmodel.network_ports):
                 if i not in nums:
                     instance.name = str(i)
+                    break
 
 
 @receiver(pre_save, sender=PDU)
 def set_connected(sender, instance, *args, **kwargs):
-    response = get_pdu(instance.rack.rack, instance.position)
-    instance.networked = response[1] < 400
+    if instance.rack.datacenter.abbr == 'rtp1':
+        response = get_pdu(instance.rack.rack, instance.position)
+        instance.networked = response[1] < 400
+    else:
+        instance.networked = False
 
 
 @receiver(post_save, sender=Rack)

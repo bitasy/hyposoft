@@ -34,8 +34,11 @@ function AssetManagementPage() {
 
       <div style={{ marginBottom: 8 }}>
         <span style={{ color: "orange" }}>
-          Filters don't transfer to Export!!
+          Filters for bulk export must be set independently! Those set here will
+          not follow over.
         </span>
+        <br />
+        <a href="/static/bulk_format_proposal.pdf">See the format here.</a>
       </div>
 
       <div>
