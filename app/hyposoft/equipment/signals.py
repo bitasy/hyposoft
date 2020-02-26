@@ -67,6 +67,7 @@ def set_default_npl(sender, instance, *args, **kwargs):
             for i in range(1, instance.itmodel.network_ports):
                 if i not in nums:
                     instance.name = str(i)
+                    break
 
 
 @receiver(pre_save, sender=PDU)
@@ -76,6 +77,7 @@ def set_connected(sender, instance, *args, **kwargs):
         instance.networked = response[1] < 400
     else:
         instance.networked = False
+
 
 @receiver(post_save, sender=Rack)
 def add_PDUs(sender, instance, created, *args, **kwargs):
