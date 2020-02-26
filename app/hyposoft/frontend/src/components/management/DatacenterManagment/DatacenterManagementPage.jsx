@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, List, Card, Input, Button, Icon, Tooltip } from "antd";
+import { Typography, List, Card, Input, Button, Icon } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import {
   updateDatacenter,

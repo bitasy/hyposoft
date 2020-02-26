@@ -29,14 +29,16 @@ function getModels() {
     .then(lst => lst.map(translateModel));
 }
 
-function getPaginatedModels(limit, offset, extra, ordering, direction) {
+function getPaginatedModels(dcName, limit, offset, extra, ordering, direction) {
+  const headers = makeHeaders(dcName);
   return Axios.get("api/equipment/ITModelFilter", {
     params: {
       limit,
       offset,
       ...parseFilters(extra),
       ...parseOrderDirection(ordering, direction)
-    }
+    },
+    headers
   })
     .then(getData)
     .then(r => {
@@ -120,14 +122,16 @@ function getAssets(dcName) {
     .then(lst => lst.map(translate));
 }
 
-function getPaginatedAssets(limit, offset, extra, ordering, direction) {
+function getPaginatedAssets(dcName, limit, offset, extra, ordering, direction) {
+  const headers = makeHeaders(dcName);
   return Axios.get("api/equipment/AssetFilter", {
     params: {
       limit,
       offset,
       ...parseFilters(extra),
       ...parseOrderDirection(ordering, direction)
-    }
+    },
+    headers
   })
     .then(getData)
     .then(r => {
@@ -510,6 +514,18 @@ function parseFilters(filters) {
   };
 }
 
+//Log API
+function getLog(username, displayName, model, identifier, page) {
+  username = username ? username : "";
+  displayName = displayName ? displayName : "";
+  model = model ? model : "";
+  identifier = identifier ? identifier : "";
+
+  const query = `log?username__iexact=${username}&display_name__contains=${displayName}&model__iexact=${model}&identifier__contains=${identifier}&page=${page}`;
+
+  return Axios.get(query).then(getData); //returns a list
+}
+
 const RealAPI = {
   fetchCurrentUser,
   login,
@@ -555,7 +571,9 @@ const RealAPI = {
 
   getNetworkGraph,
 
-  getUsers
+  getUsers,
+
+  getLog
 };
 
 export default RealAPI;

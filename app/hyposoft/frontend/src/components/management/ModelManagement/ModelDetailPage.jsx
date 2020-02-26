@@ -18,6 +18,7 @@ function ModelDetailPage() {
   const dispatch = useDispatch();
   const history = useHistory();
   const models = useSelector(s => s.models);
+  const dcName = useSelector(s => s.appState.dcName);
   const assets = useSelector(s =>
     Object.values(s.assets).filter(inst => inst.model.id == id)
   );
@@ -47,7 +48,7 @@ function ModelDetailPage() {
         columns={assetColumns}
         filters={[]}
         fetchData={(limit, offset) =>
-          RealAPI.getPaginatedAssets(limit, offset, { itmodel__id: id })
+          RealAPI.getPaginatedAssets(dcName, limit, offset, { itmodel__id: id })
         }
         data={assets}
         onSelect={id => history.push(`/assets/${id}`)}
