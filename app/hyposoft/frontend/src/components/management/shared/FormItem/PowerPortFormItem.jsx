@@ -166,10 +166,6 @@ const Input = React.forwardRef(
 
     return (
       <div ref={ref}>
-        <p style={{ color: "orange" }}>
-          When switching racks, clear these out first, update, and then change
-          these fields
-        </p>
         <Select
           showSearch
           mode="multiple"

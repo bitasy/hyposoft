@@ -31,7 +31,8 @@ function NetworkPortFormItem({
   originalValue,
   currentRecord,
   onChange,
-  disabled
+  disabled,
+  showPorts
 }) {
   const initialValue = originalValue || schemaFrag.defaultValue;
 
@@ -54,7 +55,7 @@ function NetworkPortFormItem({
   if (!model || !dcID) return null;
 
   return (
-    <Form.Item label={schemaFrag.displayName} {...FORM_ITEM_LAYOUT}>
+    <Form.Item label={schemaFrag.displayName} {...FORM_ITEM_LAYOUT} hidden={!showPorts}>
       {form.getFieldDecorator(schemaFrag.fieldName, {
         initialValue: actualInitialValue
       })(
