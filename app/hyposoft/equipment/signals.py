@@ -1,4 +1,3 @@
-from django.db.models import Max
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from .models import ITModel, Asset, Powered, NetworkPortLabel, Rack, PDU, NetworkPort
@@ -8,9 +7,12 @@ from rest_framework import serializers
 
 @receiver(pre_save, sender=ITModel)
 def check_deployed_assets(sender, instance, *args, **kwargs):
+    if instance.asset_set.count() == 0:
+        return
+
     def throw():
         raise serializers.ValidationError(
-            "Cannot modify interconnected ITModel attributes while instances are deployed."
+            "Cannot modify interconnected ITModel attributes while assets are deployed."
         )
 
     try:

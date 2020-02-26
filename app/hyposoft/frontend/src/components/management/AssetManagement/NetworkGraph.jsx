@@ -46,7 +46,7 @@ function process(assetID, rawGraph) {
     return {
       id: v.id,
       label: (v.hostname || v.asset_number) + (isMain ? " ☆" : ""),
-      color: isMain ? MAIN_COLOR : OTHER_COLOR
+      color: v.itmodel["display_color"]
     };
   }
 
