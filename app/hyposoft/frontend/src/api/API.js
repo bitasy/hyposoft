@@ -29,14 +29,16 @@ function getModels() {
     .then(lst => lst.map(translateModel));
 }
 
-function getPaginatedModels(limit, offset, extra, ordering, direction) {
+function getPaginatedModels(dcName, limit, offset, extra, ordering, direction) {
+  const headers = makeHeaders(dcName);
   return Axios.get("api/equipment/ITModelFilter", {
     params: {
       limit,
       offset,
       ...parseFilters(extra),
       ...parseOrderDirection(ordering, direction)
-    }
+    },
+    headers
   })
     .then(getData)
     .then(r => {
@@ -120,14 +122,16 @@ function getAssets(dcName) {
     .then(lst => lst.map(translate));
 }
 
-function getPaginatedAssets(limit, offset, extra, ordering, direction) {
+function getPaginatedAssets(dcName, limit, offset, extra, ordering, direction) {
+  const headers = makeHeaders(dcName);
   return Axios.get("api/equipment/AssetFilter", {
     params: {
       limit,
       offset,
       ...parseFilters(extra),
       ...parseOrderDirection(ordering, direction)
-    }
+    },
+    headers
   })
     .then(getData)
     .then(r => {
