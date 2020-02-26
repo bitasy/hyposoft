@@ -10,7 +10,9 @@ function fetchCurrentUser() {
 }
 
 function login(username, password) {
-  return Axios.post("auth/login", { username, password }).then(getData);
+  return withLoading(() =>
+    Axios.post("auth/login", { username, password }).then(getData)
+  );
 }
 
 function logout() {
