@@ -27,9 +27,9 @@ class ActionLog(models.Model):
     }
 
     class Action(models.TextChoices):
-        CREATE = 'C', 'Create'
-        UPDATE = 'U', 'Update'
-        DESTROY = 'D', 'Destroy'
+        CREATE = 'Create', 'Create'
+        UPDATE = 'Update', 'Update'
+        DESTROY = 'Destroy', 'Destroy'
 
     action = models.CharField(
         choices=Action.choices,
