@@ -10,7 +10,9 @@ function fetchCurrentUser() {
 }
 
 function login(username, password) {
-  return Axios.post("auth/login", { username, password }).then(getData);
+  return withLoading(() =>
+    Axios.post("auth/login", { username, password }).then(getData)
+  );
 }
 
 function logout() {
@@ -449,7 +451,7 @@ function getNetworkGraph(assetID) {
 function makeHeaders(dcName) {
   if (dcName && dcName !== GLOBAL_ABBR) {
     return {
-      HTTP_X_DATACENTER: dcName
+      "X-DATACENTER": dcName
     };
   } else {
     return {};
