@@ -42,7 +42,8 @@ function DataDetailForm({
     }
   }
 
-  console.log(newRecord);
+  console.log("newRecord", newRecord);
+  console.log("record", record);
 
   return record && newRecord ? (
     <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
@@ -57,28 +58,29 @@ function DataDetailForm({
             setNewRecord(Object.assign(newRecord, changeSet));
           }}
           disabled={disabled}
+          showPorts={newRecord["network_ports"].length > 0}
         />
       ))}
       <Form.Item>
         <CreateTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
-        <Button.Group style={{ width: "100%", display: "flex" }}>
-              <Button
-                  htmlType="submit"
-                  disabled={disabled || !canUpdate}
-                  style={{ flexGrow: 8 }}
-              >
-                Update
-              </Button>
-          <Button
-            htmlType="button"
-            type="danger"
-            onClick={handleDelete}
-            disabled={disabled}
-          >
-            <Icon type="delete" />
-          </Button>
-        </Button.Group>
-          </CreateTooltip>
+          <Button.Group style={{ width: "100%", display: "flex" }}>
+            <Button
+                    htmlType="submit"
+                    disabled={disabled || !canUpdate}
+                    style={{ flexGrow: 8 }}
+                >
+                  Update
+            </Button>
+            <Button
+              htmlType="button"
+              type="danger"
+              onClick={handleDelete}
+              disabled={disabled}
+            >
+              <Icon type="delete" />
+            </Button>
+          </Button.Group>
+        </CreateTooltip>
       </Form.Item>
     </Form>
   ) : null;

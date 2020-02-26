@@ -72,7 +72,11 @@ function ReportManagementPage() {
       </div>
     </div>
   ) : (
-    <Typography.Title level={4}>No rack space used</Typography.Title>
+    <div style={{ marginBottom: 8 }}>
+      <span style={{ color: "orange" }}>
+          No rack space used!
+      </span>
+    </div>
   );
 }
 
