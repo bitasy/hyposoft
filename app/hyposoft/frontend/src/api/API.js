@@ -451,7 +451,7 @@ function getNetworkGraph(assetID) {
 function makeHeaders(dcName) {
   if (dcName && dcName !== GLOBAL_ABBR) {
     return {
-      HTTP_X_DATACENTER: dcName
+      "X-DATACENTER": dcName
     };
   } else {
     return {};
