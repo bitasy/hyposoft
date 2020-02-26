@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from equipment.models import Asset
+from equipment.models import *
 
 
 def username(user):
@@ -14,6 +14,18 @@ def display_name(user):
 
 
 class ActionLog(models.Model):
+
+    MODELS = {
+        'Datacenter': Datacenter,
+        'ITModel': ITModel,
+        'Rack': Rack,
+        'PDU': PDU,
+        'Asset': Asset,
+        'NetworkPortLabel': NetworkPortLabel,
+        'NetworkPort': NetworkPort,
+        'Powered': Powered,
+    }
+
     class Action(models.TextChoices):
         CREATE = 'C', 'Create'
         UPDATE = 'U', 'Update'
@@ -53,8 +65,9 @@ class ActionLog(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if self.model == 'Asset' and not self.action == self.Action.DESTROY:
+        if self.model == 'Asset':
             asset = Asset.objects.get(self.instance_id)
             self.identifier = asset.hostname if asset.hostname is not None else "#" + str(asset.asset_number)
         else:
-            self.identifier = self.__str__()
+            self.identifier = self.MODELS[self.model].objects.get(id=self.instance_id).__str__()
+        super(ActionLog, self).save(*args, **kwargs)

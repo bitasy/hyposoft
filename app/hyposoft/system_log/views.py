@@ -2,7 +2,7 @@ from django_filters import rest_framework as pkg_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, filters
 
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework.pagination import PageNumberPagination
 
 import copy
@@ -60,8 +60,12 @@ class DeleteAndLogMixin(DestroyModelMixin):
         entry = ActionLog.objects.create(
             **create_dict(self, ActionLog.Action.DESTROY, instance.id),
         )
-        super(DeleteAndLogMixin, self).perform_destroy(instance)
         entry.save()
+        try:
+            super(DeleteAndLogMixin, self).perform_destroy(instance)
+        except serializers.ValidationError as e:
+            entry.delete()
+            raise e
 
 
 class LogView(generics.ListAPIView):
