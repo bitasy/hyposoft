@@ -41,6 +41,15 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
         instance.mac_address = new
 
 
+@receiver(post_save, sender=Asset)
+def set_default_np(sender, instance, *args, **kwargs):
+    labels = instance.itmodel.networkportlabel_set
+    ports = instance.networkport_set
+    for label in labels.all():
+        if not ports.filter(label=label).exists():
+            NetworkPort.objects.create(asset=instance, label=label, connection=None).save()
+
+
 @receiver(pre_save, sender=Powered)
 def check_pdu(sender, instance, *args, **kwargs):
     num_powered = len(Powered.objects.filter(asset=instance.asset))

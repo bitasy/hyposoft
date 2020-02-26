@@ -13,6 +13,7 @@ function NullableRangeFilter({ filterDef, defaultValue, onChange, data }) {
   return (
     <div>
       <Slider
+        key={data}
         range
         {...filterDef}
         defaultValue={defaultValue[0]}
