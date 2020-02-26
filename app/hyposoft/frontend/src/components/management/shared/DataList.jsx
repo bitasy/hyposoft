@@ -82,7 +82,7 @@ function DataList({
         setTotal(r.count);
       }
     });
-  }, [filterValues, offset, limit, isAscending, orderField]);
+  }, [dcName, filterValues, offset, limit, isAscending, orderField]);
 
   React.useEffect(() => {
     setOffset(0);
