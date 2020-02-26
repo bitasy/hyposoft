@@ -46,6 +46,7 @@ class ActionLog(models.Model):
     )
     instance_id = models.IntegerField()
     identifier = models.CharField(
+        blank=True,
         max_length=128
     )
     field_changed = models.CharField(
