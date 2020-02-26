@@ -4,30 +4,6 @@ import { message } from "antd";
 import { displayError } from "../global/message";
 export const GLOBAL_ABBR = "global";
 
-function makeHeaders(dcName) {
-  if (dcName && dcName !== GLOBAL_ABBR) {
-    return {
-      "X-DATACENTER": dcName
-    };
-  } else {
-    return {};
-  }
-}
-
-async function withLoading(op) {
-  const handle = message.loading("Action in progress...", 0);
-  try {
-    const res = await op();
-    message.success("Success!");
-    handle();
-    return res;
-  } catch (e) {
-    displayError(e);
-    handle();
-    return e;
-  }
-}
-
 // Auth APIs
 function fetchCurrentUser() {
   return Axios.get("auth/current_user").then(getData);
@@ -51,6 +27,22 @@ function getModels() {
   return Axios.get("api/equipment/ITModelList")
     .then(getData)
     .then(lst => lst.map(translateModel));
+}
+
+function getPaginatedModels(limit, offset, extra, ordering, direction) {
+  return Axios.get("api/equipment/ITModelFilter", {
+    params: {
+      limit,
+      offset,
+      ...parseFilters(extra),
+      ...parseOrderDirection(ordering, direction)
+    }
+  })
+    .then(getData)
+    .then(r => {
+      r.results = r.results.map(translateModel);
+      return r;
+    });
 }
 
 function getModel(id) {
@@ -125,7 +117,23 @@ function getAssets(dcName) {
   const headers = makeHeaders(dcName);
   return Axios.get("api/equipment/AssetList", { headers })
     .then(getData)
-    .then(assets => assets.map(translate));
+    .then(lst => lst.map(translate));
+}
+
+function getPaginatedAssets(limit, offset, extra, ordering, direction) {
+  return Axios.get("api/equipment/AssetFilter", {
+    params: {
+      limit,
+      offset,
+      ...parseFilters(extra),
+      ...parseOrderDirection(ordering, direction)
+    }
+  })
+    .then(getData)
+    .then(r => {
+      r.results = r.results.map(translate);
+      return r;
+    });
 }
 
 function getAsset(id) {
@@ -432,18 +440,86 @@ function getNetworkGraph(assetID) {
   return Axios.get(`api/equipment/NetworkGraph/${assetID}`).then(getData);
 }
 
+// utility functions
+
+function makeHeaders(dcName) {
+  if (dcName && dcName !== GLOBAL_ABBR) {
+    return {
+      HTTP_X_DATACENTER: dcName
+    };
+  } else {
+    return {};
+  }
+}
+
+async function withLoading(op) {
+  const handle = message.loading("Action in progress...", 0);
+  try {
+    const res = await op();
+    message.success("Success!");
+    handle();
+    return res;
+  } catch (e) {
+    displayError(e);
+    handle();
+    return e;
+  }
+}
+
+function parseOrderDirection(ordering, direction) {
+  if (ordering) {
+    return { ordering: direction + ordering };
+  } else {
+    return {};
+  }
+}
+
+function parseFilters(filters) {
+  const ranges = Object.entries(filters)
+    .filter(
+      ([, f]) => Array.isArray(f) && f.length == 2 && !Array.isArray(f[0])
+    )
+    .reduce((acc, [fieldName, [min, max]]) => {
+      acc[`${fieldName}_min`] = min;
+      acc[`${fieldName}_max`] = max;
+      return acc;
+    }, {});
+
+  const nullableRanges = Object.entries(filters)
+    .filter(([, f]) => Array.isArray(f) && f.length == 2 && Array.isArray(f[0]))
+    .reduce((acc, [fieldName, [[min, max], includeNull]]) => {
+      acc[`${fieldName}`] = `${min},${max},${includeNull}`;
+      return acc;
+    }, {});
+
+  const values = Object.entries(filters)
+    .filter(([, f]) => !Array.isArray(f))
+    .reduce((acc, [fieldName, v]) => {
+      acc[`${fieldName}`] = v;
+      return acc;
+    }, {});
+
+  return {
+    ...ranges,
+    ...nullableRanges,
+    ...values
+  };
+}
+
 const RealAPI = {
   fetchCurrentUser,
   login,
   logout,
 
   getModels,
+  getPaginatedModels,
   getModel,
   createModel,
   updateModel,
   deleteModel,
 
   getAssets,
+  getPaginatedAssets,
   getAsset,
   createAsset,
   updateAsset,

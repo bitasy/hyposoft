@@ -60,6 +60,7 @@ class AssetSerializer(serializers.ModelSerializer):
             for powered 
             in Powered.objects.filter(asset=asset.id)
         ]
+        response['dcName'] = asset.datacenter.name
         response['network_ports'] = [
             {
                 "id": network_port.id,

@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  modelKeywordMatch,
-  modelToString
-} from "../ModelManagement/ModelSchema";
-import { toIndex } from "../RackManagement/GridUtils";
+import { modelToString } from "../ModelManagement/ModelSchema";
 import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 
 function strcmp(a, b) {
@@ -12,7 +8,7 @@ function strcmp(a, b) {
 }
 
 function assetToLocation(asset) {
-  return `${asset.rack.rack} U${asset.rack_position}`;
+  return `${asset.dcName} ${asset.rack.rack} U${asset.rack_position}`;
 }
 
 export const assetSchema = [
@@ -101,75 +97,57 @@ export const assetColumns = [
   {
     title: "Model",
     key: "model",
+    api_field: "itmodel__vendor",
     render: r => modelToString(r.model),
-    sorter: (a, b) => strcmp(modelToString(a.model), modelToString(b.model)),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Host",
     key: "host",
+    api_field: "hostname",
     render: r => r.hostname,
-    sorter: (a, b) => strcmp(a.hostname, b.hostname),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Location",
     key: "location",
+    api_field: "datacenter__abbr",
     render: r => assetToLocation(r),
-    sorter: (a, b) => strcmp(assetToLocation(a) - assetToLocation(b)),
-    defaultSortOrder: "ascend",
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Owner",
     key: "owner",
+    api_field: "owner",
     render: r => r.owner.username,
-    sorter: (a, b) => strcmp(a.owner.username - b.owner.username),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Power",
     key: "actions",
+    sorter: true,
     render: (r, user) => {
       return <NetworkPowerActionButtons asset={r} user={user} />;
-    },
-    sorter: null,
-    sortDirections: []
+    }
   }
 ];
-
-function assetKeywordMatch(value, record) {
-  const lowercase = value.toLowerCase();
-  return assetSchema
-    .filter(frag => frag.type === "string" && record[frag.fieldName])
-    .map(frag => (record[frag.fieldName] || "").toLowerCase())
-    .some(str => str.includes(lowercase));
-}
-
-function isInside([minR, maxR, minC, maxC], asset) {
-  const [r, c] = toIndex(asset.rack.rack);
-  return minR <= r && r <= maxR && minC <= c && c <= maxC;
-}
 
 export const assetFilters = [
   {
     title: "Keyword Search (Ignoring case)",
-    fieldName: "keyword",
+    fieldName: "search",
     type: "text",
-    extractDefaultValue: () => "",
-    shouldInclude: (value, record) => {
-      return (
-        modelKeywordMatch(value, record.model) ||
-        assetKeywordMatch(value, record)
-      );
-    }
+    extractDefaultValue: () => ""
   },
   {
     title: "Rack",
-    fieldName: "rack",
+    fieldName: "rack__rack",
     type: "rack-range",
-    extractDefaultValue: records => null,
-    shouldInclude: (value, record) => isInside(value, record)
+    extractDefaultValue: () => ["A01", "Z99"]
   },
   {
     title: "Rack Position",
@@ -179,11 +157,6 @@ export const assetFilters = [
     max: 42,
     marks: { 1: "1", 42: "42" },
     step: 1,
-    extractDefaultValue: records => [
-      Math.min(...records.map(r => r.rack_position)),
-      Math.max(...records.map(r => r.rack_position))
-    ],
-    shouldInclude: ([l, r], record) =>
-      l <= record.rack_position && record.rack_position <= r
+    extractDefaultValue: () => [1, 42]
   }
 ];
