@@ -33,7 +33,7 @@ class FilterByDatacenterMixin(object):
         if datacenter is not None and len(datacenter) > 0:
             if not Datacenter.objects.filter(abbr=datacenter).exists():
                 raise serializers.ValidationError("Datacenter does not exist")
-            return queryset.filter(datacenter=int(datacenter))
+            return queryset.filter(datacenter__abbr=datacenter)
         return queryset
 
 

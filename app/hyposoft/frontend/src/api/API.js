@@ -10,7 +10,9 @@ function fetchCurrentUser() {
 }
 
 function login(username, password) {
-  return Axios.post("auth/login", { username, password }).then(getData);
+  return withThrowingLoading(() =>
+    Axios.post("auth/login", { username, password }).then(getData)
+  );
 }
 
 function logout() {
@@ -449,7 +451,7 @@ function getNetworkGraph(assetID) {
 function makeHeaders(dcName) {
   if (dcName && dcName !== GLOBAL_ABBR) {
     return {
-      HTTP_X_DATACENTER: dcName
+      "X-DATACENTER": dcName
     };
   } else {
     return {};
@@ -467,6 +469,19 @@ async function withLoading(op) {
     displayError(e);
     handle();
     return e;
+  }
+}
+
+async function withThrowingLoading(op) {
+  const handle = message.loading("Action in progress...", 0);
+  try {
+    const res = await op();
+    message.success("Success!");
+    handle();
+    return res;
+  } catch (e) {
+    displayError(e);
+    throw e;
   }
 }
 
