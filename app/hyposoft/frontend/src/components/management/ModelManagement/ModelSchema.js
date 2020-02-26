@@ -133,6 +133,14 @@ export const modelColumns = [
     sortDirections: ["ascend", "descend"]
   },
   {
+    title: "Network Ports",
+    key: "network_ports",
+    api_field: "network_ports",
+    render: s => (s.network_ports || "").toString(),
+    sorter: true,
+    sortDirections: ["ascend", "descend"]
+  },
+  {
     title: "Power Ports",
     key: "power_ports",
     api_field: "power_ports",
@@ -192,9 +200,21 @@ export const modelFilters = [
     extractDefaultValue: () => [1, 42]
   },
   {
-    title: "# of power ports",
+    title: "# of Network Ports",
+    fieldName: "network_ports",
+    //type: "nullable-range",
+    type: "range",
+    min: 0,
+    max: 100,
+    marks: { 0: "0", 100: "100" },
+    step: 10,
+    extractDefaultValue: () => [[0, 100], true]
+  },
+  {
+    title: "# of Power Ports",
     fieldName: "power_ports",
-    type: "nullable-range",
+    //type: "nullable-range",
+    type: "range",
     min: 0,
     max: 10,
     marks: { 0: "0", 10: "10" },
