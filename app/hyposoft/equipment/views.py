@@ -248,11 +248,12 @@ class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
         'asset_number'
     ]
     ordering_fields = [
-        'itmodel__vendor',
-        'itmodel__model_number',
+        'itmodel__vendor', #
+        'itmodel__model_number', # how do I comebine these
         'hostname',
-        'rack__rack',
-        'rack_position',
+        'datacenter__abbr', #
+        'rack__rack', #
+        'rack_position', # how do I combine these
         'owner'
     ]
 

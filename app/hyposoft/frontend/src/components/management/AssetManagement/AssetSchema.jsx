@@ -97,40 +97,42 @@ export const assetColumns = [
   {
     title: "Model",
     key: "model",
+    api_field: "itmodel__vendor",
     render: r => modelToString(r.model),
-    sorter: (a, b) => strcmp(modelToString(a.model), modelToString(b.model)),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Host",
     key: "host",
+    api_field: "hostname",
     render: r => r.hostname,
-    sorter: (a, b) => strcmp(a.hostname, b.hostname),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Location",
     key: "location",
+    api_field: "datacenter__abbr",
     render: r => assetToLocation(r),
-    sorter: (a, b) => strcmp(assetToLocation(a) - assetToLocation(b)),
-    defaultSortOrder: "ascend",
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Owner",
     key: "owner",
+    api_field: "owner",
     render: r => r.owner.username,
-    sorter: (a, b) => strcmp(a.owner.username - b.owner.username),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Power",
     key: "actions",
+    sorter: true,
     render: (r, user) => {
       return <NetworkPowerActionButtons asset={r} user={user} />;
-    },
-    sorter: null,
-    sortDirections: []
+    }
   }
 ];
 

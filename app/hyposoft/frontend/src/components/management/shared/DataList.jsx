@@ -49,7 +49,6 @@ function DataList({
 }) {
   const defaults = getDefaults(filters);
   const [filterValues, setFilterValues] = React.useState(defaults);
-  console.log(filterValues);
   React.useEffect(() => {
     setFilterValues(getDefaults(filters));
   }, []);
@@ -59,6 +58,9 @@ function DataList({
   const [offset, setOffset] = React.useState(undefined);
   const [data, setData] = React.useState([]);
 
+  const [orderField, setOrderField] = React.useState(undefined);
+  const [isAscending, setIsAscending] = React.useState(true);
+
   const realm = React.useRef(0);
 
   const currentUser = useSelector(s => s.currentUser);
@@ -66,13 +68,19 @@ function DataList({
   React.useEffect(() => {
     realm.current++;
     const t = realm.current;
-    fetchData(limit, offset, filterValues).then(r => {
+    fetchData(
+      limit,
+      offset,
+      filterValues,
+      orderField,
+      isAscending ? "" : "-"
+    ).then(r => {
       if (t == realm.current) {
         setData(r.results);
         setTotal(r.count);
       }
     });
-  }, [filterValues, offset, limit]);
+  }, [filterValues, offset, limit, isAscending, orderField]);
 
   const paginationConfig = {
     position: "top",
@@ -115,7 +123,7 @@ function DataList({
           </Collapse.Panel>
         </Collapse>
       ) : null}
-      <Pagination {...paginationConfig} style={{ marginTop: 8 }} />
+      <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <Table
         rowKey={r => r.id}
         columns={decorateColumns(columns, currentUser)}
@@ -124,6 +132,15 @@ function DataList({
           return {
             onClick: () => onSelect(r.id)
           };
+        }}
+        onChange={(p, f, sorters) => {
+          const { column, order } = sorters;
+          if (order) {
+            setIsAscending(order === "ascend");
+            setOrderField(column.api_field);
+          } else {
+            setOrderField(null);
+          }
         }}
         pagination={false}
         className="pointer-on-hover"

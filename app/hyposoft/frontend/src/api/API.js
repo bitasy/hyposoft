@@ -29,9 +29,14 @@ function getModels() {
     .then(lst => lst.map(translateModel));
 }
 
-function getPaginatedModels(limit, offset, extra) {
+function getPaginatedModels(limit, offset, extra, ordering, direction) {
   return Axios.get("api/equipment/ITModelFilter", {
-    params: { limit, offset, ...parseFilters(extra) }
+    params: {
+      limit,
+      offset,
+      ...parseFilters(extra),
+      ...parseOrderDirection(ordering, direction)
+    }
   })
     .then(getData)
     .then(r => {
@@ -115,9 +120,14 @@ function getAssets(dcName) {
     .then(lst => lst.map(translate));
 }
 
-function getPaginatedAssets(limit, offset, extra) {
+function getPaginatedAssets(limit, offset, extra, ordering, direction) {
   return Axios.get("api/equipment/AssetFilter", {
-    params: { limit, offset, ...parseFilters(extra) }
+    params: {
+      limit,
+      offset,
+      ...parseFilters(extra),
+      ...parseOrderDirection(ordering, direction)
+    }
   })
     .then(getData)
     .then(r => {
@@ -453,6 +463,14 @@ async function withLoading(op) {
     displayError(e);
     handle();
     return e;
+  }
+}
+
+function parseOrderDirection(ordering, direction) {
+  if (ordering) {
+    return { ordering: direction + ordering };
+  } else {
+    return {};
   }
 }
 

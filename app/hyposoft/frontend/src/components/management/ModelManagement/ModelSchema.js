@@ -103,58 +103,65 @@ export const modelColumns = [
   {
     title: "Vendor",
     key: "vendor",
+    api_field: "vendor",
     render: r => r.vendor,
-    sorter: (a, b) => strcmp(a.vendor, b.vendor),
-    defaultSortOrder: "ascend",
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Model #",
     key: "model_number",
+    api_field: "model_number",
     render: r => r.model_number,
-    sorter: (a, b) => strcmp(a.model_number, b.model_number),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Height",
     key: "height",
+    api_field: "height",
     render: s => s.height,
-    sorter: (a, b) => a.height - b.height,
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Display Color",
     key: "display_color",
+    api_field: "display_color",
     render: s => s.display_color,
-    sorter: (a, b) => strcmp(a.display_color, b.display_color),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Power Ports",
     key: "power_ports",
+    api_field: "power_ports",
     render: s => (s.power_ports || "").toString(),
-    sorter: (a, b) => (a.power_ports || 0) - (b.power_ports || 0),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "CPU",
     key: "cpu",
+    api_field: "cpu",
     render: s => s.cpu,
-    sorter: (a, b) => strcmp(a.cpu, b.cpu),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Memory",
     key: "memory",
+    api_field: "memory",
     render: s => (s.memory || "").toString(),
-    sorter: (a, b) => (a.memory || 0) - (b.memory || 0),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Storage",
     key: "storage",
+    api_field: "storage",
     render: s => s.storage,
-    sorter: (a, b) => strcmp(a.storage, b.storage),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   }
 ];
