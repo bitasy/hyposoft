@@ -62,7 +62,7 @@ function DataDetailForm({
         />
       ))}
       <Form.Item>
-        <CreateTooltip isVisible={disabled || !canUpdate} tooltipText={"test"}>
+        <CreateTooltip isVisible={disabled || !canUpdate} tooltipText={disabled ? "Not Allowed" : "No Changes"}>
           <Button.Group style={{ width: "100%", display: "flex" }}>
             <Button
                     htmlType="submit"
