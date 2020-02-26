@@ -38,6 +38,7 @@ async function createLogArray(username, displayName, identifier, model, page) {
     };
 }
 
+// log table headers
 const columns = [
     {
         title: 'ID',
@@ -74,7 +75,7 @@ const columns = [
         dataIndex: 'identifier',
         key: 'identifier',
         render: (text, record) => (MAPPING[record.model] ? (
-            <a href={`/#/${MAPPING[record.model]}/${text}`}>{text}</a>
+            <a href={`/#/${MAPPING[record.model]}/${record.instance_id}`}>{text}</a>
         ): text),
     },
     {
