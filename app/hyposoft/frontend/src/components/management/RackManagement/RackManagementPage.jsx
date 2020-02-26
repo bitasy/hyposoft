@@ -37,8 +37,6 @@ export const MAX_COL = 99;
 const ROWS = range(0, MAX_ROW).map(indexToRow);
 const COLS = range(0, MAX_COL).map(v => (v + 1).toString());
 
-
-
 function isInside([r1, r2, c1, c2], r, c) {
   return r1 <= r && r <= r2 && c1 <= c && c <= c2;
 }
@@ -88,7 +86,7 @@ function RackManagementPage() {
 
   const isAdmin = useSelector(s => s.currentUser.is_staff);
   let textCreate = "";
-  let textDelete = ""
+  let textDelete = "";
 
   if (isAdmin) {
     textCreate = "Select range to create racks";
@@ -189,21 +187,27 @@ function RackManagementPage() {
 
   const colorMap = createColorMap();
 
+  console.log(dcName);
+
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
       <span>Datacenter: </span>
-      <Select
-        value={selectedDCName}
-        onChange={setSelectedDCName}
-        style={{ width: 150 }}
-      >
-        {Object.values(datacenters).map(ds => (
-          <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
-            {`${ds.name} (${ds.abbr})`}
-          </Option>
-        ))}
-      </Select>
+      {dcName === GLOBAL_ABBR ? (
+        <Select
+          value={selectedDCName}
+          onChange={setSelectedDCName}
+          style={{ width: 150 }}
+        >
+          {Object.values(datacenters).map(ds => (
+            <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
+              {`${ds.name} (${ds.abbr})`}
+            </Option>
+          ))}
+        </Select>
+      ) : (
+        <span>{dcName}</span>
+      )}
       {selectedDCName ? (
         <>
           <Legend />
@@ -215,7 +219,10 @@ function RackManagementPage() {
             range={range}
           />
           <div style={{ marginTop: 16 }}>
-            <CreateTooltip isVisible={!isAdmin || !range} tooltipText={textCreate}>
+            <CreateTooltip
+              isVisible={!isAdmin || !range}
+              tooltipText={textCreate}
+            >
               <Button
                 disabled={!isAdmin || !range}
                 type="primary"
@@ -225,7 +232,10 @@ function RackManagementPage() {
                 Create
               </Button>
             </CreateTooltip>
-            <CreateTooltip isVisible={!isAdmin || !range} tooltipText={textDelete}>
+            <CreateTooltip
+              isVisible={!isAdmin || !range}
+              tooltipText={textDelete}
+            >
               <Button
                 disabled={!isAdmin || selectedRacks.length === 0}
                 type="danger"
@@ -235,7 +245,10 @@ function RackManagementPage() {
                 Remove
               </Button>
             </CreateTooltip>
-            <CreateTooltip isVisible={!range} tooltipText={"Select range to open printable rack view"}>
+            <CreateTooltip
+              isVisible={!range}
+              tooltipText={"Select range to open printable rack view"}
+            >
               <Button
                 disabled={selectedRacks.length == 0}
                 type="default"
@@ -243,7 +256,7 @@ function RackManagementPage() {
               >
                 View
               </Button>
-              </CreateTooltip>
+            </CreateTooltip>
           </div>
         </>
       ) : null}
