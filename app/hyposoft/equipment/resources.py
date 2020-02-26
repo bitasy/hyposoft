@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.db.models import Max
 from import_export import resources, fields
 from .models import ITModel, Asset, Rack, NetworkPortLabel, Datacenter, Powered, PDU, NetworkPort
 from import_export.widgets import ForeignKeyWidget
@@ -77,7 +79,6 @@ class ITModelResource(resources.ModelResource):
                 exists_1.save()
             except:
                 network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, special=1)
-                network_port_name_1.save()
         # network_port_name_2
         if my_network_ports >= 2:
             if row['network_port_name_2'] == '':
@@ -90,7 +91,6 @@ class ITModelResource(resources.ModelResource):
                 exists_2.save()
             except:
                 network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, special=2)
-                network_port_name_2.save()
         # network_port_name_3
         if my_network_ports >= 3:
             if row['network_port_name_3'] == '':
@@ -103,7 +103,6 @@ class ITModelResource(resources.ModelResource):
                 exists_3.save()
             except:
                 network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
-                network_port_name_3.save()
         # network_port_name_4
         if my_network_ports >= 4:
             if row['network_port_name_4'] == '':
@@ -116,7 +115,6 @@ class ITModelResource(resources.ModelResource):
                 exists_4.save()
             except:
                 network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
-                network_port_name_4.save()
 
 
 class AssetResource(resources.ModelResource):
@@ -124,14 +122,17 @@ class AssetResource(resources.ModelResource):
     class RackForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             my_rack = row['rack']
+            my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
             if not my_rack[-2].isdigit() and my_rack[-1].isdigit():
                 new_rack = my_rack[:-1] + '0' + my_rack[-1:]
                 return self.model.objects.get(
-                    rack__iexact=new_rack
+                    rack=new_rack,
+                    datacenter=my_datacenter
                 )
             else:
                 return self.model.objects.get(
-                    rack__iexact=my_rack
+                    rack=my_rack,
+                    datacenter=my_datacenter
                 )
 
     class ITModelForeignKeyWidget(ForeignKeyWidget):
@@ -199,6 +200,15 @@ class AssetResource(resources.ModelResource):
         report_skipped = True
         clean_model_instances = True
 
+    def before_import_row(self, row, **kwargs):
+        if row['asset_number'] == '':
+            try:
+                exists = Asset.objects.get(hostname=row['hostname'])
+                row['asset_number'] = exists.asset_number
+            except:
+                max_an = Asset.objects.all().aggregate(Max('asset_number'))
+                row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
+
     def after_import_row(self, row, row_result, **kwargs):
         my_model = ITModel.objects.get(model_number=row['model_number'], vendor=row['vendor'])
         my_asset = Asset.objects.get(asset_number=row['asset_number'])
@@ -211,47 +221,66 @@ class AssetResource(resources.ModelResource):
         # power_port_connection_1
         if my_model.power_ports >= 1:
             powered_1 = row['power_port_connection_1']
-            my_position_1 = powered_1[0]
-            my_plug_number_1 = powered_1[1:]
-            my_pdu_1 = PDU.objects.get(rack=my_rack, position=my_position_1)
-            try:
-                exists_1 = Powered.objects.get(
-                    pdu=my_pdu_1,
-                    asset=my_asset,
-                    special=1
-                )
-                exists_1.plug_number = my_plug_number_1
-                exists_1.save()
-            except:
-                power_port_connection_1 = Powered.objects.create(
-                    plug_number=my_plug_number_1,
-                    pdu=my_pdu_1,
-                    asset=my_asset,
-                    special=1
-                )
-                power_port_connection_1.save()
+            if powered_1 != '':
+                my_position_1 = powered_1[0]
+                my_plug_number_1 = powered_1[1:]
+                my_pdu_1 = PDU.objects.get(rack=my_rack, position=my_position_1)
+                try:
+                    exists_1 = Powered.objects.get(
+                        pdu=my_pdu_1,
+                        asset=my_asset,
+                        special=1
+                    )
+                    exists_1.plug_number = my_plug_number_1
+                    exists_1.save()
+                except:
+                    power_port_connection_1 = Powered.objects.create(
+                        plug_number=my_plug_number_1,
+                        pdu=my_pdu_1,
+                        asset=my_asset,
+                        special=1
+                    )
+            else:
+                try:
+                    exists_1 = Powered.objects.get(
+                        asset=my_asset,
+                        special=1
+                    )
+                    exists_1.delete()
+                except:
+                    return
+
         # power_port_connection_2
         if my_model.power_ports >= 2:
             powered_2 = row['power_port_connection_2']
-            my_position_2 = powered_2[0]
-            my_plug_number_2 = powered_2[1:]
-            my_pdu_2 = PDU.objects.get(rack=my_rack, position=my_position_2)
-            try:
-                exists_2 = Powered.objects.get(
-                    pdu=my_pdu_2,
-                    asset=my_asset,
-                    special=2
-                )
-                exists_2.plug_number = my_plug_number_2
-                exists_2.save()
-            except:
-                power_port_connection_1 = Powered.objects.create(
-                    plug_number=my_plug_number_1,
-                    pdu=my_pdu_1,
-                    asset=my_asset,
-                    special=1
-                )
-                power_port_connection_1.save()
+            if powered_2 != '':
+                my_position_2 = powered_2[0]
+                my_plug_number_2 = powered_2[1:]
+                my_pdu_2 = PDU.objects.get(rack=my_rack, position=my_position_2)
+                try:
+                    exists_2 = Powered.objects.get(
+                        pdu=my_pdu_2,
+                        asset=my_asset,
+                        special=2
+                    )
+                    exists_2.plug_number = my_plug_number_2
+                    exists_2.save()
+                except:
+                    power_port_connection_2 = Powered.objects.create(
+                        plug_number=my_plug_number_2,
+                        pdu=my_pdu_2,
+                        asset=my_asset,
+                        special=2
+                    )
+            else:
+                try:
+                    exists_2 = Powered.objects.get(
+                        asset=my_asset,
+                        special=2
+                    )
+                    exists_2.delete()
+                except:
+                    return
 
 
 class NetworkPortResource(resources.ModelResource):
@@ -320,6 +349,10 @@ class NetworkPortResource(resources.ModelResource):
         my_src_label = NetworkPortLabel.objects.get(name=row['src_port'], itmodel=my_src_asset.itmodel)
         my_src_network_port = NetworkPort.objects.get(asset=my_src_asset, label=my_src_label)
 
+        if (row['dest_hostname'] == '' and row['dest_port'] != '') or (row['dest_hostname'] != '' and row['dest_port'] == ''):
+            raise ValidationError(
+                "These fields must both be empty or set")
+
         if row['dest_hostname'] != '' and row['dest_port'] != '':
             my_dest_asset = Asset.objects.get(hostname=row['dest_hostname'])
             my_dest_label = NetworkPortLabel.objects.get(name=row['dest_port'], itmodel=my_dest_asset.itmodel)
@@ -345,3 +378,15 @@ class NetworkPortResource(resources.ModelResource):
             except:
                 my_src_network_port.connection = None
                 my_src_network_port.save()
+
+    def export(self, queryset = None, *args, **kwargs):
+        for network_connection in queryset.all():
+            src = network_connection
+            dest = network_connection.connection
+            if dest:
+                if src.asset.itmodel.network_ports > dest.asset.itmodel.network_ports:
+                    queryset = queryset.exclude(id=src.id)
+                elif src.asset.itmodel.network_ports == dest.asset.itmodel.network_ports:
+                    if src.asset.asset_number > dest.asset.asset_number:
+                        queryset = queryset.exclude(id=src.id)
+        return super(NetworkPortResource, self).export(queryset, *args, **kwargs)

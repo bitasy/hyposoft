@@ -161,6 +161,7 @@ class LogManagementPage extends React.Component {
                 ): text),
                 ...this.getColumnSearchProps('instance_id'),
             },
+
             {
                 title: 'Field Changed',
                 dataIndex: 'field_changed',

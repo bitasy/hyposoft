@@ -92,7 +92,6 @@ class ITModel(models.Model):
 
 class Rack(models.Model):
     rack = models.CharField(
-        unique=True,
         max_length=4,
         validators=[
             RegexValidator("^[A-Z]{1,2}[0-9]{2}$",
@@ -107,7 +106,7 @@ class Rack(models.Model):
     )
 
     def __str__(self):
-        return "Rack {}".format(self.rack)
+        return "Rack {} Datacenter {}".format(self.rack, self.datacenter.abbr)
 
     class Meta:
         unique_together = ['rack', 'datacenter']
@@ -202,13 +201,10 @@ class Asset(models.Model):
         blank=True,
         max_length=17,
         validators=[
-            RegexValidator("^$|^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
+            RegexValidator("^$|^([0-9a-fA-F]{2}[:-_]{0,1}){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
     )
-
-    class Meta:
-        unique_together = ('hostname', 'itmodel')
 
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:
@@ -307,6 +303,9 @@ class NetworkPort(models.Model):
     class Meta:
         unique_together = ['asset', 'label']
 
+    def __str__(self):
+        return '{} : {}'.format(self.asset.hostname, self.label.name)
+
 
 class Powered(models.Model):
     plug_number = models.IntegerField(
@@ -340,4 +339,4 @@ class Powered(models.Model):
     )
 
     class Meta:
-        unique_together = ['plug_number', 'pdu', 'special']
+        unique_together = (('plug_number', 'pdu'), ('special', 'asset'))
