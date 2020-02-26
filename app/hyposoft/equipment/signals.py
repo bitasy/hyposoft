@@ -10,7 +10,7 @@ from rest_framework import serializers
 def check_deployed_assets(sender, instance, *args, **kwargs):
     def throw():
         raise serializers.ValidationError(
-            "Cannot modify interconnected ITModel attributes while instances are deployed."
+            "Cannot modify interconnected ITModel attributes while assets are deployed."
         )
 
     try:
