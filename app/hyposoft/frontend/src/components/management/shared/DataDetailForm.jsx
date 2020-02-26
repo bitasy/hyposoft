@@ -42,7 +42,8 @@ function DataDetailForm({
     }
   }
 
-  console.log(newRecord);
+  console.log("newRecord", newRecord);
+  console.log("record", record);
 
   return record && newRecord ? (
     <Form onSubmit={handleSubmit} layout="vertical" style={{ maxWidth: 600 }}>
@@ -57,6 +58,7 @@ function DataDetailForm({
             setNewRecord(Object.assign(newRecord, changeSet));
           }}
           disabled={disabled}
+          showPorts={newRecord["network_ports"].length > 0}
         />
       ))}
       <Form.Item>
