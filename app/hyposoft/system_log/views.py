@@ -93,7 +93,7 @@ class LogView(generics.ListAPIView):
                 'username': ['iexact'],
                 'display_name': ['contains'],
                 'model': ['iexact'],
-                'identifier': ['iexact', 'contains']
+                'identifier': ['contains']
             }
 
     filterset_class = LogFilter
