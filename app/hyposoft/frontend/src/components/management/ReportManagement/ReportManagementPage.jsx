@@ -72,7 +72,11 @@ function ReportManagementPage() {
       </div>
     </div>
   ) : (
-    <Typography.Title level={4}>No rack space used</Typography.Title>
+    <div style={{ marginBottom: 8 }}>
+      <span style={{ color: "orange" }}>
+          No rack space used!
+      </span>
+    </div>
   );
 }
 
@@ -94,7 +98,7 @@ function RackUsage(rackSpace, assets) {
       key: "1",
       category: "All racks",
       used: percentUsed,
-      free: percentFree
+      free: percentFree.toFixed(2)
     });
   }
 
@@ -138,7 +142,7 @@ function RackUsageByModel(rackSpace, assets, models) {
         key: i + 1,
         category: modelToString(models[i]),
         used: percentUsed[i],
-        free: percentFree
+        free: percentFree.toFixed(2)
       });
     }
   }
@@ -184,7 +188,7 @@ function RackUsageByOwner(rackSpace, assets, users) {
         key: i + 1,
         category: uniqueOwners[i].username,
         used: percentUsed[i],
-        free: percentFree
+        free: percentFree.toFixed(2)
       };
     }
   }
@@ -230,7 +234,7 @@ function RackUsageByVendor(rackSpace, assets, models) {
         key: i + 1,
         category: uniqueVendors[i],
         used: percentUsed[i],
-        free: percentFree
+        free: percentFree.toFixed(2)
       };
     }
   }

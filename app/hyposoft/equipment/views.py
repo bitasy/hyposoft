@@ -33,7 +33,7 @@ class FilterByDatacenterMixin(object):
         if datacenter is not None and len(datacenter) > 0:
             if not Datacenter.objects.filter(abbr=datacenter).exists():
                 raise serializers.ValidationError("Datacenter does not exist")
-            return queryset.filter(datacenter=int(datacenter))
+            return queryset.filter(datacenter__abbr=datacenter)
         return queryset
 
 
@@ -232,7 +232,7 @@ class ITModelFilterView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
 
 
-class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
+class AssetFilterView(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.
     """
@@ -264,7 +264,7 @@ class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
     pagination_class = LimitOffsetPagination
 
 
-class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
+class PoweredFilterView(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning PDU by Rack Range.
     """
@@ -346,7 +346,7 @@ def getNetworkPorts(datacenter_id, filter):
                "asset_str": str(network_port.asset)
            }
            for network_port 
-           in NetworkPort.objects.filter(asset__in=asset_ids, **filter)
+           in NetworkPort.objects.filter(asset_id__in=asset_ids, **filter)
        ]
        return Response(free_network_ports)
    else: 

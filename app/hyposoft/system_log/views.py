@@ -2,7 +2,7 @@ from django_filters import rest_framework as pkg_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, filters
 
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework.pagination import PageNumberPagination
 
 import copy
@@ -60,8 +60,12 @@ class DeleteAndLogMixin(DestroyModelMixin):
         entry = ActionLog.objects.create(
             **create_dict(self, ActionLog.Action.DESTROY, instance.id),
         )
-        super(DeleteAndLogMixin, self).perform_destroy(instance)
         entry.save()
+        try:
+            super(DeleteAndLogMixin, self).perform_destroy(instance)
+        except serializers.ValidationError as e:
+            entry.delete()
+            raise e
 
 
 class LogView(generics.ListAPIView):
@@ -69,27 +73,27 @@ class LogView(generics.ListAPIView):
     queryset = ActionLog.objects.all()
     serializer_class = LogSerializer
 
-    # class TempPag(PageNumberPagination):
-    #     page_size = 5
-
-
-    # pagination_class = TempPag
-
-
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = [
         'timestamp'
     ]
     ordering = ['-timestamp']
 
+    class LogPagination(PageNumberPagination):
+        page_size = 10
+        max_page_size = 100
+
+    pagination_class = LogPagination
+
     class LogFilter(pkg_filters.FilterSet):
-        username = pkg_filters.CharFilter()
-        display_name = pkg_filters.CharFilter()
-        model = pkg_filters.CharFilter()
 
         class Meta:
             model = ActionLog
-            fields = ['username', 'display_name', 'model']
+            fields = {
+                'username': ['iexact'],
+                'display_name': ['contains'],
+                'model': ['iexact'],
+                'identifier': ['contains']
+            }
 
     filterset_class = LogFilter
-

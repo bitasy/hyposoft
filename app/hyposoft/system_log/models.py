@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from equipment.models import *
+
 
 def username(user):
     return user.username if user.is_authenticated else "_anonymous"
@@ -12,10 +14,22 @@ def display_name(user):
 
 
 class ActionLog(models.Model):
+
+    MODELS = {
+        'Datacenter': Datacenter,
+        'ITModel': ITModel,
+        'Rack': Rack,
+        'PDU': PDU,
+        'Asset': Asset,
+        'NetworkPortLabel': NetworkPortLabel,
+        'NetworkPort': NetworkPort,
+        'Powered': Powered,
+    }
+
     class Action(models.TextChoices):
-        CREATE = 'C', 'Create'
-        UPDATE = 'U', 'Update'
-        DESTROY = 'D', 'Destroy'
+        CREATE = 'Create', 'Create'
+        UPDATE = 'Update', 'Update'
+        DESTROY = 'Destroy', 'Destroy'
 
     action = models.CharField(
         choices=Action.choices,
@@ -31,6 +45,10 @@ class ActionLog(models.Model):
         max_length=128
     )
     instance_id = models.IntegerField()
+    identifier = models.CharField(
+        blank=True,
+        max_length=128
+    )
     field_changed = models.CharField(
         blank=True,
         max_length=64
@@ -46,3 +64,12 @@ class ActionLog(models.Model):
     timestamp = models.DateTimeField(
         auto_now_add=True
     )
+
+    def save(self, *args, **kwargs):
+        if self.model == 'Asset':
+            asset = Asset.objects.get(id=self.instance_id)
+            iden = "#" + str(asset.asset_number) + (": " + asset.hostname) if asset.hostname is not None else ""
+            self.identifier = iden
+        else:
+            self.identifier = self.MODELS[self.model].objects.get(id=self.instance_id).__str__()
+        super(ActionLog, self).save(*args, **kwargs)
