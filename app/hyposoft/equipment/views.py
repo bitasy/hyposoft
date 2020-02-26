@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, serializers
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.pagination import LimitOffsetPagination
 
 from .filters import ITModelFilter, AssetFilter, PoweredFilter
 from system_log.models import ActionLog, display_name, username
@@ -219,6 +220,7 @@ class ITModelFilterView(generics.ListAPIView):
         'height',
         'display_color',
         'power_ports',
+        'network_ports',
         'cpu',
         'memory',
         'storage'
@@ -227,6 +229,7 @@ class ITModelFilterView(generics.ListAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
     filterset_class = ITModelFilter
+    pagination_class = LimitOffsetPagination
 
 
 class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
@@ -246,17 +249,19 @@ class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
         'asset_number'
     ]
     ordering_fields = [
-        'itmodel__vendor',
-        'itmodel__model_number',
+        'itmodel__vendor', #
+        'itmodel__model_number', # how do I comebine these
         'hostname',
-        'rack__rack',
-        'rack_position',
+        'datacenter__abbr', #
+        'rack__rack', #
+        'rack_position', # how do I combine these
         'owner'
     ]
 
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
     filterset_class = AssetFilter
+    pagination_class = LimitOffsetPagination
 
 
 class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):

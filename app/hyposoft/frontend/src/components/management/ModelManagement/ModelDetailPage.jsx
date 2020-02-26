@@ -11,6 +11,7 @@ import {
   updateModel,
   removeModel
 } from "../../../redux/models/actions";
+import RealAPI from "../../../api/API";
 
 function ModelDetailPage() {
   const { id } = useParams();
@@ -45,6 +46,9 @@ function ModelDetailPage() {
       <DataList
         columns={assetColumns}
         filters={[]}
+        fetchData={(limit, offset) =>
+          RealAPI.getPaginatedAssets(limit, offset, { itmodel__id: id })
+        }
         data={assets}
         onSelect={id => history.push(`/assets/${id}`)}
         onCreate={() => {}}

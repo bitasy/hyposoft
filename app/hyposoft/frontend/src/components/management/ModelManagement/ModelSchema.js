@@ -3,10 +3,6 @@ function strcmp(a, b) {
   else return a < b ? -1 : 1;
 }
 
-function collect(lst, f) {
-  return lst.map(f).filter(elm => !!elm);
-}
-
 function removeDuplicates(arr) {
   return Array.from(new Set(arr));
 }
@@ -107,58 +103,65 @@ export const modelColumns = [
   {
     title: "Vendor",
     key: "vendor",
+    api_field: "vendor",
     render: r => r.vendor,
-    sorter: (a, b) => strcmp(a.vendor, b.vendor),
-    defaultSortOrder: "ascend",
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Model #",
     key: "model_number",
+    api_field: "model_number",
     render: r => r.model_number,
-    sorter: (a, b) => strcmp(a.model_number, b.model_number),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Height",
     key: "height",
+    api_field: "height",
     render: s => s.height,
-    sorter: (a, b) => a.height - b.height,
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Display Color",
     key: "display_color",
+    api_field: "display_color",
     render: s => s.display_color,
-    sorter: (a, b) => strcmp(a.display_color, b.display_color),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Power Ports",
     key: "power_ports",
+    api_field: "power_ports",
     render: s => (s.power_ports || "").toString(),
-    sorter: (a, b) => (a.power_ports || 0) - (b.power_ports || 0),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "CPU",
     key: "cpu",
+    api_field: "cpu",
     render: s => s.cpu,
-    sorter: (a, b) => strcmp(a.cpu, b.cpu),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Memory",
     key: "memory",
+    api_field: "memory",
     render: s => (s.memory || "").toString(),
-    sorter: (a, b) => (a.memory || 0) - (b.memory || 0),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   },
   {
     title: "Storage",
     key: "storage",
+    api_field: "storage",
     render: s => s.storage,
-    sorter: (a, b) => strcmp(a.storage, b.storage),
+    sorter: true,
     sortDirections: ["ascend", "descend"]
   }
 ];
@@ -171,17 +174,12 @@ export function modelKeywordMatch(value, record) {
     .some(str => str.includes(lowercase));
 }
 
-function handleWeirdInf(num, fallback) {
-  return isFinite(num) ? num : fallback;
-}
-
 export const modelFilters = [
   {
     title: "Keyword Search (Ignoring case)",
-    fieldName: "keyword",
+    fieldName: "search",
     type: "text",
-    extractDefaultValue: () => "",
-    shouldInclude: modelKeywordMatch
+    extractDefaultValue: () => ""
   },
   {
     title: "Height",
@@ -191,11 +189,7 @@ export const modelFilters = [
     max: 42,
     marks: { 1: "1", 42: "42" },
     step: 1,
-    extractDefaultValue: records => [
-      Math.min(...records.map(r => r.height)),
-      Math.max(...records.map(r => r.height))
-    ],
-    shouldInclude: ([l, r], record) => l <= record.height && record.height <= r
+    extractDefaultValue: () => [1, 42]
   },
   {
     title: "# of power ports",
@@ -205,16 +199,6 @@ export const modelFilters = [
     max: 10,
     marks: { 0: "0", 10: "10" },
     step: 1,
-    extractDefaultValue: records => [
-      [
-        handleWeirdInf(Math.min(...collect(records, r => r.power_ports)), 0),
-        handleWeirdInf(Math.max(...collect(records, r => r.power_ports)), 10)
-      ],
-      true
-    ],
-    shouldInclude: ([[l, r], includeNull], record) =>
-      record.power_ports
-        ? l <= record.power_ports && record.power_ports <= r
-        : includeNull
+    extractDefaultValue: () => [[0, 10], true]
   }
 ];
