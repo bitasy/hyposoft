@@ -97,7 +97,7 @@ export const assetColumns = [
   {
     title: "Model",
     key: "model",
-    api_field: "itmodel__vendor",
+    api_field: "itmodel__vendor,itmodel__model_number",
     render: r => modelToString(r.model),
     sorter: true,
     sortDirections: ["ascend", "descend"]
@@ -113,7 +113,7 @@ export const assetColumns = [
   {
     title: "Location",
     key: "location",
-    api_field: "datacenter__abbr",
+    api_field: "datacenter__abbr,rack__rack,rack_position",
     render: r => assetToLocation(r),
     sorter: true,
     sortDirections: ["ascend", "descend"]

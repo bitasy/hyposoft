@@ -468,7 +468,11 @@ async function withLoading(op) {
 
 function parseOrderDirection(ordering, direction) {
   if (ordering) {
-    return { ordering: direction + ordering };
+    const orderings = ordering
+      .split(",")
+      .map(s => direction + s)
+      .join(",");
+    return { ordering: orderings };
   } else {
     return {};
   }
