@@ -481,6 +481,7 @@ async function withThrowingLoading(op) {
     return res;
   } catch (e) {
     displayError(e);
+    handle();
     throw e;
   }
 }
