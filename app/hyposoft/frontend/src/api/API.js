@@ -10,7 +10,7 @@ function fetchCurrentUser() {
 }
 
 function login(username, password) {
-  return withLoading(() =>
+  return withThrowingLoading(() =>
     Axios.post("auth/login", { username, password }).then(getData)
   );
 }
@@ -469,6 +469,19 @@ async function withLoading(op) {
     displayError(e);
     handle();
     return e;
+  }
+}
+
+async function withThrowingLoading(op) {
+  const handle = message.loading("Action in progress...", 0);
+  try {
+    const res = await op();
+    message.success("Success!");
+    handle();
+    return res;
+  } catch (e) {
+    displayError(e);
+    throw e;
   }
 }
 
