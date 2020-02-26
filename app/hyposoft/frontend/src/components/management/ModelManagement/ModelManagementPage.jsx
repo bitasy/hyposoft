@@ -20,6 +20,11 @@ function ModelManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Models</Typography.Title>
+        <div style={{ marginBottom: 8 }}>
+          <span style={{ color: "orange" }}>
+              Note: Filters do not transfer to export!
+          </span>
+        </div>
       <Button
         shape="round"
         style={{ marginBottom: 8, marginRight: 8 }}

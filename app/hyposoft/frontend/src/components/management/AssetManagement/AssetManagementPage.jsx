@@ -32,7 +32,7 @@ function AssetManagementPage() {
 
       <div style={{ marginBottom: 8 }}>
         <span style={{ color: "orange" }}>
-          Filters don't transfer to Export!!
+          Note: Filters do not transfer to export!
         </span>
       </div>
 

@@ -14,6 +14,7 @@ import NetworkGraph from "./NetworkGraph";
 import RealAPI from "../../../api/API";
 import { fetchNetworkConnectedPDUs } from "../../../redux/racks/actions";
 
+
 function AssetDetailPage() {
   const { id } = useParams();
 
