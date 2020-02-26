@@ -1,14 +1,33 @@
 from django.db.models import Max
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from .models import Asset, Powered, NetworkPortLabel, Rack, PDU, NetworkPort
+from .models import ITModel, Asset, Powered, NetworkPortLabel, Rack, PDU, NetworkPort
 from .views import get_pdu
 from rest_framework import serializers
 
 
+@receiver(pre_save, sender=ITModel)
+def check_deployed_assets(sender, instance, *args, **kwargs):
+    def throw():
+        raise serializers.ValidationError(
+            "Cannot modify interconnected ITModel attributes while instances are deployed."
+        )
+
+    try:
+        old = ITModel.objects.get(id=instance.id)
+        if old.power_ports != instance.power_ports:
+            throw()
+        if old.network_ports != instance.network_ports:
+            throw()
+        if old.height != instance.height:
+            throw()
+
+    except ITModel.DoesNotExist:
+        pass
+
+
 @receiver(pre_save, sender=Asset)
 def auto_fill_asset(sender, instance, *args, **kwargs):
-
     if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
         raise serializers.ValidationError(
             "Asset datacenter cannot be different from rack datacenter.")
@@ -16,7 +35,7 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
     instance.datacenter = instance.rack.datacenter
     if not instance.mac_address == "":
         new = (instance.mac_address or "").lower().replace('-', '').replace('_', '').replace(':', '')
-        new = ':'.join([new[b:b+2] for b in range(0, 12, 2)])
+        new = ':'.join([new[b:b + 2] for b in range(0, 12, 2)])
         instance.mac_address = new
 
 
@@ -48,12 +67,16 @@ def set_default_npl(sender, instance, *args, **kwargs):
             for i in range(1, instance.itmodel.network_ports):
                 if i not in nums:
                     instance.name = str(i)
+                    break
 
 
 @receiver(pre_save, sender=PDU)
 def set_connected(sender, instance, *args, **kwargs):
-    response = get_pdu(instance.rack.rack, instance.position)
-    instance.networked = response[1] < 400
+    if instance.rack.datacenter.abbr == 'rtp1':
+        response = get_pdu(instance.rack.rack, instance.position)
+        instance.networked = response[1] < 400
+    else:
+        instance.networked = False
 
 
 @receiver(post_save, sender=Rack)
@@ -87,7 +110,7 @@ def check_connection(sender, instance, *args, **kwargs):
 
     old = NetworkPort.objects.filter(id=instance.id).first()
     if old and old.connection is not None:
-        NetworkPort.objects.filter(id=old.connection.id).update(connection=None) # Doesn't trigger pre-save signal 
+        NetworkPort.objects.filter(id=old.connection.id).update(connection=None)  # Doesn't trigger pre-save signal
 
 
 @receiver(post_save, sender=NetworkPort)

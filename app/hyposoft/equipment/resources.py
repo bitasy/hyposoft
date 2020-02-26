@@ -67,7 +67,27 @@ class ITModelResource(resources.ModelResource):
     def after_import_row(self, row, row_result, **kwargs):
         my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
         my_network_ports = int(row['network_ports'])
-        # network_port_name_1
+        curr_network_ports = len(NetworkPortLabel.objects.filter(itmodel=my_model))
+        if curr_network_ports > my_network_ports >= 4:
+            raise ValidationError(
+                'Cannot decrease amount of network ports.'
+            )
+        elif curr_network_ports > my_network_ports:
+            if my_network_ports == 3:
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
+            elif my_network_ports == 2:
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=3).delete()
+            elif my_network_ports == 1:
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=3).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=2).delete()
+            elif my_network_ports == 1:
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=3).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=2).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, special=1).delete()
+            # network_port_name_1
         if my_network_ports >= 1:
             if row['network_port_name_1'] == '':
                 my_name_1 = '1'
@@ -104,7 +124,7 @@ class ITModelResource(resources.ModelResource):
             except:
                 network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
         # network_port_name_4
-        if my_network_ports >= 4:
+        if my_network_ports == 4:
             if row['network_port_name_4'] == '':
                 my_name_4 = '4'
             else:
@@ -115,6 +135,10 @@ class ITModelResource(resources.ModelResource):
                 exists_4.save()
             except:
                 network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
+        if my_network_ports > 4:
+            for i in range(5, my_network_ports+1):
+                if i > curr_network_ports:
+                    network_port_name_n = NetworkPortLabel.objects.create(name=str(i), itmodel=my_model)
 
 
 class AssetResource(resources.ModelResource):
