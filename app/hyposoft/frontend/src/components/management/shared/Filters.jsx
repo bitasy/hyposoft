@@ -64,11 +64,34 @@ function SelectFilter({ defaultValue, filterDef, onChange, data }) {
 }
 
 function RackRangeFilter({ defaultValue, filterDef, onChange, data }) {
+  const [A, setA] = React.useState(defaultValue[0]);
+  const [B, setB] = React.useState(defaultValue[1]);
+
   return (
-    <GridRangeSelector
-      initialValue={defaultValue}
-      onChange={r => onChange({ [filterDef.fieldName]: r })}
-    />
+    <div>
+      <div>
+        <Input
+          style={{ width: 400 }}
+          addonBefore={"Point 1"}
+          value={A}
+          onChange={e => {
+            onChange({ [filterDef.fieldName]: [e.target.value, B] });
+            setA(e.target.value);
+          }}
+        />
+      </div>
+      <div>
+        <Input
+          style={{ width: 400 }}
+          addonBefore={"Point 2"}
+          value={B}
+          onChange={e => {
+            onChange({ [filterDef.fieldName]: [A, e.target.value] });
+            setB(e.target.value);
+          }}
+        />
+      </div>
+    </div>
   );
 }
 

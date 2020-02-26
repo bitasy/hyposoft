@@ -1,8 +1,10 @@
 import React from "react";
-import { Table, Button, Icon, Collapse } from "antd";
+import { Table, Button, Icon, Collapse, Pagination } from "antd";
 import Filter from "./Filters";
 import { useSelector } from "react-redux";
 import CreateTooltip from "../../../global/CreateTooltip";
+import produce from "immer";
+import RealAPI from "../../../api/API";
 
 function decorateColumns(columns, currentUser) {
   return columns.map(column => {
@@ -16,7 +18,10 @@ function decorateColumns(columns, currentUser) {
 function ListFooter({ onCreate, createDisabled }) {
   return (
     <div>
-      <CreateTooltip isVisible={createDisabled} tooltipText={"Only users with admin privileges can create a new item"}>
+      <CreateTooltip
+        isVisible={createDisabled}
+        tooltipText={"Only users with admin privileges can create a new item"}
+      >
         <Button onClick={onCreate} disabled={createDisabled}>
           <Icon type="plus"></Icon>
         </Button>
@@ -25,10 +30,10 @@ function ListFooter({ onCreate, createDisabled }) {
   );
 }
 
-function getDefaults(data, filters) {
+function getDefaults(filters) {
   return filters.reduce((acc, filter) => {
     return Object.assign(acc, {
-      [filter.fieldName]: filter.extractDefaultValue(data)
+      [filter.fieldName]: filter.extractDefaultValue()
     });
   }, {});
 }
@@ -36,37 +41,54 @@ function getDefaults(data, filters) {
 function DataList({
   columns,
   filters,
-  data,
+  fetchData,
   onSelect,
   onCreate,
   noCreate,
   createDisabled
 }) {
-  const paginationConfig = {
-    position: "top",
-    defaultPageSize: 10,
-    total: data.length
-  };
-
-  const defaults = getDefaults(data, filters);
-
+  const defaults = getDefaults(filters);
   const [filterValues, setFilterValues] = React.useState(defaults);
+  console.log(filterValues);
+  React.useEffect(() => {
+    setFilterValues(getDefaults(filters));
+  }, []);
+
+  const [total, setTotal] = React.useState(0);
+  const [limit, setLimit] = React.useState(10);
+  const [offset, setOffset] = React.useState(undefined);
+  const [data, setData] = React.useState([]);
+
+  const realm = React.useRef(0);
 
   const currentUser = useSelector(s => s.currentUser);
 
   React.useEffect(() => {
-    setFilterValues(getDefaults(data, filters));
-  }, [data]);
+    realm.current++;
+    const t = realm.current;
+    fetchData(limit, offset, filterValues).then(r => {
+      if (t == realm.current) {
+        setData(r.results);
+        setTotal(r.count);
+      }
+    });
+  }, [filterValues, offset, limit]);
 
-  const filteredData = filters.reduce(
-    (remaining, filterDef) =>
-      remaining.filter(r =>
-        filterValues[filterDef.fieldName]
-          ? filterDef.shouldInclude(filterValues[filterDef.fieldName], r)
-          : remaining
-      ),
-    data
-  );
+  const paginationConfig = {
+    position: "top",
+    defaultPageSize: limit,
+    total,
+    current: Math.floor(offset / limit) + (offset % limit == 0 ? 0 : 1),
+    onChange: (page, pageSize) => {
+      const ofs = (page - 1) * pageSize;
+      if (ofs != offset) {
+        setOffset(ofs);
+      }
+      if (limit !== pageSize) {
+        setLimit(pageSize);
+      }
+    }
+  };
 
   return (
     <>
@@ -79,9 +101,13 @@ function DataList({
                 <Filter
                   filterDef={filter}
                   data={data}
-                  defaultValue={defaults[filter.fieldName]}
+                  defaultValue={filterValues[filter.fieldName]}
                   onChange={changeSet =>
-                    setFilterValues(Object.assign({}, filterValues, changeSet))
+                    setFilterValues(
+                      produce(filterValues, draft =>
+                        Object.assign(draft, changeSet)
+                      )
+                    )
                   }
                 />
               </div>
@@ -89,16 +115,17 @@ function DataList({
           </Collapse.Panel>
         </Collapse>
       ) : null}
+      <Pagination {...paginationConfig} style={{ marginTop: 8 }} />
       <Table
         rowKey={r => r.id}
         columns={decorateColumns(columns, currentUser)}
-        dataSource={filteredData}
+        dataSource={data}
         onRow={r => {
           return {
             onClick: () => onSelect(r.id)
           };
         }}
-        pagination={paginationConfig}
+        pagination={false}
         className="pointer-on-hover"
         footer={() =>
           noCreate ? null : ListFooter({ onCreate, createDisabled })

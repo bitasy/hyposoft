@@ -5,6 +5,7 @@ import { modelColumns, modelFilters } from "./ModelSchema";
 import DataList from "../shared/DataList";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchModels } from "../../../redux/models/actions";
+import RealAPI from "../../../api/API";
 
 function ModelManagementPage() {
   const models = useSelector(s => Object.values(s.models));
@@ -37,7 +38,7 @@ function ModelManagementPage() {
       <DataList
         columns={modelColumns}
         filters={modelFilters}
-        data={models}
+        fetchData={RealAPI.getPaginatedModels}
         onSelect={id => history.push(`/models/${id}`)}
         onCreate={() => history.push("/models/create")}
         createDisabled={!isAdmin}

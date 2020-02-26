@@ -3,10 +3,6 @@ function strcmp(a, b) {
   else return a < b ? -1 : 1;
 }
 
-function collect(lst, f) {
-  return lst.map(f).filter(elm => !!elm);
-}
-
 function removeDuplicates(arr) {
   return Array.from(new Set(arr));
 }
@@ -171,17 +167,12 @@ export function modelKeywordMatch(value, record) {
     .some(str => str.includes(lowercase));
 }
 
-function handleWeirdInf(num, fallback) {
-  return isFinite(num) ? num : fallback;
-}
-
 export const modelFilters = [
   {
     title: "Keyword Search (Ignoring case)",
-    fieldName: "keyword",
+    fieldName: "search",
     type: "text",
-    extractDefaultValue: () => "",
-    shouldInclude: modelKeywordMatch
+    extractDefaultValue: () => ""
   },
   {
     title: "Height",
@@ -191,11 +182,7 @@ export const modelFilters = [
     max: 42,
     marks: { 1: "1", 42: "42" },
     step: 1,
-    extractDefaultValue: records => [
-      Math.min(...records.map(r => r.height)),
-      Math.max(...records.map(r => r.height))
-    ],
-    shouldInclude: ([l, r], record) => l <= record.height && record.height <= r
+    extractDefaultValue: () => [1, 42]
   },
   {
     title: "# of power ports",
@@ -205,16 +192,6 @@ export const modelFilters = [
     max: 10,
     marks: { 0: "0", 10: "10" },
     step: 1,
-    extractDefaultValue: records => [
-      [
-        handleWeirdInf(Math.min(...collect(records, r => r.power_ports)), 0),
-        handleWeirdInf(Math.max(...collect(records, r => r.power_ports)), 10)
-      ],
-      true
-    ],
-    shouldInclude: ([[l, r], includeNull], record) =>
-      record.power_ports
-        ? l <= record.power_ports && record.power_ports <= r
-        : includeNull
+    extractDefaultValue: () => [[0, 10], true]
   }
 ];

@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  modelKeywordMatch,
-  modelToString
-} from "../ModelManagement/ModelSchema";
-import { toIndex } from "../RackManagement/GridUtils";
+import { modelToString } from "../ModelManagement/ModelSchema";
 import NetworkPowerActionButtons from "./NetworkPowerActionButtons";
 
 function strcmp(a, b) {
@@ -138,42 +134,18 @@ export const assetColumns = [
   }
 ];
 
-function assetKeywordMatch(value, record) {
-  const lowercase = value.toLowerCase();
-  const strMatch = assetSchema
-    .filter(frag => frag.type === "string" && record[frag.fieldName])
-    .map(frag => (record[frag.fieldName] || "").toLowerCase())
-    .some(str => str.includes(lowercase));
-  const locationMatch = assetToLocation(record)
-    .toLowerCase()
-    .includes(lowercase);
-  return strMatch || locationMatch;
-}
-
-function isInside([minR, maxR, minC, maxC], asset) {
-  const [r, c] = toIndex(asset.rack.rack);
-  return minR <= r && r <= maxR && minC <= c && c <= maxC;
-}
-
 export const assetFilters = [
   {
     title: "Keyword Search (Ignoring case)",
-    fieldName: "keyword",
+    fieldName: "search",
     type: "text",
-    extractDefaultValue: () => "",
-    shouldInclude: (value, record) => {
-      return (
-        modelKeywordMatch(value, record.model) ||
-        assetKeywordMatch(value, record)
-      );
-    }
+    extractDefaultValue: () => ""
   },
   {
     title: "Rack",
-    fieldName: "rack",
+    fieldName: "rack__rack",
     type: "rack-range",
-    extractDefaultValue: records => null,
-    shouldInclude: (value, record) => isInside(value, record)
+    extractDefaultValue: () => ["A01", "Z99"]
   },
   {
     title: "Rack Position",
@@ -183,11 +155,6 @@ export const assetFilters = [
     max: 42,
     marks: { 1: "1", 42: "42" },
     step: 1,
-    extractDefaultValue: records => [
-      Math.min(...records.map(r => r.rack_position)),
-      Math.max(...records.map(r => r.rack_position))
-    ],
-    shouldInclude: ([l, r], record) =>
-      l <= record.rack_position && record.rack_position <= r
+    extractDefaultValue: () => [1, 42]
   }
 ];
