@@ -232,7 +232,7 @@ class ITModelFilterView(generics.ListAPIView):
     pagination_class = LimitOffsetPagination
 
 
-class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
+class AssetFilterView(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.
     """
@@ -264,7 +264,7 @@ class AssetFilterView(generics.ListAPIView, FilterByDatacenterMixin):
     pagination_class = LimitOffsetPagination
 
 
-class PoweredFilterView(generics.ListAPIView, FilterByDatacenterMixin):
+class PoweredFilterView(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning PDU by Rack Range.
     """

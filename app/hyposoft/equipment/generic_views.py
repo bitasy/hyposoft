@@ -79,7 +79,7 @@ class AssetDestroyView(DeleteAndLogMixin, generics.DestroyAPIView):
     serializer_class = AssetSerializer
 
 
-class AssetListView(DestroyWithPayloadMixin, generics.ListAPIView, FilterByDatacenterMixin):
+class AssetListView(FilterByDatacenterMixin, DestroyWithPayloadMixin, generics.ListAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -105,7 +105,7 @@ class RackDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.Destr
     serializer_class = RackSerializer
 
 
-class RackListView(generics.ListAPIView, FilterByDatacenterMixin):
+class RackListView(FilterByDatacenterMixin, generics.ListAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
 
