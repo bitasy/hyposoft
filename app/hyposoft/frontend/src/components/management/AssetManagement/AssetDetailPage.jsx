@@ -31,7 +31,7 @@ function AssetDetailPage() {
   if (!record) return null;
 
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{ padding: 16 }} key={id}>
       <Typography.Title level={3}>Asset Details</Typography.Title>
       <div style={{ padding: "8px 0" }}>
         <span>Manage power: </span>
