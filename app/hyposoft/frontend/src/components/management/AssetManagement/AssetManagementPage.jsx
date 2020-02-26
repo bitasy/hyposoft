@@ -6,6 +6,8 @@ import { assetColumns, assetFilters } from "./AssetSchema";
 import DataList from "../shared/DataList";
 import { fetchAssets } from "../../../redux/assets/actions";
 import { fetchNetworkConnectedPDUs } from "../../../redux/racks/actions";
+import { AlphaPicker } from "react-color";
+import RealAPI from "../../../api/API";
 
 function AssetManagementPage() {
   const assets = useSelector(s => Object.values(s.assets));
@@ -73,7 +75,7 @@ function AssetManagementPage() {
       <DataList
         columns={assetColumns}
         filters={assetFilters}
-        data={filteredAssets}
+        fetchData={RealAPI.getPaginatedAssets}
         onSelect={id => history.push(`/assets/${id}`)}
         onCreate={() => history.push("/assets/create")}
         createDisabled={!isAdmin}

@@ -20,7 +20,6 @@ const options = {
     enabled: false
   },
   interaction: {
-    selectable: false,
     hoverConnectedEdges: false,
     selectConnectedEdges: false,
     zoomView: false
@@ -29,6 +28,15 @@ const options = {
 
 const MAIN_COLOR = "#e04141";
 const OTHER_COLOR = "#7be041";
+
+const events = {
+  select: ({ nodes }) => {
+    const node = nodes[0];
+    if (node) {
+      window.location.href = `/#/assets/${node}`;
+    }
+  }
+};
 
 function process(assetID, rawGraph) {
   const { verticies, edges } = rawGraph;
@@ -66,7 +74,7 @@ function NetworkGraph({ assetID }) {
   return (
     <div>
       <Typography.Title level={4}>Network Graph</Typography.Title>
-      {graph ? <Graph options={options} graph={graph} /> : null}
+      {graph ? <Graph options={options} graph={graph} events={events} /> : null}
     </div>
   );
 }
