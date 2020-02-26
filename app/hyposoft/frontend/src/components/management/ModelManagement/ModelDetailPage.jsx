@@ -47,8 +47,15 @@ function ModelDetailPage() {
       <DataList
         columns={assetColumns}
         filters={[]}
-        fetchData={(limit, offset) =>
-          RealAPI.getPaginatedAssets(dcName, limit, offset, { itmodel__id: id })
+        fetchData={(dcName, limit, offset) =>
+          RealAPI.getPaginatedAssets(
+            dcName,
+            limit,
+            offset,
+            { itmodel__id: id },
+            null,
+            null
+          )
         }
         data={assets}
         onSelect={id => history.push(`/assets/${id}`)}
