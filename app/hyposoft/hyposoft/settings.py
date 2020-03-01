@@ -91,10 +91,10 @@ WSGI_APPLICATION = 'hyposoft.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'prod',
-        'USER': 'vcm',
-        'PASSWORD': 'hyposoft',
-        'HOST': 'localhost',
+        'NAME': os.getenv('DB_NAME', 'dev'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': '5432',
     }
 }
