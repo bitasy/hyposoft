@@ -83,7 +83,7 @@ def set_default_npl(sender, instance, *args, **kwargs):
 
 @receiver(pre_save, sender=PDU)
 def set_connected(sender, instance, *args, **kwargs):
-    if instance.rack.datacenter.abbr == 'rtp1':
+    if instance.rack.datacenter.abbr.lower() == 'rtp1':
         response = get_pdu(instance.rack.rack, instance.position)
         instance.networked = response[1] < 400
     else:
