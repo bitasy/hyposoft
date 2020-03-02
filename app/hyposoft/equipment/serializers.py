@@ -1,6 +1,8 @@
+from network.models import NetworkPortLabel, NetworkPort
+from network.serializers import NetworkPortLabelSerializer, NodeSerializer
 from .models import *
 from django.contrib.auth.models import User
-from django.db.models import Q
+
 
 class DatacenterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -74,40 +76,6 @@ class AssetSerializer(serializers.ModelSerializer):
             for network_port 
             in NetworkPort.objects.filter(asset=asset.id)
         ]
-        return response
-
-
-class NetworkPortLabelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NetworkPortLabel
-        fields = '__all__'
-
-
-class NetworkPortSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NetworkPort
-        fields = '__all__'
-
-
-class NodeSerializer(NetworkPortSerializer):
-    #asset = AssetSerializer()
-    #connection = AssetSerializer(source='connection.asset')
-
-    class Meta:
-        model = NetworkPort
-        fields = ['id', 'label', 'asset']
-
-class EdgeSerializer(NetworkPortSerializer):
-    #asset = AssetSerializer()
-    #connection = AssetSerializer(source='connection.asset')
-
-    class Meta:
-        model = NetworkPort
-        fields = ['asset', 'connection']
-    
-    def to_representation(self, edge):
-        response = super().to_representation(edge)
-        response['connection'] = NodeSerializer(edge.connection).data
         return response
 
 
