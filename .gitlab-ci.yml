@@ -1,8 +1,7 @@
 variables:
-  DB_HOST: localhost
-  DB_USER: runner
-  DB_PASS: qwerty
-  DB_NAME: devdb
+  DB_HOST: database-1.clf9gopmww58.us-east-1.rds.amazonaws.com
+  DB_USER: postgres
+  DB_PASS: hyposoft
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 
@@ -36,6 +35,8 @@ build:
   - dev
 
 django_test:
+  variables:
+    DB_NAME: dev
   stage: test
   script:
   - python3 app/hyposoft/manage.py test
@@ -44,6 +45,8 @@ django_test:
 
 stage_dev:
   stage: staging
+  variables:
+    DB_NAME: dev
   script:
   - cd /home/gitlab-runner/
   - git clone git@gitlab.oit.duke.edu:ban20/hyposoft-group-8.git "$CI_COMMIT_SHORT_SHA-staging"
@@ -61,6 +64,8 @@ stage_dev:
 
 deploy_dev:
   stage: deploy
+  variables:
+    DB_NAME: dev
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
   - cp -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
@@ -75,9 +80,6 @@ deploy_dev:
 stage_prod:
   stage: staging
   variables:
-    DB_HOST: database-1.clf9gopmww58.us-east-1.rds.amazonaws.com
-    DB_USER: postgres
-    DB_PASS: hyposoft
     DB_NAME: prod
   script:
   - cd /home/gitlab-runner/
@@ -101,9 +103,6 @@ stage_prod:
 deploy_prod:
   stage: deploy
   variables:
-    DB_HOST: database-1.clf9gopmww58.us-east-1.rds.amazonaws.com
-    DB_USER: postgres
-    DB_PASS: hyposoft
     DB_NAME: prod
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
