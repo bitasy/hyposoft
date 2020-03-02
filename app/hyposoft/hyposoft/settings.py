@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAdminUser
