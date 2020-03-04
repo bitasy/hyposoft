@@ -1,5 +1,7 @@
 from network.models import NetworkPortLabel, NetworkPort
 from network.serializers import NetworkPortLabelSerializer, NodeSerializer
+from power.models import Powered
+from power.serializers import PDUSerializer
 from .models import *
 from django.contrib.auth.models import User
 
@@ -25,12 +27,6 @@ class ITModelSerializer(serializers.ModelSerializer):
         ]
         response['network_port_labels'] = serialized_port_labels
         return response
-
-
-class PDUSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PDU
-        fields = '__all__'
 
 
 class RackSerializer(serializers.ModelSerializer):
@@ -77,9 +73,3 @@ class AssetSerializer(serializers.ModelSerializer):
             in NetworkPort.objects.filter(asset=asset.id)
         ]
         return response
-
-
-class PoweredSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Powered
-        fields = '__all__'
