@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DJANGO_DEBUG', "True").lower() == "true",
 ALLOWED_HOSTS = ["localhost", "hyposoft.tech"]
 
 # Application definition
@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     'frontend',
     'equipment',
     'system_log',
-    'hypo_auth'
+    'hypo_auth',
+    'network',
+    'power',
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True

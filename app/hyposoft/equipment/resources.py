@@ -2,7 +2,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from import_export import resources, fields
-from .models import ITModel, Asset, Rack, NetworkPortLabel, Datacenter, Powered, PDU, NetworkPort
+from .models import ITModel, Asset, Rack, Datacenter
+from network.models import NetworkPortLabel, NetworkPort
+from power.models import Powered, PDU
 from import_export.widgets import ForeignKeyWidget
 
 
