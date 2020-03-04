@@ -8,7 +8,7 @@ from import_export.formats import base_formats
 class NetworkPortAdmin(ImportExportActionModelAdmin):
     resource_class = NetworkPortResource
     formats = (base_formats.CSV,)
-    list_filter = ['asset', 'label']
+    list_filter = ['networkport__asset', 'networkport__label']
 
 
 admin.site.register(NetworkPortLabel, NetworkPortAdmin)
