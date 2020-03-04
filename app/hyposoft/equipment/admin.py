@@ -4,7 +4,6 @@ from django.contrib import admin
 from import_export.formats import base_formats
 from .models import ITModel, Asset, Rack, Datacenter
 from power.models import PDU, Powered
-from network.models import NetworkPortLabel, NetworkPort
 
 
 class ITModelAdmin(ImportExportActionModelAdmin):
@@ -27,9 +26,7 @@ class NetworkPortAdmin(ImportExportActionModelAdmin):
 
 admin.site.register(ITModel, ITModelAdmin)
 admin.site.register(Asset, AssetAdmin)
-admin.site.register(NetworkPort, NetworkPortAdmin)
 admin.site.register(Rack)
 admin.site.register(Datacenter)
 admin.site.register(PDU)
-admin.site.register(NetworkPortLabel)
 admin.site.register(Powered)
