@@ -1,5 +1,5 @@
 from import_export.admin import ImportExportActionModelAdmin
-from .resources import ITModelResource, AssetResource, NetworkPortResource
+from .resources import ITModelResource, AssetResource
 from django.contrib import admin
 from import_export.formats import base_formats
 from .models import ITModel, Asset, Rack, Datacenter
@@ -16,12 +16,6 @@ class AssetAdmin(ImportExportActionModelAdmin):
     resource_class = AssetResource
     formats = (base_formats.CSV,)
     list_filter = ['hostname', 'itmodel', 'rack']
-
-
-class NetworkPortAdmin(ImportExportActionModelAdmin):
-    resource_class = NetworkPortResource
-    formats = (base_formats.CSV,)
-    list_filter = ['asset', 'label']
 
 
 admin.site.register(ITModel, ITModelAdmin)
