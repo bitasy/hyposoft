@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from import_export import resources, fields
 from .models import ITModel, Asset, Rack, Datacenter
-from network.models import NetworkPortLabel, NetworkPort
+from network.models import NetworkPortLabel
 from power.models import Powered, PDU
 from import_export.widgets import ForeignKeyWidget
 
