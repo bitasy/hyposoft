@@ -1,6 +1,6 @@
 from django import forms
 from django_filters import rest_framework as filters, fields
-from .models import ITModel, Asset, Powered
+from .models import ITModel, Asset
 from django.db.models import Q
 
 
@@ -45,13 +45,3 @@ class AssetFilter(filters.FilterSet):
     class Meta:
         model = Asset
         fields = ['itmodel__id', 'rack__rack', 'rack_position', 'asset_number']
-
-
-class PoweredFilter(filters.FilterSet):
-
-    pdu__id = filters.NumberFilter()
-    asset__id = filters.NumberFilter()
-
-    class Meta:
-        model = Powered
-        fields = ['pdu__id', 'asset__id']

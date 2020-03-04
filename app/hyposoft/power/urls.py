@@ -18,6 +18,11 @@ for view in views:
 
 # Custom Views
 urlpatterns += [
-    path('ITModelFilter', ITModelFilterView.as_view()),
-    path('AssetFilter', AssetFilterView.as_view()),
+    path('PoweredFilter', PoweredFilterView.as_view()),
+    path('PDUNetwork/get/<rack>/<position>', getPDU),
+    path('PDUNetwork/get/<int:asset_id>', checkState),
+    path('PDUNetwork/post', switchPDU),
+    path('PDUNetwork/cycle', cycleAsset),
+    path('FreePowerPorts/<int:rack_id>/<int:asset_id>', freePowerPorts),
+    path('PoweredDeleteByAsset/<int:asset_id>', poweredDeleteByAsset),
 ]

@@ -2,7 +2,9 @@ from import_export.admin import ImportExportActionModelAdmin
 from .resources import ITModelResource, AssetResource, NetworkPortResource
 from django.contrib import admin
 from import_export.formats import base_formats
-from .models import ITModel, Asset, Rack, Datacenter, PDU, NetworkPortLabel, NetworkPort, Powered
+from .models import ITModel, Asset, Rack, Datacenter
+from power.models import PDU, Powered
+from network.models import NetworkPortLabel, NetworkPort
 
 
 class ITModelAdmin(ImportExportActionModelAdmin):

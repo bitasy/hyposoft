@@ -329,32 +329,29 @@ function deleteDatacenter(id) {
 
 // Network port label APIs
 function createNetworkPortLabel(fields) {
-  return Axios.post(`api/equipment/NetworkPortLabelCreate`, fields).then(
+  return Axios.post(`api/network/NetworkPortLabelCreate`, fields).then(getData);
+}
+
+function updateNetworkPortLabel(id, updates) {
+  return Axios.patch(`api/network/NetworkPortLabelUpdate/${id}`, updates).then(
     getData
   );
 }
 
-function updateNetworkPortLabel(id, updates) {
-  return Axios.patch(
-    `api/equipment/NetworkPortLabelUpdate/${id}`,
-    updates
-  ).then(getData);
-}
-
 function removeNetworkPortLabel(id) {
-  return Axios.delete(`api/equipment/NetworkPortLabelDestroy/${id}`).then(
+  return Axios.delete(`api/network/NetworkPortLabelDestroy/${id}`).then(
     getData
   );
 }
 
 // Power control APIs
 function getPowerState(assetID) {
-  return Axios.get(`api/equipment/PDUNetwork/get/${assetID}`).then(getData);
+  return Axios.get(`api/power/PDUNetwork/get/${assetID}`).then(getData);
 }
 
 function switchPower(assetID, state) {
   return withLoading(() =>
-    Axios.post(`api/equipment/PDUNetwork/post`, {
+    Axios.post(`api/power/PDUNetwork/post`, {
       asset: assetID,
       state
     }).then(getData)
@@ -371,7 +368,7 @@ function turnOff(assetID) {
 
 function cycle(assetID) {
   return withLoading(() =>
-    Axios.post(`api/equipment/PDUNetwork/cycle`, {
+    Axios.post(`api/power/PDUNetwork/cycle`, {
       asset: assetID
     }).then(getData)
   );
@@ -379,7 +376,7 @@ function cycle(assetID) {
 
 // Powereds
 function createPowered(plugNumber, pduID, assetID) {
-  return Axios.post(`api/equipment/PoweredCreate`, {
+  return Axios.post(`api/power/PoweredCreate`, {
     plug_number: plugNumber,
     pdu: pduID,
     special: null,
@@ -388,34 +385,34 @@ function createPowered(plugNumber, pduID, assetID) {
 }
 
 function deleteAllPowered(assetID) {
-  return Axios.delete(`api/equipment/PoweredDeleteByAsset/${assetID}`).then(
+  return Axios.delete(`api/power/PoweredDeleteByAsset/${assetID}`).then(
     getData // probably null or undefined
   );
 }
 
 // Utilities control APIs
 function getFreePowerPorts(rackID, assetID) {
-  return Axios.get(
-    `api/equipment/FreePowerPorts/${rackID}/${assetID || 0}`
-  ).then(getData);
+  return Axios.get(`api/power/FreePowerPorts/${rackID}/${assetID || 0}`).then(
+    getData
+  );
 }
 
 function getAllNetworkPorts(dcID) {
-  return Axios.get(`api/equipment/AllNetworkPorts/${dcID}`).then(getData);
+  return Axios.get(`api/network/AllNetworkPorts/${dcID}`).then(getData);
 }
 
 function getFreeNetworkPorts(dcID) {
-  return Axios.get(`api/equipment/FreeNetworkPorts/${dcID}`).then(getData);
+  return Axios.get(`api/network/FreeNetworkPorts/${dcID}`).then(getData);
 }
 
 function deleteAllNetworkPorts(assetID) {
-  return Axios.delete(`api/equipment/NetworkPortDeleteByAsset/${assetID}`).then(
+  return Axios.delete(`api/network/NetworkPortDeleteByAsset/${assetID}`).then(
     getData // probably null or undefined
   );
 }
 
 function getNetworkConnectedPDUs() {
-  return Axios.get("api/equipment/PDUList")
+  return Axios.get("api/power/PDUList")
     .then(getData)
     .then(lst => lst.filter(a => a.networked).map(a => a.id));
 }
@@ -428,7 +425,7 @@ function createNetworkPort(asset_id, fields) {
     connection(null or id)
   }
   */
-  return Axios.post("api/equipment/NetworkPortCreate", {
+  return Axios.post("api/network/NetworkPortCreate", {
     asset: asset_id,
     label: fields.label.id,
     connection: fields.connection?.id
@@ -437,13 +434,13 @@ function createNetworkPort(asset_id, fields) {
 
 function updateNetworkPort(networkPortID, connection) {
   const connID = connection != null ? connection.id : null;
-  return Axios.patch(`api/equipment/NetworkPortUpdate/${networkPortID}`, {
+  return Axios.patch(`api/network/NetworkPortUpdate/${networkPortID}`, {
     connection: connID
   }).then(getData);
 }
 
 function getNetworkGraph(assetID) {
-  return Axios.get(`api/equipment/NetworkGraph/${assetID}`).then(getData);
+  return Axios.get(`api/network/NetworkGraph/${assetID}`).then(getData);
 }
 
 // utility functions
@@ -537,7 +534,7 @@ function getLog(username, displayName, model, identifier, page) {
   model = model ? model : "";
   identifier = identifier ? identifier : "";
 
-  const query = `log?username__iexact=${username}&display_name__contains=${displayName}&model__iexact=${model}&identifier__contains=${identifier}&page=${page}`;
+  const query = `api/log/LogView?username__iexact=${username}&display_name__contains=${displayName}&model__iexact=${model}&identifier__contains=${identifier}&page=${page}`;
 
   return Axios.get(query).then(getData); //returns a list
 }

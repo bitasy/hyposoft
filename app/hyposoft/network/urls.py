@@ -18,6 +18,8 @@ for view in views:
 
 # Custom Views
 urlpatterns += [
-    path('ITModelFilter', ITModelFilterView.as_view()),
-    path('AssetFilter', AssetFilterView.as_view()),
+    path('AllNetworkPorts/<int:datacenter_id>', AllNetworkPorts.as_view()),
+    path('FreeNetworkPorts/<int:datacenter_id>', FreeNetworkPorts.as_view()),
+    path('NetworkPortDeleteByAsset/<int:asset_id>', NetworkPortDeleteByAsset.as_view()),
+    path('NetworkGraph/<int:asset_id>', net_graph)
 ]

@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from rest_framework.permissions import BasePermission, SAFE_METHODS, IsAdminUser
@@ -28,12 +28,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG") == "True"
-
-ALLOWED_HOSTS = ["localhost", "brian.bitasy.me", "carter.bitasy.me", "amber.bitasy.me",
-                 "inchan.bitasy.me", "dev.bitasy.me", "prod.bitasy.me", "hyposoft.tech",
-                 "prod.hyposoft.tech", "vcm-13060.vm.duke.edu"]
-
+DEBUG = os.getenv('DJANGO_DEBUG', "True").lower() == "true",
+ALLOWED_HOSTS = ["localhost", "hyposoft.tech"]
 
 # Application definition
 
@@ -52,7 +48,9 @@ INSTALLED_APPS = [
     'frontend',
     'equipment',
     'system_log',
-    'hypo_auth'
+    'hypo_auth',
+    'network',
+    'power',
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True
@@ -95,10 +93,10 @@ WSGI_APPLICATION = 'hyposoft.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("DB_NAME"),
-        'USER': os.environ.get("DB_USER"),
-        'PASSWORD': os.environ.get("DB_PASS"),
-        'HOST': os.environ.get("DB_HOST"),
+        'NAME': os.getenv('DB_NAME', 'dev'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': '5432',
     }
 }
