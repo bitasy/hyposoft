@@ -6,6 +6,32 @@ from .serializers import *
 from .models import *
 
 
+# NetworkPortLabel
+class NetworkPortLabelCreateView(CreateAndLogMixin, generics.CreateAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelRetrieveView(generics.RetrieveAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelUpdateView(UpdateAndLogMixin, generics.UpdateAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelDestroyView(DestroyWithPayloadMixin, DeleteAndLogMixin, generics.DestroyAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
+class NetworkPortLabelListView(generics.ListAPIView):
+    queryset = NetworkPortLabel.objects.all()
+    serializer_class = NetworkPortLabelSerializer
+
+
 # NetworkPort
 class NetworkPortCreateView(CreateAndLogMixin, generics.CreateAPIView):
     queryset = NetworkPort.objects.all()

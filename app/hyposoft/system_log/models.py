@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import User
 
 from equipment.models import *
+from network.models import *
+from power.models import *
 
 
 def username(user):
