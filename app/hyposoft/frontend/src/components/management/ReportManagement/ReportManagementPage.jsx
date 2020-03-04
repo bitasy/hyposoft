@@ -7,22 +7,25 @@ import { fetchUsers } from "../../../redux/users/actions";
 import { fetchModels } from "../../../redux/models/actions";
 import { fetchRacks } from "../../../redux/racks/actions";
 import { fetchAssets } from "../../../redux/assets/actions";
-
+import { fetchDatacenters } from "../../../redux/datacenters/actions";
 
 function ReportManagementPage() {
   const dispatch = useDispatch();
 
+  const dcName = useSelector(s => s.appState.dcName);
+  const dcID = useSelector(s => Object.values(s.datacenters).find(dc => dc.abbr === dcName)?.id || 0);
   const users = useSelector(s => Object.values(s.users));
   const models = useSelector(s => Object.values(s.models));
-  const racks = useSelector(s => Object.values(s.racks));
-  const assets = useSelector(s => Object.values(s.assets));
+  const racks = useSelector(s => Object.values(s.racks).filter(r => dcID === 0 || r.datacenter === dcID));
+  const assets = useSelector(s => Object.values(s.assets).filter(a => dcID === 0 || a.datacenter === dcID));
 
   React.useEffect(() => {
     dispatch(fetchUsers());
     dispatch(fetchModels());
-    dispatch(fetchRacks());
-    dispatch(fetchAssets());
-  }, []);
+    dispatch(fetchDatacenters());
+    dispatch(fetchRacks(dcName));
+    dispatch(fetchAssets(dcName));
+  }, [dcName]);
 
   const rackSpace = racks.length * 42; //total rack space, type: number
   const columns = [
@@ -56,7 +59,6 @@ function ReportManagementPage() {
           dataSource={RackUsageByModel(rackSpace, assets, models)}
           columns={columns}
         />
-        ;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Owner</Typography.Title>
@@ -64,7 +66,6 @@ function ReportManagementPage() {
           dataSource={RackUsageByOwner(rackSpace, assets, users)}
           columns={columns}
         />
-        ;
       </div>
       <div>
         <Typography.Title level={4}>Rack Usage by Vendor</Typography.Title>
@@ -98,7 +99,7 @@ function RackUsage(rackSpace, assets) {
       key: "1",
       category: "All racks",
       used: percentUsed,
-      free: percentFree.toFixed(2)
+      free: percentFree
     });
   }
 
@@ -142,7 +143,7 @@ function RackUsageByModel(rackSpace, assets, models) {
         key: i + 1,
         category: modelToString(models[i]),
         used: percentUsed[i],
-        free: percentFree.toFixed(2)
+        free: percentFree
       });
     }
   }
@@ -188,7 +189,7 @@ function RackUsageByOwner(rackSpace, assets, users) {
         key: i + 1,
         category: uniqueOwners[i].username,
         used: percentUsed[i],
-        free: percentFree.toFixed(2)
+        free: percentFree
       };
     }
   }
@@ -234,7 +235,7 @@ function RackUsageByVendor(rackSpace, assets, models) {
         key: i + 1,
         category: uniqueVendors[i],
         used: percentUsed[i],
-        free: percentFree.toFixed(2)
+        free: percentFree
       };
     }
   }
