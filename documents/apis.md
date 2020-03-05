@@ -29,7 +29,7 @@
 # Types
 
 ```
-ITModel {
+ITMODEL {
   id: ITMODEL_ID,
   vendor: string,
   model_number: string,
@@ -44,7 +44,7 @@ ITModel {
   comment: string | null,
 }
 
-Asset {
+ASSET {
   id: ASSET_ID,
   asset_number: number,
   hostname: string | null,
@@ -61,41 +61,96 @@ Asset {
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
   }[],
+  network_graph: NETWORK_GRAPH,
   comment: string | null,
   owner: USER_ID | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
 }
 
-Rack {
+// For decommissioned assets, these info has to be frozen in time,
+// which means it shouldn't be resolved by looking up foreign keys on live data. See 11.5
+// Also, obviously, power_state should be null for them.
+ASSET_DETAILS {
+  id: ASSET_ID,
+  asset_number: number,
+  hostname: string | null,
+  itmodel: ITMODEL,
+  datacenter: DATACENTER,
+  rack: RACK,
+  rack_position: int,
+  power_connections: {
+    pdu_id: PDU_ID,
+    plug: int,
+    label: string, # ex) L1, R2
+  }[],
+  network_ports: {
+    id: NETWORK_PORT_ID,
+    mac_address: string | null,
+    connection: NETWORK_PORT_ID | null,
+    connection_str: string | null, // Some string that represents an asset + network port label
+  }[],
+  network_graph: NETWORK_GRAPH,
+  comment: string | null,
+  owner: USER | null,
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
+  decom: {
+    by: USER_ID,
+    timestamp: number,
+  } | null,
+}
+
+RACK {
   id: RACK_ID,
   rack: string,
 }
 
-Datacenter {
+DATACENTER {
   id: DATACENTER_ID,
   name: string,
   abbr: string,
 }
 
-NetworkPort {
+NETWORK_PORT {
   id: NETWORK_PORT_ID,
   label: string,
   mac_address: string | null,
   connection: NETWORK_PORT_ID | null
 }
 
-PowerPort {
+POWER_PORT {
   pdu_id: PDU_ID,
   plug: int,
   asset_id: ASSET_ID | null,
   label: string, # ex) L1, R2
 }
 
-User {
+USER {
   username: string,
   first_name: string,
   last_name: string,
   is_staff: bool # may be replaced in favor of roles
+}
+
+NETWORK_GRAPH {
+  verticies: {
+    id: ASSET_ID,
+    label: ASSET_STR,
+  }[],
+  edges: [ASSET_ID, ASSET_ID][],
+}
+
+CHANGE_PLAN {
+  id: CHANGE_PLAN_ID,
+  name: string,
+  executed_at: number | null, # timestamp of the execution
+  diffs: {
+    live: ASSET_DETAILS | null, # live version
+    cp: ASSET_DETAILS | null, # change plan version
+    conflicts: {
+      field: string,
+      message: string
+    }[]
+  }[]
 }
 
 ```
@@ -302,7 +357,7 @@ Datacenter # updated one
 
 #### Notes
 
-The request should fail if there are assets of this ITModel.
+The request should fail if there are live assets of this ITModel.
 
 #### Response Body
 
@@ -366,6 +421,14 @@ ITModel
 
 ```
 ASSET
+```
+
+### `[GET] api/equipment/AssetDetailRetrieve/:asset_id`
+
+#### Response Body
+
+```
+ASSET_DETAILS
 ```
 
 # List APIs
@@ -461,6 +524,8 @@ ITModelEntry {
 
 > Datacenter-dependent
 
+Exclude Decommissioned Assets
+
 `power_action_visible` field in the response can be determined since the request contains the user session.
 
 #### Response body
@@ -483,15 +548,62 @@ AssetEntry {
 }
 ```
 
-### `[GET] api/equipments/AssetList`
+### `[GET] api/equipment/DecommissionedAssetList`
+
+#### Query params
+
+```
+{
+  page: number,
+  page_size: number,
+  username: string | undefined,
+  timestamp_from: number | undefined, # Of course, in UTC
+  timestamp_to: number | undefined,
+  ordering:
+    | 'model' # combination of vendor / model_number
+    | 'hostname'
+    | 'location' # combination of datacenter, rack, rack_position
+    | 'owner'
+    | 'decom_by',
+    | 'decom_timestamp',
+    | undefined, # default 'id'
+  direction:
+    | 'ascending'
+    | 'descending'
+    | undefined # default 'descending'
+}
+```
+
+#### Response body
+
+```
+{
+  num_pages: int,
+  result: DecommissionedAssetEntry[],
+}
+
+where
+
+DecommissionedAssetEntry = AssetEntry + {
+  decom_by: string,
+  decom_timestamp: number,
+}
+```
+
+### `[GET] prefix/AssetPickList`
 
 #### QueryParams
 
 ```
 {
-  rack_id: RACK_ID | undefined
+  datacenter_id: DATACENTER_ID | undefined,
+  rack_id: RACK_ID | undefined,
 }
 ```
+
+#### Notes
+
+Obviously, they're both filters.
 
 #### Response body
 
@@ -499,7 +611,7 @@ AssetEntry {
 Asset[]
 ```
 
-### `[GET] api/equipments/RackList`
+### `[GET] prefix/RackList`
 
 #### Notes
 
@@ -511,7 +623,7 @@ Asset[]
 Rack[]
 ```
 
-### `[GET] api/equipments/DatacenterList`
+### `[GET] prefix/DatacenterList`
 
 #### Response body
 
@@ -519,7 +631,7 @@ Rack[]
 Datacenter[]
 ```
 
-### `[GET] api/equipments/PowerPortList`
+### `[GET] prefix/PowerPortList`
 
 #### Query params
 
@@ -535,7 +647,7 @@ Datacenter[]
 PowerPort[]
 ```
 
-### `[GET] api/equipments/NetworkPortList`
+### `[GET] prefix/NetworkPortList`
 
 #### Query params
 
@@ -559,7 +671,7 @@ NetworkPort[]
 User[]
 ```
 
-### `[GET] api/equipments/ITModelPickList`
+### `[GET] prefix/ITModelPickList`
 
 ```
 {
@@ -594,7 +706,7 @@ User[]
 
 # Power Management APIs
 
-### `[GET] api/equipments/PDUNetwork/get/:asset_id`
+### `[GET] prefix/PDUNetwork/get/:asset_id`
 
 #### Notes
 
@@ -606,7 +718,7 @@ It's guaranteed that this api will be called only on assets that had `power_stat
 "On" | "Off" | "Unavailable"
 ```
 
-### `[POST] api/equipments/PDUNetwork/post`
+### `[POST] prefix/PDUNetwork/post`
 
 #### Request body
 
@@ -623,7 +735,7 @@ It's guaranteed that this api will be called only on assets that had `power_stat
 (empty)
 ```
 
-### `[POST] api/equipments/PDUNetwork/cycle`
+### `[POST] prefix/PDUNetwork/cycle`
 
 #### Request body
 
@@ -745,21 +857,129 @@ Network inherits the filters from Assets - for the exact semantics, see https://
 serialized bytestream of the csv file (make sure that the content-type header is set to 'application/octet-stream' to trigger the download.)
 ```
 
-####
+# Decommissioning
 
-# Uncategorized APIs
-
-### `[GET] api/equipments/NetworkGraph/:asset_id`
-
-#### Notes
-
-Even if the asset doesn't have any connections, the response should have that asset as a single verticies and no edges.
+### `[POST] api/equipment/DecommissionAsset/:asset_id`
 
 #### Response body
 
 ```
-{
-  verticies: Asset[],
-  edges: [ASSET_ID, ASSET_ID][],
+ASSET_DETAILS
+```
+
+### ``
+
+### ``
+
+### Notes
+
+# Change plan APIs
+
+## General note:
+
+Every request that a user makes while in a change plan will include a header `X-CHANGE-PLAN` (`HTTP_X_CHANGE_PLAN` in django), with id of the change plan on it.
+If not present, it means that the user is working on live data.
+
+Any updates to live data other than assets should be rejected when the header is present. (Creating/Updating/Deleting ITModels/Racks/Datacenters, network power management), although such action should be prevented from the UI as well.
+
+All asset-related APIs (
+AssetRetrieve,
+AssetDetailRetrieve,
+AssetList,
+AssetCreate,
+AssetUpdate,
+AssetDestroy,
+AssetPickList, PowerPortList, NetworkPortList,
+DecommissionedAssetList,
+DecommissionAsset,
+Logs
+) should behave differently when the header is present.
+
+### `[GET] prefix/ChangePlanList`
+
+#### Notes
+
+Only return the change plans made by the requesting user.
+
+#### Response body
+
+```
+ChangePlanEntry[]
+
+where
+
+ChangePlanEntry {
+  id: CHANGE_PLAN_ID,
+  name: string,
+  executed_at: number | null, # timestamp of the execution
+  has_conflicts: bool
 }
+```
+
+### `[GET] prefix/ChangePlanDetails/:change_plan_id`
+
+#### Response body
+
+```
+CHANGE_PLAN
+```
+
+### `[GET] prefix/ChangePlanActions/:change_plan_id`
+
+#### Response body
+
+```
+string[] // See 10.7
+```
+
+### `[POST] prefix/ChangePlanCreate`
+
+#### Request body
+
+```
+{
+  name: string
+}
+```
+
+#### Response body
+
+```
+CHANGE_PLAN_ID
+```
+
+### `[POST] prefix/ChangePlanExecute/:change_plan_id`
+
+#### Notes
+
+Reject if there are conflicts
+
+#### Response body
+
+```
+CHANGE_PLAN
+```
+
+### `[PATCH] prefix/ChangePlanUpdate/:change_plan_id`
+
+#### Request body
+
+```
+{
+  name: string
+}
+```
+
+#### Response body
+
+```
+(Empty)
+```
+
+### `[DELETE] prefix/ChangePlanDestroy/:change_plan_id`
+
+#### Response body
+
+```
+(Empty)
 ```
