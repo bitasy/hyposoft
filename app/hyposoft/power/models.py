@@ -2,6 +2,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from equipment.models import Asset, Rack
+from changeplan.models import ChangePlan
 
 
 class PDU(models.Model):
@@ -29,6 +30,10 @@ class PDU(models.Model):
     position = models.CharField(
         choices=Position.choices,
         max_length=16
+    )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
     )
 
     class Meta:
@@ -71,6 +76,10 @@ class Powered(models.Model):
             MaxValueValidator(2,
                               message="Special network port ID must be no greater than 2")
         ]
+    )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
     )
 
     class Meta:

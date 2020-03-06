@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'hyposoft',
     'import_export',
     'frontend',
+    'changeplan',
     'equipment',
     'system_log',
     'hypo_auth',

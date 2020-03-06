@@ -4,6 +4,8 @@ from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
+from changeplan.models import ChangePlan
+
 
 class Datacenter(models.Model):
     abbr = models.CharField(
@@ -102,7 +104,10 @@ class Rack(models.Model):
     datacenter = models.ForeignKey(
         Datacenter,
         on_delete=models.PROTECT,
-        default=""
+    )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
     )
 
     def __str__(self):
@@ -166,6 +171,10 @@ class Asset(models.Model):
             RegexValidator("^$|^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
+    )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
     )
 
     def __str__(self):

@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from equipment.models import ITModel, Asset
+from changeplan.models import ChangePlan
 
 
 class NetworkPortLabel(models.Model):
@@ -44,6 +45,10 @@ class NetworkPort(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL
+    )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
     )
 
     class Meta:
