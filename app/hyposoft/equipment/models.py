@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
@@ -157,7 +157,8 @@ class Asset(models.Model):
         User,
         null=True,
         blank=True,
-        on_delete=models.SET(None)
+        on_delete=models.SET(None),
+        related_name='owned_assets'
     )
     comment = models.TextField(
         blank=True,
@@ -180,6 +181,16 @@ class Asset(models.Model):
     )
     decommissioned = models.BooleanField(
         default=False
+    )
+    decommissioned_timestamp = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    decommissioned_by = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='decommissioned_assets'
     )
 
     class Meta:
