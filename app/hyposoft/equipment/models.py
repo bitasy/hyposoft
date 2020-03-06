@@ -109,12 +109,15 @@ class Rack(models.Model):
         ChangePlan,
         on_delete=models.CASCADE
     )
+    decommissioned = models.BooleanField(
+        default=False
+    )
 
     def __str__(self):
         return "Rack {} Datacenter {}".format(self.rack, self.datacenter.abbr)
 
     class Meta:
-        unique_together = ['rack', 'datacenter']
+        unique_together = ['rack', 'datacenter', 'version']
 
 
 class Asset(models.Model):
@@ -123,7 +126,6 @@ class Asset(models.Model):
         default=0
     )
     hostname = models.CharField(
-        unique=True,
         blank=True,
         null=False,
         max_length=64,
@@ -165,10 +167,10 @@ class Asset(models.Model):
         ]
     )
     mac_address = models.CharField(
-        blank=True,
+        null=True,
         max_length=17,
         validators=[
-            RegexValidator("^$|^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
+            RegexValidator("^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
                            message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
         ]
     )
@@ -176,6 +178,12 @@ class Asset(models.Model):
         ChangePlan,
         on_delete=models.CASCADE
     )
+    decommissioned = models.BooleanField(
+        default=False
+    )
+
+    class Meta:
+        unique_together = [['hostname', 'version'], ['asset_number', 'version'], ['mac_address', 'version']]
 
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:

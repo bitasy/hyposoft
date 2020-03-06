@@ -37,7 +37,7 @@ class PDU(models.Model):
     )
 
     class Meta:
-        unique_together = ['rack', 'position']
+        unique_together = ['rack', 'position', 'version']
 
     def __str__(self):
         return "{} PDU on {} in {}".format(
@@ -83,4 +83,4 @@ class Powered(models.Model):
     )
 
     class Meta:
-        unique_together = (('plug_number', 'pdu'), ('special', 'asset'))
+        unique_together = [['plug_number', 'pdu', 'version'], ['special', 'asset', 'version']]
