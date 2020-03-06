@@ -68,7 +68,7 @@ ASSET {
 }
 
 // For decommissioned assets, these info has to be frozen in time,
-// which means it shouldn't be resolved by looking up foreign keys on live data. See 11.5
+// which means it should be resolved based on the change set created when the asset was decommissioned. See 11.5
 // Also, obviously, power_state should be null for them.
 ASSET_DETAILS {
   id: ASSET_ID,
@@ -682,7 +682,7 @@ User[]
 
 # Log APIs
 
-### `[GET] log`
+### `[GET] api/log/EntryList`
 
 #### Query params
 
@@ -859,9 +859,13 @@ serialized bytestream of the csv file (make sure that the content-type header is
 
 # Decommissioning
 
-### `[POST] api/equipment/DecommissionAsset/:asset_id`
+### `[POST] api/equipment/DecommissionAsset/:asset_id/:user_id`
 
 #### Response body
+
+#### Notes
+
+user_id refers to the user that decommissioned this asset.
 
 ```
 ASSET_DETAILS
