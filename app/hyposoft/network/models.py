@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.db import models
 from equipment.models import ITModel, Asset
 from changeplan.models import ChangePlan
@@ -39,6 +39,14 @@ class NetworkPort(models.Model):
     label = models.ForeignKey(
         NetworkPortLabel,
         on_delete=models.PROTECT
+    )
+    mac_address = models.CharField(
+        null=True,
+        max_length=17,
+        validators=[
+            RegexValidator("^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
+                           message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
+        ]
     )
     connection = models.OneToOneField(
         "self",

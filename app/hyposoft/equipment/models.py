@@ -167,21 +167,21 @@ class Asset(models.Model):
                            message="Comments must be enclosed by double quotes if value contains line breaks.")
         ]
     )
-    mac_address = models.CharField(
-        null=True,
-        max_length=17,
-        validators=[
-            RegexValidator("^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
-                           message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
-        ]
-    )
     version = models.ForeignKey(
         ChangePlan,
         on_delete=models.CASCADE
     )
-    decommissioned = models.BooleanField(
-        default=False
+
+    class Decommissioned(models.TextChoices):
+        COMMISSIONED = 'C'
+        DECOMMISSIONED = None
+
+    decommissioned = models.CharField(
+        max_length=1,
+        null=True,
+        choices=Decommissioned.choices
     )
+
     decommissioned_timestamp = models.DateTimeField(
         null=True,
         blank=True
@@ -194,7 +194,10 @@ class Asset(models.Model):
     )
 
     class Meta:
-        unique_together = [['hostname', 'version'], ['asset_number', 'version'], ['mac_address', 'version']]
+        unique_together = [
+            ['hostname', 'version', 'decommissioned'],
+            ['asset_number', 'version']
+        ]
 
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:
