@@ -17,3 +17,9 @@ class ChangePlan(models.Model):
     time_executed = models.DateTimeField(
         null=True
     )
+    auto_created = models.BooleanField(
+        # This field is used to track changesets that are
+        # automatically created when an asset is decommissioned.
+        # Used to create a snapshot of a decommissioned asset.
+        default=False
+    )

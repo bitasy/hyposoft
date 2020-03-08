@@ -23,6 +23,7 @@ urlpatterns = [
     path('auth/', include('hypo_auth.urls')),
     path('admin/', admin.site.urls),
     path('api/equipment/', include('equipment.urls')),
+    path('api/new/equipment/', include('equipment.new_urls')),
     path('api/network/', include('network.urls')),
     path('api/power/', include('power.urls')),
     path('api/log/', include('system_log.urls')),

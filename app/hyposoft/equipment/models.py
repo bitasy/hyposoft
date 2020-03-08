@@ -99,7 +99,6 @@ class Rack(models.Model):
             RegexValidator("^[A-Z]{1,2}[0-9]{2}$",
                            message="Row number must be specified by one or two capital letters.")
         ],
-        default="A0"
     )
     datacenter = models.ForeignKey(
         Datacenter,
@@ -110,6 +109,7 @@ class Rack(models.Model):
         on_delete=models.CASCADE
     )
     decommissioned = models.BooleanField(
+        # Used to show deleted racks with decommissioned assets on them
         default=False
     )
 
@@ -174,12 +174,13 @@ class Asset(models.Model):
 
     class Decommissioned(models.TextChoices):
         COMMISSIONED = 'C'
-        DECOMMISSIONED = None
+        # DECOMMISSIONED = None
 
     decommissioned = models.CharField(
         max_length=1,
         null=True,
-        choices=Decommissioned.choices
+        choices=Decommissioned.choices,
+        default=Decommissioned.COMMISSIONED
     )
 
     decommissioned_timestamp = models.DateTimeField(
