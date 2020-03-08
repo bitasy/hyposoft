@@ -7,12 +7,12 @@ from .models import NetworkPortLabel, NetworkPort
 
 @receiver(post_save, sender=Asset)
 def set_default_np(sender, instance, *args, **kwargs):
-    labels = instance.itmodel.networkportlabel_set
+  """  labels = instance.itmodel.networkportlabel_set
     ports = instance.networkport_set
     for label in labels.all():
         if not ports.filter(label=label).exists():
-            NetworkPort.objects.create(asset=instance, label=label, connection=None).save()
-
+            NetworkPort.objects.create(asset=instance, label=label, connection=None, version_id=0).save()
+"""
 
 @receiver(pre_save, sender=NetworkPortLabel)
 def set_default_npl(sender, instance, *args, **kwargs):

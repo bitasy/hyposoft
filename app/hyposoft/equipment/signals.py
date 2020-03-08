@@ -35,7 +35,7 @@ def auto_fill_asset(sender, instance, *args, **kwargs):
             "Asset datacenter cannot be different from rack datacenter.")
 
     instance.datacenter = instance.rack.datacenter
-    if not instance.mac_address == "":
+    """if not instance.mac_address == "":
         new = (instance.mac_address or "").lower().replace('-', '').replace('_', '').replace(':', '')
         new = ':'.join([new[b:b + 2] for b in range(0, 12, 2)])
-        instance.mac_address = new
+        instance.mac_address = new"""
