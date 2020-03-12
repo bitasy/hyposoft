@@ -24,14 +24,13 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
 
-        labels = data.get('network_port_labels')
+        labels = data.get('network_ports_labels')
         if labels is None:
-            raise serializers.ValidationError({
-                'network_port_labels': 'This field is required.'
-            })
+            data['network_ports'] = 0
+            return
         if not isinstance(labels, list):
             raise serializers.ValidationError({
-                'network_port_labels': 'This field must be a list.'
+                'network_ports_labels': 'This field must be a list.'
             })
         data['network_ports'] = len(labels)
 
@@ -39,20 +38,19 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        labels = validated_data.get('network_port_labels')
-        del validated_data['network_port_labels']
-        obj = super(ITModelSerializer, self).create(validated_data)
+        labels = validated_data.pop('network_ports_labels')
+        itmodel = super(ITModelSerializer, self).create(validated_data)
 
         i = 1
         for label in labels:
             NetworkPortLabel.objects.create(
                 name=label,
-                itmodel=obj,
+                itmodel=itmodel,
                 special=i if i <= 4 else None
             )
             i += 1
 
-        return obj
+        return itmodel
 
 
 class AssetSerializer(serializers.ModelSerializer):
@@ -93,12 +91,10 @@ class AssetSerializer(serializers.ModelSerializer):
     # Atomicity used for validation errors on Powered and NetworkPort entries
     def create(self, validated_data):
 
-        power_connections = validated_data.get('power_connections')
-        net_ports = validated_data.get('network_ports')
-        del validated_data['power_connections']
-        del validated_data['network_ports']
+        power_connections = validated_data.pop('power_connections')
+        net_ports = validated_data.pop('network_ports')
 
-        obj = super(AssetSerializer, self).create(validated_data)
+        asset = super(AssetSerializer, self).create(validated_data)
 
         i = 1
         for connection in power_connections:
@@ -106,16 +102,16 @@ class AssetSerializer(serializers.ModelSerializer):
                 pdu=connection['pdu_id'],
                 plug_number=connection['plug'],
                 version=validated_data['version'],
-                asset=obj,
+                asset=asset,
                 special=i if i <= 2 else None
             )
             i += 1
 
         for port in net_ports:
             NetworkPort.objects.create(
-                asset=obj,
+                asset=asset,
                 label=NetworkPortLabel.objects.get(
-                    itmodel=obj.itmodel,
+                    itmodel=asset.itmodel,
                     name=port['label']
                 ),
                 mac_address=port['mac_address'],
@@ -123,4 +119,4 @@ class AssetSerializer(serializers.ModelSerializer):
                 version=validated_data['version'],
             )
 
-        return obj
+        return asset
