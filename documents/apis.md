@@ -167,7 +167,7 @@ CHANGE_PLAN {
   model_number: string,
   height: int,
   power_ports: int,
-  network_ports_labels: string[],
+  network_port_labels: string[],
 
   display_color: string | null,
   cpu: string | null,
@@ -282,7 +282,7 @@ Datacenter
   model_number: string,
   height: int,
   power_ports: int,
-  network_ports_labels: string[],
+  network_port_labels: string[],
 
   display_color: string | null,
   cpu: string | null,
