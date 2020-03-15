@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPortLabel, NetworkPort
 from power.models import Powered, PDU
@@ -24,13 +25,13 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
 
-        labels = data.get('network_ports_labels')
+        labels = data.get('network_port_labels')
         if labels is None:
             data['network_ports'] = 0
             return
         if not isinstance(labels, list):
             raise serializers.ValidationError({
-                'network_ports_labels': 'This field must be a list.'
+                'network_port_labels': 'This field must be a list.'
             })
         data['network_ports'] = len(labels)
 
@@ -38,19 +39,19 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        labels = validated_data.pop('network_ports_labels')
+        labels = validated_data.pop('network_port_labels')
         itmodel = super(ITModelSerializer, self).create(validated_data)
 
-        i = 1
-        for label in labels:
-            NetworkPortLabel.objects.create(
-                name=label,
-                itmodel=itmodel,
-                special=i if i <= 4 else None
-            )
-            i += 1
+        if labels:
+            create_itmodel_extra(itmodel, labels)
 
         return itmodel
+
+    def to_representation(self, instance):
+        data = super(ITModelSerializer, self).to_representation(instance)
+        data['network_port_labels'] = self.validated_data['network_port_labels']
+
+        return data
 
 
 class AssetSerializer(serializers.ModelSerializer):
@@ -82,7 +83,7 @@ class AssetSerializer(serializers.ModelSerializer):
 
         req = self.context['request']
         # Value of 0 represents live
-        version = req.META.get('HTTP_X_CHANGESET', 0)
+        version = req.META.get('HTTP_X_CHANGE_PLAN', 0)
         data['version'] = version
 
         return super(AssetSerializer, self).to_internal_value(data)
@@ -96,27 +97,11 @@ class AssetSerializer(serializers.ModelSerializer):
 
         asset = super(AssetSerializer, self).create(validated_data)
 
-        i = 1
-        for connection in power_connections:
-            Powered.objects.create(
-                pdu=connection['pdu_id'],
-                plug_number=connection['plug'],
-                version=validated_data['version'],
-                asset=asset,
-                special=i if i <= 2 else None
-            )
-            i += 1
-
-        for port in net_ports:
-            NetworkPort.objects.create(
-                asset=asset,
-                label=NetworkPortLabel.objects.get(
-                    itmodel=asset.itmodel,
-                    name=port['label']
-                ),
-                mac_address=port['mac_address'],
-                connection=port.get('connection'),
-                version=validated_data['version'],
-            )
+        create_asset_extra(asset, validated_data['version'], power_connections, net_ports)
 
         return asset
+
+    def to_representation(self, instance):
+        data = super(AssetSerializer, self).to_representation(instance)
+        data['power_connections'] = self.power_connections
+        data['network_ports'] = self.network_ports
