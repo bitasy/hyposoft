@@ -102,6 +102,8 @@ ASSET_DETAILS {
 RACK {
   id: RACK_ID,
   rack: string,
+  datacenter: DATACENTER_ID,
+  decommissioned: bool
 }
 
 DATACENTER {
