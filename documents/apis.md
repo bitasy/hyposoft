@@ -225,32 +225,35 @@ Since network port labels are unique within an ITModel, `label` field is suffici
 Asset
 ```
 
-### `[POST] api/equipment/BulkRackCreate`
+### `[POST] api/equipment/RackRangeCreate`
 
 #### Request Body
 
 ```
 {
   datacenter: DATACENTER_ID,
-  rowIdx: int,
-  colIdx: int
-}[]
+  r1: string,
+  r2: string,
+  c1: int,
+  c2: int
+}
 ```
 
 #### Notes
 
-> Not transactional.
-
-The indices are 0-based. The necessary `PDU` should be created.
+All racks will be created in the same datacenter.
+r1 and r2 refer to row letters, e.g. 'D' or 'AA'.
+c1 and c2 refer to column numbers, currently 1 through 99.
+The necessary `PDU`s should be created.
 
 #### Response Body
 
 ```
 {
-  res: Rack | null
-  warn: string | null,
-  err: string | null,
-}[]
+  res: Rack[] | null
+  warn: string[] | null,
+  err: string[] | null,
+}
 ```
 
 ### `[POST] api/equipment/DatacenterCreate`
