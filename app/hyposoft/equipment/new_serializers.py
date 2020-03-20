@@ -155,3 +155,10 @@ class AssetSerializer(serializers.ModelSerializer):
 
     def validate_hostname(self, value):
         return None if value == "" else value
+
+
+class RackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Rack
+        fields = ["id", "rack", "datacenter", "decommissioned"]

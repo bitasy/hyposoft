@@ -1,4 +1,7 @@
+from django.db import IntegrityError
 from rest_framework import generics, views
+from rest_framework.response import Response
+
 from .new_serializers import *
 from .models import *
 
@@ -33,17 +36,35 @@ class RackRangeCreate(views.APIView):
         c1 = request.data['c1']
         c2 = request.data['c2']
 
-        in_range = True
         curr = r1
 
-        while in_range: # Hacky do-while loop
-            for c in range(c1, c2):
-                Rack.objects.create(
-                    datacenter=request.data['datacenter'],
-                    version=request.META.get('HTTP_X_CHANGE_PLAN', 0),
-                    rack=curr + str(c)
-                )
+        racks = []
+        warns = []
+        err = []
+
+        while True:
+            for c in range(c1, c2 + 1):
+                rack = curr + str(c)
+                try:
+                    new = Rack(
+                        datacenter=Datacenter.objects.get(id=request.data['datacenter']),
+                        version=ChangePlan.objects.get(id=request.META.get('HTTP_X_CHANGE_PLAN', 0)),
+                        rack=rack
+                    )
+                    new.save()
+                    racks.append(new)
+                except IntegrityError:
+                    warns.append(rack + " already exists.")
+                except Exception as e:
+                    err.append(str(e))
 
             if curr == r2:
                 break
-            curr = next_char(r1)
+
+            curr = next_char(curr)
+
+        return Response({
+            "res": [RackSerializer(rack).data for rack in racks],
+            "warn": warns if warns else None,
+            "err": err if err else None
+        })

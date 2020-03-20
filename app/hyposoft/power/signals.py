@@ -7,7 +7,7 @@ from equipment.models import Rack
 
 from rest_framework import serializers
 
-
+"""
 @receiver(pre_save, sender=Powered)
 def check_pdu(sender, instance, *args, **kwargs):
     num_powered = len(Powered.objects.filter(asset=instance.asset))
@@ -36,3 +36,4 @@ def add_PDUs(sender, instance, created, *args, **kwargs):
         left.save()
         right = PDU.objects.create(rack=instance, position=PDU.Position.RIGHT)
         right.save()
+"""
