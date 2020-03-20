@@ -26,7 +26,7 @@ rack_pre = "hpdu-rtp1-"
 
 def get_pdu(rack, position):
     try:
-        response = requests.get(PDU_url + GET_suf, params={'pdu': rack_pre + rack + position})
+        response = requests.get(PDU_url + GET_suf, params={'pdu': rack_pre + rack + position}, timeout=0.5)
         code = response.status_code
         # The following regex extracts the state of each port on the pdu
         # The format is a list of tuples, e.g. [('1', 'OFF'), ('2', 'ON'), ...]
@@ -46,7 +46,7 @@ def post_pdu(rack, position, port, state):
             'pdu': rack_pre + rack + position,
             'port': port,
             'v': state
-        })
+        }, timeout=0.5)
         # The following regex extracts the result string from the HTML response text
         # If there are no matches, the post failed so return the error text
         result = re.findall(r'(set .*)\n', response.text)

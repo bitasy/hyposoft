@@ -2,6 +2,7 @@ from django.db import IntegrityError
 from rest_framework import generics, views
 from rest_framework.response import Response
 
+from .handlers import create_rack_extra
 from .new_serializers import *
 from .models import *
 
@@ -36,6 +37,8 @@ class RackRangeCreate(views.APIView):
         c1 = request.data['c1']
         c2 = request.data['c2']
 
+        version = request.META.get('HTTP_X_CHANGE_PLAN', 0)
+
         curr = r1
 
         racks = []
@@ -48,10 +51,11 @@ class RackRangeCreate(views.APIView):
                 try:
                     new = Rack(
                         datacenter=Datacenter.objects.get(id=request.data['datacenter']),
-                        version=ChangePlan.objects.get(id=request.META.get('HTTP_X_CHANGE_PLAN', 0)),
+                        version=ChangePlan.objects.get(id=version),
                         rack=rack
                     )
                     new.save()
+                    create_rack_extra(new, version)
                     racks.append(new)
                 except IntegrityError:
                     warns.append(rack + " already exists.")

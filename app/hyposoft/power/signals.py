@@ -1,13 +1,12 @@
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
 from .models import PDU, Powered
 from .views import get_pdu
-from equipment.models import Rack
 
 from rest_framework import serializers
 
-"""
+
 @receiver(pre_save, sender=Powered)
 def check_pdu(sender, instance, *args, **kwargs):
     num_powered = len(Powered.objects.filter(asset=instance.asset))
@@ -27,13 +26,3 @@ def set_connected(sender, instance, *args, **kwargs):
         instance.networked = response[1] < 400
     else:
         instance.networked = False
-
-
-@receiver(post_save, sender=Rack)
-def add_PDUs(sender, instance, created, *args, **kwargs):
-    if created:
-        left = PDU.objects.create(rack=instance, position=PDU.Position.LEFT)
-        left.save()
-        right = PDU.objects.create(rack=instance, position=PDU.Position.RIGHT)
-        right.save()
-"""

@@ -1,8 +1,7 @@
 from django.db.models import Max
 
-from power.models import Powered
+from power.models import Powered, PDU
 from network.models import NetworkPortLabel, NetworkPort
-from .models import Asset
 
 """
 Functions to be used by both bulk import and model serializers.
@@ -55,3 +54,8 @@ def create_asset_extra(asset, version, power_connections, net_ports):
             connection=port.get('connection'),
             version=version,
         )
+
+
+def create_rack_extra(rack, version):
+    PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version_id=version)
+    PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version_id=version)
