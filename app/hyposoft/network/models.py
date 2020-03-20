@@ -13,19 +13,10 @@ class NetworkPortLabel(models.Model):
         ITModel,
         on_delete=models.CASCADE
     )
-    special = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(1,
-                              message="Special network port ID must be at least 1"),
-            MaxValueValidator(4,
-                              message="Special network port ID must be no greater than 4")
-        ]
-    )
+    order = models.IntegerField()
 
     class Meta:
-        unique_together = [['name', 'itmodel'], ['itmodel', 'special']]
+        unique_together = [['name', 'itmodel'], ['itmodel', 'order']]
 
     def __str__(self):
         return '{} : {}'.format(self.name, self.itmodel)
