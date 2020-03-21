@@ -14,7 +14,9 @@ urlpatterns = [
     path('ITModelDestroy/<int:pk>', ITModelDestroy.as_view()),
     path('AssetDestroy/<int:pk>', AssetDestroy.as_view()),
     path('RackRangeDestroy', RackRangeDestroy.as_view()),
-    path('DatacenterDestroy/<int:pk>', DatacenterDestroy.as_view())
+    path('DatacenterDestroy/<int:pk>', DatacenterDestroy.as_view()),
+
+    path('ITModelRetrieve/<int:pk>', ITModelRetrieve.as_view()),
+    path('AssetRetrieve/<int:pk>', AssetRetrieve.as_view()),
+    path('AssetDetailRetrieve/<int:pk>', AssetDetailRetrieve.as_view())
 ]
-
-

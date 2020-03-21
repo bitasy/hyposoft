@@ -198,6 +198,31 @@ class AssetSerializer(serializers.ModelSerializer):
         return None if value == "" else value
 
 
+class AssetDetailSerializer(AssetSerializer):
+    class Meta:
+        model = Asset
+        exclude = ['commissioned']
+
+    def to_representation(self, instance):
+        data = super(AssetDetailSerializer, self).to_representation(instance)
+        connections = Powered.objects.filter(asset=instance)
+        data['power_connections'] = [
+            {'pdu_id': conn['pdu'],
+             'plug': conn['plug_number'],
+             'label': conn['pdu__position'] + str(conn['plug_number'])}
+            for conn in connections.values('pdu', 'pdu__position', 'plug_number')]
+        ports = NetworkPort.objects.filter(asset=instance)
+        data['network_ports'] = [
+            dict(
+                id=port['id'],
+                mac_address=port['mac_address'],
+                connection=port['connection'],
+                connection_str=str(instance) + " — " + port['label__name']
+            ) for port in ports.values('id', 'mac_address', 'connection', 'label__name')
+        ]
+        return data
+
+
 class RackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rack

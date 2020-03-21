@@ -166,6 +166,21 @@ class RackRangeDestroy(views.APIView):
         })
 
 
-class DatacenterDestroy(generics.DestroyAPIView):
+class DatacenterDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
+
+
+class ITModelRetrieve(generics.RetrieveAPIView):
+    queryset = ITModel.objects.all()
+    serializer_class = ITModelSerializer
+
+
+class AssetRetrieve(generics.RetrieveAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer
+
+
+class AssetDetailRetrieve(generics.RetrieveAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetDetailSerializer
