@@ -176,7 +176,7 @@ class Asset(models.Model):
         COMMISSIONED = 'C'
         # DECOMMISSIONED = None
 
-    decommissioned = models.CharField(
+    commissioned = models.CharField(
         max_length=1,
         null=True,
         choices=Decommissioned.choices,
@@ -196,7 +196,8 @@ class Asset(models.Model):
 
     class Meta:
         unique_together = [
-            ['hostname', 'version', 'decommissioned'],
+            # Allow decommissioned assets to have conflicting hostnames
+            ['hostname', 'version', 'commissioned'],
             ['asset_number', 'version']
         ]
 

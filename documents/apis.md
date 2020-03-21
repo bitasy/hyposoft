@@ -373,26 +373,37 @@ ITMODEL_ID
 ASSET_ID
 ```
 
-### `[DELETE] api/equipment/BulkRackDestroy`
+### `[POST] api/equipment/RackRangeDestroy`
 
 #### Request Body
 
 ```
-RACK_ID[]
+{
+  datacenter: DATACENTER_ID,
+  r1: string,
+  r2: string,
+  c1: int,
+  c2: int
+}
+
 ```
 
 #### Notes
 
 > Not transactional
 
+POST is used to allow for sending data.
+r1 and r2 refer to row letters, e.g. 'D' or 'AA'.
+c1 and c2 refer to column numbers, currently 1 through 99.
+
 #### Response Body
 
 ```
 {
-  id: RACK_ID,
-  warn: string | null,
-  err: string | null,
-}[]
+  res: RACK_ID[], # All of the successfully deleted racks
+  warn: string[] | null, # Racks that are decommissioned
+  err: string[] | null # Racks that are skipped
+}
 ```
 
 ####
