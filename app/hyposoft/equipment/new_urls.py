@@ -12,7 +12,9 @@ urlpatterns = [
     path('DatacenterUpdate/<int:pk>', DatacenterUpdate.as_view()),
 
     path('ITModelDestroy/<int:pk>', ITModelDestroy.as_view()),
-    path('RackRangeDestroy', RackRangeDestroy.as_view())
+    path('AssetDestroy/<int:pk>', AssetDestroy.as_view()),
+    path('RackRangeDestroy', RackRangeDestroy.as_view()),
+    path('DatacenterDestroy/<int:pk>', DatacenterDestroy.as_view())
 ]
 
 
