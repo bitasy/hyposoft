@@ -72,3 +72,13 @@ class RackRangeCreate(views.APIView):
             "warn": warns if warns else None,
             "err": err if err else None
         })
+
+
+class ITModelUpdate(generics.UpdateAPIView):
+    queryset = ITModel.objects.all()
+    serializer_class = ITModelSerializer
+
+
+class AssetUpdate(generics.UpdateAPIView):
+    queryset = Asset.objects.all()
+    serializer_class = AssetSerializer

@@ -28,32 +28,34 @@ def create_itmodel_extra(itmodel, labels):
 
 def create_asset_extra(asset, version, power_connections, net_ports):
     # Other objects
-    i = 1
-    for connection in power_connections:
-        Powered.objects.create(
-            pdu=connection['pdu_id'],
-            plug_number=connection['plug'],
-            version=version,
-            asset=asset,
-            special=i if i <= 2 else None
-        )
-        i += 1
+    if power_connections:
+        i = 1
+        for connection in power_connections:
+            Powered.objects.create(
+                pdu=connection['pdu_id'],
+                plug_number=connection['plug'],
+                version=version,
+                asset=asset,
+                special=i if i <= 2 else None
+            )
+            i += 1
 
-    for port in net_ports:
-        mac = port.get('mac_address')
-        if mac and len(mac) == 0:
-            mac = None
+    if net_ports:
+        for port in net_ports:
+            mac = port.get('mac_address')
+            if mac and len(mac) == 0:
+                mac = None
 
-        NetworkPort.objects.create(
-            asset=asset,
-            label=NetworkPortLabel.objects.get(
-                itmodel=asset.itmodel,
-                name=port['label']
-            ),
-            mac_address=mac,
-            connection=port.get('connection'),
-            version=version,
-        )
+            NetworkPort.objects.create(
+                asset=asset,
+                label=NetworkPortLabel.objects.get(
+                    itmodel=asset.itmodel,
+                    name=port['label']
+                ),
+                mac_address=mac,
+                connection=port.get('connection'),
+                version=version,
+            )
 
 
 def create_rack_extra(rack, version):

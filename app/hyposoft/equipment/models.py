@@ -43,16 +43,16 @@ class ITModel(models.Model):
         default="#ddd"
     )
     power_ports = models.IntegerField(
-        null=True,
         blank=True,
+        default=0,
         validators=[
             MinValueValidator(0,
                               message="Number of power ports must be at least 0.")
         ]
     )
     network_ports = models.IntegerField(
-        null=True,
         blank=True,
+        default=0,
         validators=[
             MinValueValidator(0,
                               message="Number of network ports must be at least 0.")

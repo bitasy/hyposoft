@@ -2,8 +2,8 @@ from django.db import transaction
 
 from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
-from network.models import NetworkPort
-from power.models import PDU
+from network.models import NetworkPort, NetworkPortLabel
+from power.models import PDU, Powered
 
 from rest_framework import serializers
 
@@ -29,8 +29,9 @@ class ITModelSerializer(serializers.ModelSerializer):
 
         labels = data.get('network_port_labels')
         if labels is None:
-            data['network_ports'] = 0
-            return
+            if not self.partial:
+                data['network_ports'] = 0
+            return super(ITModelSerializer, self).to_internal_value(data)
         if not isinstance(labels, list):
             raise serializers.ValidationError({
                 'network_port_labels': 'This field must be a list.'
@@ -39,6 +40,7 @@ class ITModelSerializer(serializers.ModelSerializer):
 
         return super(ITModelSerializer, self).to_internal_value(data)
 
+    @transaction.atomic()
     def create(self, validated_data):
 
         labels = validated_data.pop('network_port_labels')
@@ -52,9 +54,17 @@ class ITModelSerializer(serializers.ModelSerializer):
 
         return itmodel
 
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        if 'network_port_labels' in validated_data:
+            NetworkPortLabel.objects.filter(itmodel=instance).delete()
+            create_itmodel_extra(instance, validated_data['network_port_labels'])
+        return super(ITModelSerializer, self).update(instance, validated_data)
+
     def to_representation(self, instance):
         data = super(ITModelSerializer, self).to_representation(instance)
-        data['network_port_labels'] = self.validated_data['network_port_labels']
+        ports = NetworkPortLabel.objects.filter(itmodel=instance)
+        data['network_port_labels'] = [name for name in ports.values_list('name', flat=True).order_by('order')]
 
         return data
 
@@ -112,7 +122,6 @@ class AssetSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_internal_value(self, data):
-
         req = self.context['request']
         # Value of 0 represents live, and is the default
         version = req.META.get('HTTP_X_CHANGE_PLAN', 0)
@@ -121,9 +130,7 @@ class AssetSerializer(serializers.ModelSerializer):
         return super(AssetSerializer, self).to_internal_value(data)
 
     @transaction.atomic
-    # Atomicity used for validation errors on Powered and NetworkPort entries
     def create(self, validated_data):
-
         power_connections = validated_data.pop('power_connections')
         net_ports = validated_data.pop('network_ports')
 
@@ -133,16 +140,32 @@ class AssetSerializer(serializers.ModelSerializer):
         # At this point, asset has been validated and created
         create_asset_extra(asset, validated_data['version'], power_connections, net_ports)
 
-        self.power_connections = power_connections
-        self.network_ports = net_ports
-
         return asset
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        power_connections = validated_data.pop('power_connections', None)
+        net_ports = validated_data.pop('network_ports', None)
+
+        if power_connections:
+            Powered.objects.filter(asset=instance).delete()
+        if net_ports:
+            NetworkPort.objects.filter(asset=instance).delete()
+
+        create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
+
+        return super(AssetSerializer, self).update(instance, validated_data)
 
     def to_representation(self, instance):
         data = super(AssetSerializer, self).to_representation(instance)
-        data['power_connections'] = self.power_connections
-        data['network_ports'] = self.network_ports
-
+        connections = Powered.objects.filter(asset=instance)
+        data['power_connections'] = [
+            {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
+            connections.values('pdu', 'plug_number')]
+        ports = NetworkPort.objects.filter(asset=instance)
+        data['network_ports'] = [
+            port for port in ports.values('id', 'mac_address', 'connection')
+        ]
         return data
 
     def validate_asset_number(self, value):
@@ -158,7 +181,6 @@ class AssetSerializer(serializers.ModelSerializer):
 
 
 class RackSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Rack
         fields = ["id", "rack", "datacenter", "decommissioned"]
