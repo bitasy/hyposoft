@@ -324,9 +324,9 @@ ITModel # updated one
     plug: int,
   }[],
   network_ports: {
-    id: NETWORK_PORT_ID,
+    label: string,
     mac_address: string | null,
-    connection: NETWORK_PORT_ID | null,
+    connection: NETWORK_PORT_ID | null
   }[],
   comment: string | null,
   owner: USER_ID | null,
