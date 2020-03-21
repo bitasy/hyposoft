@@ -68,7 +68,7 @@ ASSET {
 }
 
 // For decommissioned assets, these info has to be frozen in time,
-// which means it shouldn't be resolved by looking up foreign keys on live data. See 11.5
+// which means it should be resolved based on the change set created when the asset was decommissioned. See 11.5
 // Also, obviously, power_state should be null for them.
 ASSET_DETAILS {
   id: ASSET_ID,
@@ -167,7 +167,7 @@ CHANGE_PLAN {
   model_number: string,
   height: int,
   power_ports: int,
-  network_ports_labels: string[],
+  network_port_labels: string[],
 
   display_color: string | null,
   cpu: string | null,
@@ -225,32 +225,35 @@ Since network port labels are unique within an ITModel, `label` field is suffici
 Asset
 ```
 
-### `[POST] api/equipment/BulkRackCreate`
+### `[POST] api/equipment/RackRangeCreate`
 
 #### Request Body
 
 ```
 {
   datacenter: DATACENTER_ID,
-  rowIdx: int,
-  colIdx: int
-}[]
+  r1: string,
+  r2: string,
+  c1: int,
+  c2: int
+}
 ```
 
 #### Notes
 
-> Not transactional.
-
-The indices are 0-based. The necessary `PDU` should be created.
+All racks will be created in the same datacenter.
+r1 and r2 refer to row letters, e.g. 'D' or 'AA'.
+c1 and c2 refer to column numbers, currently 1 through 99.
+The necessary `PDU`s should be created.
 
 #### Response Body
 
 ```
 {
-  res: Rack | null
-  warn: string | null,
-  err: string | null,
-}[]
+  res: Rack[] | null
+  warn: string[] | null,
+  err: string[] | null,
+}
 ```
 
 ### `[POST] api/equipment/DatacenterCreate`
@@ -282,7 +285,7 @@ Datacenter
   model_number: string,
   height: int,
   power_ports: int,
-  network_ports_labels: string[],
+  network_port_labels: string[],
 
   display_color: string | null,
   cpu: string | null,
@@ -693,7 +696,7 @@ User[]
 
 # Log APIs
 
-### `[GET] log`
+### `[GET] api/log/EntryList`
 
 #### Query params
 
@@ -870,9 +873,13 @@ serialized bytestream of the csv file (make sure that the content-type header is
 
 # Decommissioning
 
-### `[POST] api/equipment/DecommissionAsset/:asset_id`
+### `[POST] api/equipment/DecommissionAsset/:asset_id/:user_id`
 
 #### Response body
+
+#### Notes
+
+user_id refers to the user that decommissioned this asset.
 
 ```
 ASSET_DETAILS
