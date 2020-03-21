@@ -7,5 +7,6 @@ urlpatterns = [
     path('RackRangeCreate', RackRangeCreate.as_view()),
     path('ITModelUpdate/<int:pk>', ITModelUpdate.as_view()),
     path('AssetUpdate/<int:pk>', AssetUpdate.as_view()),
-    path('DatacenterCreate', DatacenterCreate.as_view())
+    path('DatacenterCreate', DatacenterCreate.as_view()),
+    path('DatacenterUpdate/<int:pk>', DatacenterUpdate.as_view())
 ]

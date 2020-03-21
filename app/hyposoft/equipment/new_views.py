@@ -87,3 +87,8 @@ class ITModelUpdate(generics.UpdateAPIView):
 class AssetUpdate(generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+
+
+class DatacenterUpdate(generics.UpdateAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
