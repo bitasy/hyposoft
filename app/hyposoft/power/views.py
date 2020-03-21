@@ -26,6 +26,8 @@ rack_pre = "hpdu-rtp1-"
 
 def get_pdu(rack, position):
     try:
+        split = re.search(r"\d", rack).start()
+        rack = rack[:split] + "0" + rack[split:]
         response = requests.get(PDU_url + GET_suf, params={'pdu': rack_pre + rack + position}, timeout=0.5)
         code = response.status_code
         # The following regex extracts the state of each port on the pdu
@@ -42,6 +44,8 @@ def get_pdu(rack, position):
 
 def post_pdu(rack, position, port, state):
     try:
+        split = re.search(r"\d", rack).start()
+        rack = rack[:split] + "0" + rack[split:]
         response = requests.post(PDU_url + POST_suf, {
             'pdu': rack_pre + rack + position,
             'port': port,
