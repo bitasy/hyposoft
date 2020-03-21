@@ -4,6 +4,7 @@ from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPort, NetworkPortLabel
 from power.models import PDU, Powered
+from power.handlers import update_asset_power
 
 from rest_framework import serializers
 
@@ -125,7 +126,7 @@ class AssetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Asset
-        fields = '__all__'
+        exclude = ['commissioned', 'decommissioned_by', 'decommissioned_timestamp']
 
     def to_internal_value(self, data):
         req = self.context['request']
@@ -172,6 +173,17 @@ class AssetSerializer(serializers.ModelSerializer):
         data['network_ports'] = [
             port for port in ports.values('id', 'mac_address', 'connection')
         ]
+        data['decommissioned'] = not instance.commissioned
+        update_asset_power(instance)
+        networked = instance.pdu_set.filter(networked=True)
+        if networked.exists():
+            for pdu in networked:
+                if pdu.powered_set.filter(asset=instance, on=True).exists():
+                    data['power_state'] = "On"
+                    return data
+            data['power_state'] = "Off"
+        else:
+            data['power_state'] = None
         return data
 
     def validate_asset_number(self, value):
