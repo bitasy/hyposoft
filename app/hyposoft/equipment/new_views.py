@@ -7,6 +7,11 @@ from .new_serializers import *
 from .models import *
 
 
+class DatacenterCreate(generics.CreateAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
+
+
 class ITModelCreate(generics.CreateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer

@@ -8,6 +8,12 @@ from power.models import PDU, Powered
 from rest_framework import serializers
 
 
+class DatacenterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Datacenter
+        fields = '__all__'
+
+
 class ITModelSerializer(serializers.ModelSerializer):
     network_port_labels = serializers.ListField(
         child=serializers.CharField(
