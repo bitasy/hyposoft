@@ -52,6 +52,7 @@ ASSET {
   datacenter: DATACENTER_ID,
   rack: RACK_ID,
   rack_position: int,
+  decommissioned: bool,
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -61,10 +62,9 @@ ASSET {
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
   }[],
-  network_graph: NETWORK_GRAPH,
   comment: string | null,
   owner: USER_ID | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
 }
 
 // For decommissioned assets, these info has to be frozen in time,
@@ -78,6 +78,9 @@ ASSET_DETAILS {
   datacenter: DATACENTER,
   rack: RACK,
   rack_position: int,
+  decommissioned: bool,
+  decommissioned_by: USER_ID | null, # null if asset not decommissioned
+  decommissioned_timestamp: datetime | null, # null if asset not decommissioned
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -92,11 +95,7 @@ ASSET_DETAILS {
   network_graph: NETWORK_GRAPH,
   comment: string | null,
   owner: USER | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
-  decom: {
-    by: USER_ID,
-    timestamp: number,
-  } | null,
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
 }
 
 RACK {
@@ -254,7 +253,7 @@ The necessary `PDU`s should be created.
 {
   res: Rack[] | null
   warn: string[] | null,
-  err: string[] | null,
+  err: string[] | null
 }
 ```
 
@@ -705,7 +704,7 @@ User[]
   direction:
     | 'ascending'
     | 'descending'
-    | undefined # default 'descending
+    | undefined # default 'descending'
 }
 ```
 
