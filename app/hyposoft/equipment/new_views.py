@@ -75,9 +75,9 @@ class RackRangeCreate(views.APIView):
             curr = next_char(curr)
 
         return Response({
-            "res": [RackSerializer(rack).data for rack in racks],
-            "warn": warns if warns else None,
-            "err": err if err else None
+            "created": [RackSerializer(rack).data for rack in racks],
+            "warn": warns,
+            "err": err
         })
 
 
@@ -160,9 +160,9 @@ class RackRangeDestroy(views.APIView):
             curr = next_char(curr)
 
         return Response({
-            "res": racks,
-            "warn": warns if warns else None,
-            "err": err if err else None
+            "removed": racks,
+            "warn": warns,
+            "err": err
         })
 
 

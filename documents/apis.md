@@ -52,19 +52,19 @@ ASSET {
   datacenter: DATACENTER_ID,
   rack: RACK_ID,
   rack_position: int,
+  decommissioned: bool,
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
   }[],
   network_ports: {
-    id: NETWORK_PORT_ID,
+    label: string, # symmetry with commit af9c1bcc
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
   }[],
-  network_graph: NETWORK_GRAPH,
   comment: string | null,
   owner: USER_ID | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
 }
 
 // For decommissioned assets, these info has to be frozen in time,
@@ -78,13 +78,16 @@ ASSET_DETAILS {
   datacenter: DATACENTER,
   rack: RACK,
   rack_position: int,
+  decommissioned: bool,
+  decommissioned_by: USER_ID | null, # null if asset not decommissioned
+  decommissioned_timestamp: datetime | null, # null if asset not decommissioned
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
     label: string, # ex) L1, R2
   }[],
   network_ports: {
-    id: NETWORK_PORT_ID,
+    label: string,
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
     connection_str: string | null, // Some string that represents an asset + network port label
@@ -92,16 +95,14 @@ ASSET_DETAILS {
   network_graph: NETWORK_GRAPH,
   comment: string | null,
   owner: USER | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
-  decom: {
-    by: USER_ID,
-    timestamp: number,
-  } | null,
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
 }
 
 RACK {
   id: RACK_ID,
   rack: string,
+  datacenter: DATACENTER_ID,
+  decommissioned: bool
 }
 
 DATACENTER {
@@ -112,6 +113,7 @@ DATACENTER {
 
 NETWORK_PORT {
   id: NETWORK_PORT_ID,
+  asset_str: ASSET_STR, 
   label: string,
   mac_address: string | null,
   connection: NETWORK_PORT_ID | null
@@ -250,9 +252,9 @@ The necessary `PDU`s should be created.
 
 ```
 {
-  res: Rack[] | null
-  warn: string[] | null,
-  err: string[] | null,
+  created: Rack[],
+  warn: string[],
+  err: string[]
 }
 ```
 
@@ -322,9 +324,9 @@ ITModel # updated one
     plug: int,
   }[],
   network_ports: {
-    id: NETWORK_PORT_ID,
+    label: string,
     mac_address: string | null,
-    connection: NETWORK_PORT_ID | null,
+    connection: NETWORK_PORT_ID | null
   }[],
   comment: string | null,
   owner: USER_ID | null,
@@ -403,9 +405,9 @@ c1 and c2 refer to column numbers, currently 1 through 99.
 
 ```
 {
-  res: RACK_ID[], # All of the successfully deleted racks
-  warn: string[] | null, # Racks that are decommissioned
-  err: string[] | null # Racks that are skipped
+  removed: RACK_ID[], # All of the successfully deleted racks
+  warn: string[], # Racks that are decommissioned
+  err: string[] # Racks that are skipped
 }
 ```
 
@@ -517,6 +519,7 @@ ITModelEntry {
   search: string | undefined,
   page: int | undefined, # default 1,
   page_size: int | undefined, # default 10
+  itmodel: ITMODEL_ID | undefined,
   rack_from: string | undefined, # ex) A01
   rack_to: string | undefined,
   rack_position_min: int | undefined
@@ -714,7 +717,7 @@ User[]
   direction:
     | 'ascending'
     | 'descending'
-    | undefined # default 'descending
+    | undefined # default 'descending'
 }
 ```
 
