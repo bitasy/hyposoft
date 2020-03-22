@@ -8,7 +8,7 @@ from import_export.formats import base_formats
 class NetworkPortAdmin(ImportExportActionModelAdmin):
     resource_class = NetworkPortResource
     formats = (base_formats.CSV,)
-    from_encoding = "utf-8-sig"
+    from_encoding = 'utf-8-sig'
     list_filter = ['networkport__asset', 'networkport__label']
 
 

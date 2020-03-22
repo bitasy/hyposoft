@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin
 from rest_framework.authtoken.models import Token
+from .models import Permissions
 
 admin.site.unregister(Group)
 admin.site.unregister(Token)
@@ -41,3 +42,4 @@ class MyUserAdmin(UserAdmin):
 
 admin.site.unregister(User)
 admin.site.register(User, MyUserAdmin)
+admin.site.register(Permissions)
