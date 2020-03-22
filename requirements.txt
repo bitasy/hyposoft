@@ -1,8 +1,0 @@
-django
-djangorestframework
-tablib==0.14.0
-django-import-export
-django-filter
-requests
---no-binary=psycopg2
-psycopg2

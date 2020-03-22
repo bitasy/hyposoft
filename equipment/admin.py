@@ -8,12 +8,14 @@ from .models import ITModel, Asset, Rack, Datacenter
 class ITModelAdmin(ImportExportActionModelAdmin):
     resource_class = ITModelResource
     formats = (base_formats.CSV,)
+    from_encoding = "utf-8-sig"
     list_filter = ['vendor', 'model_number']
 
 
 class AssetAdmin(ImportExportActionModelAdmin):
     resource_class = AssetResource
     formats = (base_formats.CSV,)
+    from_encoding = "utf-8-sig"
     list_filter = ['hostname', 'itmodel', 'rack']
 
 
