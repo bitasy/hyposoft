@@ -1,8 +1,8 @@
-import serializers
-from .models import Permissions
+from rest_framework import serializers
+from .models import Perms
 
 
-class PermissionsSerializer(serializers.ModelSerializer):
+class PermsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Permissions
+        model = Perms
         fields = '__all__'

@@ -1,9 +1,10 @@
 from django.conf import settings
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
-from .models import Permissions
+from .models import Perms
 from django.contrib.auth.models import User
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="token")
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -11,9 +12,10 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
         Token.objects.get_or_create(user=instance)
 
-@receiver(post_save, sender=Permissions)
-def add_permissions(sender, instance, *args, **kwargs):
-    user = User.objects.get(id=instance.user)
+
+@receiver(post_save, sender=Perms)
+def add_perms(sender, instance, *args, **kwargs):
+    user = User.objects.get(username=instance.user)
 
     '''
     Allows creation, modification, and deletion of models

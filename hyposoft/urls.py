@@ -18,7 +18,23 @@ from django.urls import path, include
 from .users import UserList
 from django.conf.urls import url
 
-urlpatterns = [
+# Generic Views
+from . import generic_views
+views = [(name[:-4], cls) for name, cls in generic_views.__dict__.items() if isinstance(cls, type) and name[-4:] == "View"]
+
+urlpatterns = []
+
+for view in views:
+    url = view[0]
+    obj = view[1].as_view()
+    if url.endswith(('Retrieve', 'Update', 'Destroy')):
+        url += '/<int:pk>'
+    urlpatterns.append(
+        path(url, obj)
+    )
+
+
+urlpatterns += [
     path('', include('frontend.urls')),
     path('auth/', include('hypo_auth.urls')),
     path('admin/', admin.site.urls),
