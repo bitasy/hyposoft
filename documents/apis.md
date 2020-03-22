@@ -464,25 +464,23 @@ Also, filters with undefined query params shouldn't filter out anything.
   page_size: int | undefined, # default 10
   height_min: number | undefined,
   height_max: number | undefined,
-  network_port_min: number | undefined,
-  network_port_max: number | undefined,
-  power_port_min: number | undefined,
-  power_port_max: number | undefined,
+  memory_min: number | undefined,
+  memory_max: number | undefined,
+  network_ports_min: number | undefined,
+  network_ports_max: number | undefined,
+  power_ports_min: number | undefined,
+  power_ports_max: number | undefined,
   ordering:
-    | 'vendor'
-    | 'model_number'
-    | 'height'
-    | 'display_color'
-    | 'network_ports'
-    | 'power_ports'
-    | 'cpu'
-    | 'memory'
-    | 'storage'
+    | '[-]vendor'
+    | '[-]model_number'
+    | '[-]height'
+    | '[-]display_color'
+    | '[-]network_ports'
+    | '[-]power_ports'
+    | '[-]cpu'
+    | '[-]memory'
+    | '[-]storage'
     | undefined, # default 'id'
-  direction:
-    | 'ascending'
-    | 'descending'
-    | undefined # default 'descending'
 }
 ```
 
@@ -490,8 +488,10 @@ Also, filters with undefined query params shouldn't filter out anything.
 
 ```
 {
-  num_pages: int,
-  result: ITModelEntry[],
+  count: int,
+  next: hyperlink | null,
+  previous: hyperlink | null,
+  results: ITModelEntry[],
 }
 
 where
@@ -510,6 +510,13 @@ ITModelEntry {
 }
 ```
 
+#### Notes
+
+Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
+
+Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
+
+
 ### `[GET] api/equipment/AssetList`
 
 #### Query params
@@ -520,20 +527,20 @@ ITModelEntry {
   page: int | undefined, # default 1,
   page_size: int | undefined, # default 10
   itmodel: ITMODEL_ID | undefined,
-  rack_from: string | undefined, # ex) A01
-  rack_to: string | undefined,
+  r1: string | undefined,
+  r2: string | undefined,
+  c1: int | undefined,
+  c2: int | undefined,
   rack_position_min: int | undefined
   rack_position_max: int | undefined
   ordering:
-    | 'model' # combination of vendor / model_number
-    | 'hostname'
-    | 'location' # combination of datacenter, rack, rack_position
-    | 'owner'
-    | undefined, # default 'id'
-  direction:
-    | 'ascending'
-    | 'descending'
-    | undefined # default 'descending'
+    | '[-]model', # combination of vendor / model_number
+    | '[-]hostname',
+    | '[-]datacenter',
+    | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
+    | '[-]rack_position',
+    | '[-]owner',
+    | undefined # default 'id'
 }
 ```
 
@@ -541,7 +548,13 @@ ITModelEntry {
 
 > Datacenter-dependent
 
+r1, r2, c1, and c2 must all be defined if any of them is defined. They filter based on a rack range.
+
 Exclude Decommissioned Assets
+
+Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
+
+Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
 
 `power_action_visible` field in the response can be determined since the request contains the user session.
 
