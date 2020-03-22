@@ -58,7 +58,7 @@ ASSET {
     plug: int,
   }[],
   network_ports: {
-    id: NETWORK_PORT_ID,
+    label: string, # symmetry with commit af9c1bcc
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
   }[],
@@ -87,7 +87,7 @@ ASSET_DETAILS {
     label: string, # ex) L1, R2
   }[],
   network_ports: {
-    id: NETWORK_PORT_ID,
+    label: string,
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
     connection_str: string | null, // Some string that represents an asset + network port label
@@ -113,6 +113,7 @@ DATACENTER {
 
 NETWORK_PORT {
   id: NETWORK_PORT_ID,
+  asset_str: ASSET_STR, 
   label: string,
   mac_address: string | null,
   connection: NETWORK_PORT_ID | null
@@ -251,9 +252,9 @@ The necessary `PDU`s should be created.
 
 ```
 {
-  res: Rack[] | null
-  warn: string[] | null,
-  err: string[] | null
+  res: Rack[]
+  warn: string[],
+  err: string[]
 }
 ```
 
@@ -393,10 +394,10 @@ RACK_ID[]
 
 ```
 {
-  id: RACK_ID,
-  warn: string | null,
-  err: string | null,
-}[]
+  removed: RACK_ID[],
+  warn: string[],
+  err: string[],
+}
 ```
 
 ####
@@ -507,6 +508,7 @@ ITModelEntry {
   search: string | undefined,
   page: int | undefined, # default 1,
   page_size: int | undefined, # default 10
+  itmodel: ITMODEL_ID | undefined,
   rack_from: string | undefined, # ex) A01
   rack_to: string | undefined,
   rack_position_min: int | undefined
