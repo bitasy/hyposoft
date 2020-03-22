@@ -15,6 +15,12 @@ class DatacenterSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ITModelEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ITModel
+        exclude = ['comment']
+
+
 class ITModelSerializer(serializers.ModelSerializer):
     network_port_labels = serializers.ListField(
         child=serializers.CharField(
@@ -97,6 +103,32 @@ class ITModelSerializer(serializers.ModelSerializer):
                 value[i - 1] = str(i)
 
         return value
+
+
+class AssetEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'itmodel',
+            'hostname',
+            'owner',
+            'rack',
+            'rack_position'
+        ]
+
+    def to_representation(self, instance):
+        data = super(AssetEntrySerializer, self).to_representation(instance)
+
+        networked = False
+        for pdu in instance.pdu_set.all():
+            if pdu.networked:
+                networked = True
+                break
+        permission = self.context['request'].user == instance.owner
+        data['power_action_visible'] = permission and networked
+
+        return data
 
 
 class AssetSerializer(serializers.ModelSerializer):

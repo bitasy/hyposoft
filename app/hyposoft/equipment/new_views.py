@@ -3,10 +3,12 @@ from django.db.models import ProtectedError
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 
+from hyposoft.utils import generate_racks
 from .handlers import create_rack_extra
 from .new_serializers import *
 from .models import *
 
+import logging
 
 class DatacenterCreate(generics.CreateAPIView):
     queryset = Datacenter.objects.all()
@@ -23,59 +25,37 @@ class AssetCreate(generics.CreateAPIView):
     serializer_class = AssetSerializer
 
 
-# Used for RackRange views
-def next_char(char):
-    if len(char) == 1:
-        if char < "Z":
-            return chr(ord(char) + 1)
-        else:
-            return "AA"
-    else:
-        if char[-1] < "Z":
-            return char[:-1] + next_char(char[-1])
-        else:
-            return next_char(char[:-1]) + "A"
-
-
 class RackRangeCreate(views.APIView):
     def post(self, request):
-
-        r1 = request.data['r1'].upper()
-        r2 = request.data['r2'].upper()
+        r1 = request.data['r1']
+        r2 = request.data['r2']
         c1 = request.data['c1']
         c2 = request.data['c2']
 
-        version = request.META.get('HTTP_X_CHANGE_PLAN', 0)
+        racks = generate_racks(r1, r2, c1, c2)
 
-        curr = r1
-        racks = []
+        version = request.META.get('HTTP_X_CHANGE_PLAN', 0)
+        created = []
         warns = []
         err = []
 
-        while True:
-            for c in range(c1, c2 + 1):
-                rack = curr + str(c)
-                try:
-                    new = Rack(
-                        datacenter=Datacenter.objects.get(id=request.data['datacenter']),
-                        version=ChangePlan.objects.get(id=version),
-                        rack=rack
-                    )
-                    new.save()
-                    create_rack_extra(new, version)
-                    racks.append(new)
-                except IntegrityError:
-                    warns.append(rack + " already exists.")
-                except Exception as e:
-                    err.append(str(e))
-
-            if curr == r2:
-                break
-
-            curr = next_char(curr)
+        for rack in racks:
+            try:
+                new = Rack(
+                    datacenter=Datacenter.objects.get(id=request.data['datacenter']),
+                    version=ChangePlan.objects.get(id=version),
+                    rack=rack
+                )
+                new.save()
+                create_rack_extra(new, version)
+                created.append(new)
+            except IntegrityError:
+                warns.append(rack + " already exists.")
+            except Exception as e:
+                err.append(str(e))
 
         return Response({
-            "created": [RackSerializer(rack).data for rack in racks],
+            "created": [RackSerializer(rack).data for rack in created],
             "warn": warns,
             "err": err
         })
@@ -115,52 +95,45 @@ class AssetDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
 
 class RackRangeDestroy(views.APIView):
     def post(self, request):
-        r1 = request.data['r1'].upper()
-        r2 = request.data['r2'].upper()
+        r1 = request.data['r1']
+        r2 = request.data['r2']
         c1 = request.data['c1']
         c2 = request.data['c2']
         datacenter = request.data['datacenter']
 
         version = request.META.get('HTTP_X_CHANGE_PLAN', 0)
-
-        curr = r1
-        racks = []
+        removed = []
         warns = []
         err = []
 
-        while True:
-            for c in range(c1, c2 + 1):
-                rackname = curr + str(c)
-                try:
-                    rack = Rack.objects.get(rack=rackname, datacenter_id=datacenter, version=version)
-                    rack_id = rack.id
-                    rack.delete()
-                    racks.append(rack_id)
-                except Rack.DoesNotExist:
-                    warns.append(rackname + " does not exist: rack skipped.")
-                except ProtectedError as e:
-                    decommission = True
-                    for asset in e.args[1]:
-                        if asset.commissioned:
-                            decommission = False
-                            break
-                    if decommission:
-                        rack.decommissioned = True
-                        rack.save()
-                        warns.append("Decommissioned assets exist on " + rackname + ": rack decommissioned.")
-                    else:
-                        err.append("Assets exist on " + rackname + ": rack skipped.")
-                except Exception as e:
-                    print(e)
-                    err.append("Unexpected error when deleting " + rackname + ".")
+        racks = generate_racks(r1, r2, c1, c2)
 
-            if curr == r2:
-                break
-
-            curr = next_char(curr)
+        for rackname in racks:
+            try:
+                rack = Rack.objects.get(rack=rackname, datacenter_id=datacenter, version=version)
+                rack_id = rack.id
+                rack.delete()
+                removed.append(rack_id)
+            except Rack.DoesNotExist:
+                warns.append(rackname + " does not exist: rack skipped.")
+            except ProtectedError as e:
+                decommission = True
+                for asset in e.args[1]:
+                    if asset.commissioned:
+                        decommission = False
+                        break
+                if decommission:
+                    rack.decommissioned = True
+                    rack.save()
+                    warns.append("Decommissioned assets exist on " + rackname + ": rack decommissioned.")
+                else:
+                    err.append("Assets exist on " + rackname + ": rack skipped.")
+            except Exception as e:
+                logging.exception(e, exc_info=True)
+                err.append("Unexpected error when deleting " + rackname + ".")
 
         return Response({
-            "removed": racks,
+            "removed": removed,
             "warn": warns,
             "err": err
         })

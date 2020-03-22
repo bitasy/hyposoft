@@ -1,5 +1,6 @@
 from django.urls import path
 from .new_views import *
+from .list_views import *
 
 urlpatterns = [
     path('ITModelCreate', ITModelCreate.as_view()),
@@ -18,5 +19,8 @@ urlpatterns = [
 
     path('ITModelRetrieve/<int:pk>', ITModelRetrieve.as_view()),
     path('AssetRetrieve/<int:pk>', AssetRetrieve.as_view()),
-    path('AssetDetailRetrieve/<int:pk>', AssetDetailRetrieve.as_view())
+    path('AssetDetailRetrieve/<int:pk>', AssetDetailRetrieve.as_view()),
+
+    path('ITModelList', ITModelList.as_view()),
+    path('AssetList', AssetList.as_view())
 ]
