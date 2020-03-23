@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Perms(models.Model):
+class Permission(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     model_perm = models.BooleanField(
         verbose_name='Model Management',
