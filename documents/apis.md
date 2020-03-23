@@ -534,9 +534,10 @@ Each value uses ascending order by default. To use descending order, an optional
   rack_position_min: int | undefined
   rack_position_max: int | undefined
   ordering:
-    | '[-]model', # combination of vendor / model_number
+    | '[-]itmodel__vendor',
+    | '[-]itmodel__model_number',
     | '[-]hostname',
-    | '[-]datacenter',
+    | '[-]datacenter__abbr',
     | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
     | '[-]rack_position',
     | '[-]owner',
@@ -590,17 +591,16 @@ AssetEntry {
   timestamp_from: number | undefined, # Of course, in UTC
   timestamp_to: number | undefined,
   ordering:
-    | 'model' # combination of vendor / model_number
-    | 'hostname'
-    | 'location' # combination of datacenter, rack, rack_position
-    | 'owner'
-    | 'decom_by',
-    | 'decom_timestamp',
-    | undefined, # default 'id'
-  direction:
-    | 'ascending'
-    | 'descending'
-    | undefined # default 'descending'
+      | '[-]itmodel__vendor',
+      | '[-]itmodel__model_number',
+      | '[-]hostname',
+      | '[-]datacenter__abbr',
+      | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
+      | '[-]rack_position',
+      | '[-]owner',
+      | '[-]decommissioned_by,
+      | '[-]decommissioned_timestamp,
+      | undefined # default 'id'
 }
 ```
 
@@ -619,6 +619,12 @@ DecommissionedAssetEntry = AssetEntry + {
   decom_timestamp: number,
 }
 ```
+
+#### Notes
+
+Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
+
+Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
 
 ### `[GET] prefix/AssetPickList`
 
