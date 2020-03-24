@@ -45,3 +45,7 @@ def generate_racks(r1, r2, c1, c2):
                 break
 
     return racks
+
+
+def get_version(request):
+    return request.META.get('HTTP_X_CHANGE_PLAN', 0)

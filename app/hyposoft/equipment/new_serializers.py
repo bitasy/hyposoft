@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from hyposoft.utils import get_version
 from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPort, NetworkPortLabel
@@ -126,7 +127,7 @@ class AssetEntrySerializer(serializers.ModelSerializer):
                 networked = True
                 break
         permission = self.context['request'].user == instance.owner
-        data['power_action_visible'] = permission and networked
+        data['power_action_visible'] = permission and networked and instance.commissioned
 
         return data
 
@@ -163,8 +164,8 @@ class AssetSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         req = self.context['request']
         # Value of 0 represents live, and is the default
-        version = req.META.get('HTTP_X_CHANGE_PLAN', 0)
-        data['version'] = version
+        version = get_version(req)
+        data['version'] = self.context.get('version') or version
 
         return super(AssetSerializer, self).to_internal_value(data)
 
@@ -253,6 +254,23 @@ class AssetDetailSerializer(AssetSerializer):
             ) for port in ports.values('id', 'mac_address', 'connection', 'label__name')
         ]
         return data
+
+
+class DecommissionedAssetSerializer(AssetEntrySerializer):
+    decommissioned_by = serializers.StringRelatedField()
+
+    class Meta:
+        model = Asset
+        fields = [
+            'id',
+            'itmodel',
+            'hostname',
+            'owner',
+            'rack',
+            'rack_position',
+            'decommissioned_by',
+            'decommissioned_timestamp'
+        ]
 
 
 class RackSerializer(serializers.ModelSerializer):

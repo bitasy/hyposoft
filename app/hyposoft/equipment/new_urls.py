@@ -22,5 +22,6 @@ urlpatterns = [
     path('AssetDetailRetrieve/<int:pk>', AssetDetailRetrieve.as_view()),
 
     path('ITModelList', ITModelList.as_view()),
-    path('AssetList', AssetList.as_view())
+    path('AssetList', AssetList.as_view()),
+    path('DecommissionedAssetList', DecommissionedAssetList.as_view())
 ]

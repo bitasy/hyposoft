@@ -122,7 +122,6 @@ class Rack(models.Model):
 
 class Asset(models.Model):
     asset_number = models.IntegerField(
-        unique=True,
         default=0
     )
     hostname = models.CharField(

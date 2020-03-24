@@ -23,3 +23,13 @@ class ChangePlan(models.Model):
         # Used to create a snapshot of a decommissioned asset.
         default=False
     )
+    parent = models.ForeignKey(
+        # If this change plan is auto_created (i.e. contains a
+        # decommissioned asset), this field records the real
+        # change plan that it was decommissioned in (or live).
+        # This field is null if and only if auto_created is false.
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )

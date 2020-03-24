@@ -1,5 +1,6 @@
 from django.db import IntegrityError
 from django.db.models import ProtectedError
+from django.utils import timezone
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 
@@ -34,7 +35,7 @@ class RackRangeCreate(views.APIView):
 
         racks = generate_racks(r1, r2, c1, c2)
 
-        version = request.META.get('HTTP_X_CHANGE_PLAN', 0)
+        version = get_version(request)
         created = []
         warns = []
         err = []
@@ -101,7 +102,7 @@ class RackRangeDestroy(views.APIView):
         c2 = request.data['c2']
         datacenter = request.data['datacenter']
 
-        version = request.META.get('HTTP_X_CHANGE_PLAN', 0)
+        version = get_version(request)
         removed = []
         warns = []
         err = []
@@ -157,3 +158,118 @@ class AssetRetrieve(generics.RetrieveAPIView):
 class AssetDetailRetrieve(generics.RetrieveAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetDetailSerializer
+
+
+class DecommissionAsset(views.APIView):
+    @transaction.atomic()
+    def post(self, request, asset_id):
+        try:
+            asset = Asset.objects.get(id=asset_id)
+            user = request.user
+            version = ChangePlan.objects.get(id=get_version(request))
+            now = timezone.now()
+
+            change_plan = ChangePlan.objects.create(
+                owner=user,
+                name="_DECOMMISSION_" + str(asset.asset_number),
+                executed=version.executed,
+                time_executed=now,
+                auto_created=True,
+                parent=version
+            )
+
+            ### Freeze Asset - Copy all data to new change plan
+            # Requires resetting of all foreign keys
+
+            def add_rack(rack):
+                rack.id = None
+                rack.version = change_plan
+                rack.save()
+                return rack
+
+            old_rack = asset.rack
+            rack = add_rack(asset.rack)
+
+            old_asset = asset
+
+            def add_asset(prev_asset, new_rack):
+                prev_asset.id = None
+                prev_asset.version = change_plan
+                prev_asset.rack = new_rack
+                prev_asset.save()
+                return prev_asset
+
+            asset = add_asset(asset, rack)
+            asset.commissioned = None
+            asset.decommissioned_by = user
+            asset.decommissioned_timestamp = now
+
+            old_asset.rack = None
+
+            for asset in old_rack.asset_set:
+                add_asset(asset, rack)
+
+            for pdu in old_rack.pdu_set:
+                old_pdu = pdu
+                pdu.id = None
+                pdu.rack = rack
+                pdu.networked = False
+                pdu.version = change_plan
+                pdu.save()
+
+                for power in old_pdu.powered_set:
+                    power.id = None
+                    power.pdu = pdu
+                    power.asset = asset
+                    power.verion = change_plan
+
+            def add_port(port):
+                new_port = NetworkPort.objects.filter(
+                    version=change_plan,
+                    asset__asset_number=port.asset.asset_number,
+                    label=port.label).first()
+                if new_port:
+                    return new_port
+                port_asset = port.asset
+                port_rack = port_asset.rack
+                new_port_rack = Rack.objects.filter(version=change_plan, rack=port_rack.rack).first()
+                if new_port_rack is None:
+                    new_port_rack = add_rack(port_rack)
+                new_port_asset = Asset.objects.filter(version=change_plan, asset_number=port_asset.asset_number).first()
+                if new_port_asset is None:
+                    new_port_asset = add_asset(port_asset, new_port_rack)
+                port.id = None
+                port.asset = new_port_asset
+                port.version = change_plan
+                port.connection = None
+                port.save()
+                return port
+
+            def loop_ports(old_asset, recurse):
+                for port in old_asset.networkport_set:
+                    old_port = port
+                    other = old_port.connection
+                    port = add_port(port)
+                    if other:
+                        if recurse:
+                            loop_ports(other.asset, False)
+                        other = add_port(other)
+                        other.connection = port
+                        port.connection = other
+                        other.save()
+                        port.save()
+
+            loop_ports(old_asset, True)
+
+            old_asset.delete()
+
+            response = AssetDetailSerializer(asset, context={"request": request, "version": 0})
+            return Response(response.data, status=status.HTTP_202_ACCEPTED)
+        except Asset.DoesNotExist:
+            raise serializers.ValidationError(
+                "Asset does not exist."
+            )
+        except ChangePlan.DoesNotExist:
+            raise serializers.ValidationError(
+                "Change Plan does not exist."
+            )

@@ -563,7 +563,9 @@ Each value uses ascending order by default. To use descending order, an optional
 
 ```
 {
-  num_pages: int,
+  count: int,
+  next: hyperlink | null,
+  previous: hyperlink | null,
   result: AssetEntry[],
 }
 
@@ -587,8 +589,8 @@ AssetEntry {
 {
   page: number,
   page_size: number,
-  username: string | undefined,
-  timestamp_from: number | undefined, # Of course, in UTC
+  username: string | undefined, # Currently assuming this is owner, not decommissioned_by
+  timestamp_from: number | undefined, # Time zone dependent (Django default - see SystemLog for format)
   timestamp_to: number | undefined,
   ordering:
       | '[-]itmodel__vendor',
@@ -608,7 +610,9 @@ AssetEntry {
 
 ```
 {
-  num_pages: int,
+  count: int,
+  next: hyperlink | null,
+  previous: hyperlink | null,
   result: DecommissionedAssetEntry[],
 }
 
@@ -895,23 +899,13 @@ serialized bytestream of the csv file (make sure that the content-type header is
 
 # Decommissioning
 
-### `[POST] api/equipment/DecommissionAsset/:asset_id/:user_id`
+### `[POST] api/equipment/DecommissionAsset/:asset_id`
 
 #### Response body
-
-#### Notes
-
-user_id refers to the user that decommissioned this asset.
 
 ```
 ASSET_DETAILS
 ```
-
-### ``
-
-### ``
-
-### Notes
 
 # Change plan APIs
 

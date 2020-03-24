@@ -1,18 +1,30 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import dateparse
 from rest_framework import filters, generics
 from rest_framework.pagination import PageNumberPagination
 
-from .new_serializers import ITModelEntrySerializer, AssetEntrySerializer
+from hyposoft.utils import get_version
+from .new_serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter
 from .models import *
 
 
+class FilterVersionMixin(object):
+    def get_queryset(self):
+        version = get_version(self.request)
+        queryset = self.get_serializer_class().Meta.model.objects.all()
+        try:
+            return queryset.filter(version_id=version)
+        except:
+            return queryset
+
+
 # Filters the Rack and Asset ListAPIViews based on the datacenter in the request
-class FilterByDatacenterMixin(object):
+class FilterByDatacenterMixin(FilterVersionMixin):
     def get_queryset(self):
         datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
-        queryset = self.get_serializer_class().Meta.model.objects.all()
-        if datacenter is not None and len(datacenter) > 0:
+        queryset = super(FilterByDatacenterMixin, self).get_queryset()
+        if datacenter:
             if not Datacenter.objects.filter(abbr=datacenter).exists():
                 raise serializers.ValidationError("Datacenter does not exist")
             return queryset.filter(datacenter__abbr=datacenter)
@@ -38,6 +50,7 @@ class ITModelList(generics.ListAPIView):
         'comment'
     ]
     ordering_fields = [
+        'id',
         'vendor',
         'model_number',
         'height',
@@ -48,6 +61,7 @@ class ITModelList(generics.ListAPIView):
         'memory',
         'storage'
     ]
+    ordering = 'id'
 
     queryset = ITModel.objects.all()
     serializer_class = ITModelEntrySerializer
@@ -77,6 +91,7 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
         'asset_number'
     ]
     ordering_fields = [
+        'id',
         'itmodel__vendor',
         'itmodel__model_number',
         'hostname',
@@ -85,8 +100,58 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
         'rack_position',
         'owner'
     ]
+    ordering = 'id'
 
-    queryset = Asset.objects.all()
+    def get_queryset(self):
+        return super(AssetList, self).get_queryset().filter(commissioned=Asset.Decommissioned.COMMISSIONED)
+
     serializer_class = AssetEntrySerializer
     filterset_class = AssetFilter
+    pagination_class = PageSizePagination
+
+
+class DecommissionedAssetList(generics.ListAPIView):
+    filter_backends = [
+        filters.OrderingFilter
+    ]
+
+    ordering_fields = [
+        'id',
+        'itmodel__vendor',
+        'itmodel__model_number',
+        'hostname',
+        'datacenter__abbr',
+        'rack__rack',
+        'rack_position',
+        'owner',
+        'decommissioned_by',
+        'decommissioned_timestamp'
+    ]
+    ordering = 'id'
+
+    def get_queryset(self):
+        queryset = Asset.objects.filter(commissioned=None)
+        user = self.request.query_params.get('username', None)
+        time_from = self.request.query_params.get('timestamp_from', None)
+        time_to = self.request.query_params.get('timestamp_to', None)
+        datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
+        version = get_version(self.request)
+
+        if datacenter:
+            queryset = queryset.filter(datacenter__abbr=datacenter)
+
+        if user:
+            queryset = queryset.filter(owner__username=user)
+
+        if time_from and time_to:
+            dt_from = dateparse.parse_datetime(time_from)
+            dt_to = dateparse.parse_datetime(time_to)
+
+            queryset = queryset.filter(decommissioned_timestamp__range=(dt_from, dt_to))
+
+        queryset.filter(version__parent=version)
+
+        return queryset
+
+    serializer_class = DecommissionedAssetSerializer
     pagination_class = PageSizePagination
