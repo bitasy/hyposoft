@@ -655,13 +655,9 @@ PowerPort[]
 
 ### `[GET] prefix/NetworkPortList`
 
-#### Query params
+#### Notes
 
-```
-{
-  asset_id: ASSET_ID | undefined
-}
-```
+> Datacenter-dependent
 
 #### Response body
 
