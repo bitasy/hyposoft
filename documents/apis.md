@@ -1016,3 +1016,33 @@ DataRow {
     free: number, # a number in [0, 1]
 }
 ```
+
+# Rack view API
+
+### `[POST] api/equipment/rack_view`
+
+#### Request body
+```
+{
+    rack_ids: RACK_ID[]
+}
+```
+
+#### Response body
+```
+{
+    rack_id1: AssetDesc[],
+    rack_id2: AssetDesc[],
+    rack_id3: AssetDesc[],
+    ...
+}
+
+where 
+
+AssetDesc {
+    asset: ASSET,
+    model: MODEL,
+}
+```
+
+
