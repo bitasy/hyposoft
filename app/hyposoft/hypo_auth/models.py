@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from equipment.models import Datacenter
+from multiselectfield import MultiSelectField
 
 
 class Permission(models.Model):
@@ -32,10 +33,7 @@ class Permission(models.Model):
     for datacenter in datacenters:
         choice = (datacenter.abbr, datacenter.name)
         DATACENTER_CHOICES.append(choice)
-    print(DATACENTER_CHOICES)
-    datacenter_perm = models.CharField(
-        max_length=200,
+    datacenter_perm = MultiSelectField(
         verbose_name='Datacenter Permission',
-        choices=DATACENTER_CHOICES,
-        default=''
+        choices=DATACENTER_CHOICES
     )
