@@ -3,9 +3,7 @@ import ReactDOM from "react-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import App from "./components/App";
-import store from "./redux/store";
-import { Provider } from "react-redux";
-import "./index.css";
+import "antd/dist/antd.css";
 
 axios.interceptors.request.use(config => {
   if (!config) return config;
@@ -35,9 +33,4 @@ axios.interceptors.request.use(config => {
 axios.defaults.validateStatus = statusCode => statusCode <= 500;
 
 /* eslint-env browser */
-ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById("app")
-);
+ReactDOM.render(<App />, document.getElementById("app"));

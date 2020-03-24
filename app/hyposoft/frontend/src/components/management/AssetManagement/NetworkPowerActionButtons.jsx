@@ -1,26 +1,11 @@
 import React from "react";
 import { Button } from "antd";
-import API from "../../../api/API";
-import { useSelector } from "react-redux";
-
-function networkActions(asset, user, networkConnectedPDUs) {
-  if (asset.owner.username === user.username || user.is_staff) {
-    const pdus = asset.rack.pdu_set;
-    const pdu = pdus.find(
-      pdu =>
-        networkConnectedPDUs.includes(pdu.id) && pdu.assets.includes(asset.id)
-    );
-
-    if (pdu) {
-      return [
-        () => API.turnOn(asset.id),
-        () => API.turnOff(asset.id),
-        () => API.cycle(asset.id)
-      ];
-    }
-  }
-  return null;
-}
+import useTrigger from "../../utility/useTrigger";
+import {
+  getPowerState,
+  updatePowerState,
+  runPowerCycle,
+} from "../../../api/power";
 
 function preventing(op, onSuccess) {
   return e => {
@@ -33,49 +18,59 @@ function preventing(op, onSuccess) {
 const ON = "On";
 const OFF = "Off";
 
-function NetworkPowerActionButtons({ asset, user, displayState }) {
-  const networkConnectedPDUs = useSelector(s => s.networkConnectedPDUs);
-  const actions = networkActions(asset, user, networkConnectedPDUs);
-
-  const [trigger, setTrigger] = React.useState(0);
-  const refetch = () => setTrigger(1 - trigger);
-  const refetchLater = () => setTimeout(refetch, 2000);
+function NetworkPowerActionButtons({
+  assetID,
+  displayState,
+}) {
+  const [trigger, fireTrigger] = useTrigger();
   const [powerState, setPowerState] = React.useState("");
 
   React.useEffect(() => {
     if (displayState) {
-      API.getPowerState(asset.id).then(setPowerState);
+      getPowerState(assetID).then(setPowerState);
     }
-  }, [trigger]);
+  }, [displayState, trigger]);
 
-  if (actions) {
-    const [on, off, cycle] = actions;
-
-    return (
-      <>
-        <Button.Group>
-          <Button
-            onClick={preventing(on, refetch)}
-            type={powerState === ON && displayState ? "primary" : "default"}
-          >
-            On
-          </Button>
-          <Button
-            onClick={preventing(off, refetch)}
-            type={powerState === OFF && displayState ? "dashed" : "default"}
-          >
-            Off
-          </Button>
-          <Button onClick={preventing(cycle, refetchLater)}>Cycle</Button>
-        </Button.Group>
-        {displayState && ![ON, OFF].includes(powerState) ? (
-          <span style={{ color: "gray" }}>Power state unknown!</span>
-        ) : null}
-      </>
-    );
-  } else {
-    return null;
-  }
+  return (
+    <>
+      <Button.Group>
+        <Button
+          onClick={preventing(
+            () => updatePowerState(assetID, "on"),
+            fireTrigger,
+          )}
+          type={
+            powerState === ON && displayState
+              ? "primary"
+              : "default"
+          }
+        >
+          On
+        </Button>
+        <Button
+          onClick={preventing(
+            () => updatePowerState(assetID, "off"),
+            fireTrigger,
+          )}
+          type={
+            powerState === OFF && displayState
+              ? "dashed"
+              : "default"
+          }
+        >
+          Off
+        </Button>
+        <Button
+          onClick={preventing(
+            () => runPowerCycle(assetID),
+            fireTrigger,
+          )}
+        >
+          Cycle
+        </Button>
+      </Button.Group>
+    </>
+  );
 }
 
 export default NetworkPowerActionButtons;
