@@ -1031,13 +1031,20 @@ DataRow {
 #### Response body
 ```
 {
-    rack_id1: AssetDesc[],
-    rack_id2: AssetDesc[],
-    rack_id3: AssetDesc[],
+    rack_id1: RackDesc,
+    rack_id2: RackDesc,
+    rack_id3: RackDesc,
     ...
 }
 
 where 
+
+RackDesc {
+    rack: RACK,
+    assets: AssetDesc[],
+}
+
+where
 
 AssetDesc {
     asset: ASSET,
