@@ -114,7 +114,7 @@ class Rack(models.Model):
     )
 
     def __str__(self):
-        return "Rack {} Datacenter {}".format(self.rack, self.datacenter.abbr)
+        return "Rack {} Datacenter {}".format(self.rack, self.datacenter)
 
     class Meta:
         unique_together = ['rack', 'datacenter', 'version']

@@ -6,11 +6,6 @@ from changeplan.models import ChangePlan
 
 
 class PDU(models.Model):
-    pdu_model = models.CharField(
-        max_length=64,
-        blank=True,
-        default="PDU Networx 98 Pro"
-    )
     assets = models.ManyToManyField(
         "equipment.Asset",
         through='Powered'
@@ -40,10 +35,9 @@ class PDU(models.Model):
         unique_together = ['rack', 'position', 'version']
 
     def __str__(self):
-        return "{} PDU on {} in {}".format(
+        return "{} PDU on {}".format(
             self.position,
-            str(self.rack),
-            self.rack.datacenter
+            str(self.rack)
         )
 
 

@@ -127,7 +127,7 @@ class AssetEntrySerializer(serializers.ModelSerializer):
                 networked = True
                 break
         permission = self.context['request'].user == instance.owner
-        data['power_action_visible'] = permission and networked and instance.commissioned
+        data['power_action_visible'] = permission and networked and instance.commissioned is not None
 
         return data
 
@@ -248,6 +248,7 @@ class AssetDetailSerializer(AssetSerializer):
         data['network_ports'] = [
             dict(
                 id=port['id'],
+                label=port['label__name'],
                 mac_address=port['mac_address'],
                 connection=port['connection'],
                 connection_str=str(instance) + " — " + port['label__name']

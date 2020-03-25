@@ -87,6 +87,7 @@ ASSET_DETAILS {
     label: string, # ex) L1, R2
   }[],
   network_ports: {
+    id: int,
     label: string,
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,

@@ -11,6 +11,7 @@ from .models import *
 
 import logging
 
+
 class DatacenterCreate(generics.CreateAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
@@ -178,7 +179,7 @@ class DecommissionAsset(views.APIView):
                 parent=version
             )
 
-            ### Freeze Asset - Copy all data to new change plan
+            # Freeze Asset - Copy all data to new change plan
             # Requires resetting of all foreign keys
 
             def add_rack(rack):
@@ -187,10 +188,10 @@ class DecommissionAsset(views.APIView):
                 rack.save()
                 return rack
 
-            old_rack = asset.rack
+            old_rack = Rack.objects.get(id=asset.rack.id)
             rack = add_rack(asset.rack)
 
-            old_asset = asset
+            old_asset = Asset.objects.get(id=asset.id)
 
             def add_asset(prev_asset, new_rack):
                 prev_asset.id = None
@@ -203,25 +204,25 @@ class DecommissionAsset(views.APIView):
             asset.commissioned = None
             asset.decommissioned_by = user
             asset.decommissioned_timestamp = now
+            asset.save()
 
-            old_asset.rack = None
-
-            for asset in old_rack.asset_set:
+            for asset in old_rack.asset_set.exclude(asset_number=old_asset.asset_number):
                 add_asset(asset, rack)
 
-            for pdu in old_rack.pdu_set:
-                old_pdu = pdu
+            for pdu in old_rack.pdu_set.all():
+                old_pdu = PDU.objects.get(id=pdu.id)
                 pdu.id = None
                 pdu.rack = rack
                 pdu.networked = False
                 pdu.version = change_plan
                 pdu.save()
 
-                for power in old_pdu.powered_set:
+                for power in old_pdu.powered_set.all():
                     power.id = None
                     power.pdu = pdu
-                    power.asset = asset
-                    power.verion = change_plan
+                    power.asset = Asset.objects.get(asset_number=power.asset.asset_number, version=change_plan)
+                    power.version = change_plan
+                    power.save()
 
             def add_port(port):
                 new_port = NetworkPort.objects.filter(
@@ -246,8 +247,8 @@ class DecommissionAsset(views.APIView):
                 return port
 
             def loop_ports(old_asset, recurse):
-                for port in old_asset.networkport_set:
-                    old_port = port
+                for port in old_asset.networkport_set.all():
+                    old_port = NetworkPort.objects.get(id=port.id)
                     other = old_port.connection
                     port = add_port(port)
                     if other:
