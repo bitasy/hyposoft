@@ -29,11 +29,7 @@ SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', "True").lower() == "true",
-ALLOWED_HOSTS = [
-    "localhost",
-    "hyposoft.tech",
-    "dev.bitasy.me",
-]
+ALLOWED_HOSTS = ["localhost", "hyposoft.tech", "amber.bitasy.me", "dev.bitasy.me"]
 
 # Application definition
 
