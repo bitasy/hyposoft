@@ -34,6 +34,7 @@ class Permission(models.Model):
         choice = (datacenter.abbr, datacenter.name)
         DATACENTER_CHOICES.append(choice)
     datacenter_perm = MultiSelectField(
+        blank=True,
         verbose_name='Datacenter Permission',
         choices=DATACENTER_CHOICES
     )
