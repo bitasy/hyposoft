@@ -4,7 +4,7 @@ from rest_framework import filters, generics
 from rest_framework.pagination import PageNumberPagination
 
 from hyposoft.utils import get_version
-from .new_serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
+from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
     AssetSerializer, RackSerializer, DatacenterSerializer, ITModelPickSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter
 from .models import *
