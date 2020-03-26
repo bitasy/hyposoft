@@ -22,7 +22,9 @@ urlpatterns = [
     path('AssetDetailRetrieve/<int:pk>', AssetDetailRetrieve.as_view()),
 
     path('ITModelList', ITModelList.as_view()),
+    path('ITModelPickList', ITModelPickList.as_view()),
     path('AssetList', AssetList.as_view()),
+    path('AssetPickList', AssetPickList.as_view()),
     path('DecommissionedAssetList', DecommissionedAssetList.as_view()),
 
     path('DecommissionAsset/<int:asset_id>', DecommissionAsset.as_view())

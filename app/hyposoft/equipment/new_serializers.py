@@ -106,6 +106,15 @@ class ITModelSerializer(serializers.ModelSerializer):
         return value
 
 
+class ITModelPickSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ITModel
+        fields = ['id']
+
+    def to_representation(self, instance):
+        return {'id': instance.id, 'str': str(instance)}
+
+
 class AssetEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset

@@ -5,7 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from hyposoft.utils import get_version
 from .new_serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
-    AssetSerializer, RackSerializer, DatacenterSerializer
+    AssetSerializer, RackSerializer, DatacenterSerializer, ITModelPickSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter
 from .models import *
 
@@ -70,6 +70,11 @@ class ITModelList(generics.ListAPIView):
     pagination_class = PageSizePagination
 
 
+class ITModelPickList(generics.ListAPIView):
+    queryset = ITModel.objects.all()
+    serializer_class = ITModelPickSerializer
+
+
 class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.
@@ -113,9 +118,14 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
 
 class AssetPickList(generics.ListAPIView):
     def get_queryset(self):
-        datacenter = Datacenter.objects.get(id=self.request.query_params['datacenter_id'])
-        rack = Rack.objects.get(id=self.request.query_params['rack_id'])
-        return Asset.objects.filter(datacenter=datacenter, rack=rack)
+        queryset = Asset.objects.all()
+        datacenter_id = self.request.query_params.get('datacenter_id', None)
+        if datacenter_id is not None:
+            queryset = queryset.filter(datacenter_id=datacenter_id)
+        rack_id = self.request.query_params.get('rack_id', None)
+        if rack_id is not None:
+            queryset = queryset.filter(rack_id=rack_id)
+        return queryset
 
     serializer_class = AssetSerializer
 
