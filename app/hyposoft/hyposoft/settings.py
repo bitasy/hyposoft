@@ -29,7 +29,13 @@ SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', "True").lower() == "true",
-ALLOWED_HOSTS = ["localhost", "hyposoft.tech", "carter.bitasy.me"]
+
+ALLOWED_HOSTS = [
+    "localhost",
+    "hyposoft.tech",
+    "dev.bitasy.me",
+    "carter.bitasy.me"
+]
 
 # Application definition
 
@@ -44,9 +50,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'hyposoft',
+    'equipment',
     'import_export',
     'frontend',
-    'equipment',
+    'changeplan',
     'system_log',
     'hypo_auth',
     'network',

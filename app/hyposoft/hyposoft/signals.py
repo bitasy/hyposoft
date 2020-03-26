@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="token")
 def create_auth_token(sender, instance=None, created=False, **kwargs):
-    print("test")
     if created:
         Token.objects.get_or_create(user=instance)
 

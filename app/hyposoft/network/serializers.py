@@ -9,9 +9,12 @@ class NetworkPortLabelSerializer(serializers.ModelSerializer):
 
 
 class NetworkPortSerializer(serializers.ModelSerializer):
+    asset_str = serializers.StringRelatedField(source="asset")
+    label = serializers.StringRelatedField(source="label.name")
+
     class Meta:
         model = NetworkPort
-        fields = '__all__'
+        fields = ['id', 'asset_str', 'label', 'mac_address', 'connection']
 
 
 class NodeSerializer(NetworkPortSerializer):
