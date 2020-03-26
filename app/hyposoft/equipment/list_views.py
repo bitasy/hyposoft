@@ -4,7 +4,8 @@ from rest_framework import filters, generics
 from rest_framework.pagination import PageNumberPagination
 
 from hyposoft.utils import get_version
-from .new_serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer
+from .new_serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
+    AssetSerializer, RackSerializer, DatacenterSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter
 from .models import *
 
@@ -110,6 +111,15 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
     pagination_class = PageSizePagination
 
 
+class AssetPickList(generics.ListAPIView):
+    def get_queryset(self):
+        datacenter = Datacenter.objects.get(id=self.request.query_params['datacenter_id'])
+        rack = Rack.objects.get(id=self.request.query_params['rack_id'])
+        return Asset.objects.filter(datacenter=datacenter, rack=rack)
+
+    serializer_class = AssetSerializer
+
+
 class DecommissionedAssetList(generics.ListAPIView):
     filter_backends = [
         filters.OrderingFilter
@@ -155,3 +165,13 @@ class DecommissionedAssetList(generics.ListAPIView):
 
     serializer_class = DecommissionedAssetSerializer
     pagination_class = PageSizePagination
+
+
+class RackList(FilterByDatacenterMixin, generics.ListAPIView):
+    queryset = Rack.objects.all()
+    serializer_class = RackSerializer
+
+
+class DatacenterList(generics.ListAPIView):
+    queryset = Datacenter.objects.all()
+    serializer_class = DatacenterSerializer
