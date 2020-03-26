@@ -20,9 +20,9 @@ for view in views:
 urlpatterns += [
     path('PoweredFilter', PoweredFilterView.as_view()),
     path('PDUNetwork/get/<rack>/<position>', getPDU),
-    path('PDUNetwork/get/<int:asset_id>', checkState),
-    path('PDUNetwork/post', switchPDU),
-    path('PDUNetwork/cycle', cycleAsset),
+    path('PDUNetwork/get/<int:asset_id>', get_asset),
+    path('PDUNetwork/post', post_asset),
+    path('PDUNetwork/cycle', cycle_asset),
     path('FreePowerPorts/<int:rack_id>/<int:asset_id>', freePowerPorts),
     path('PoweredDeleteByAsset/<int:asset_id>', poweredDeleteByAsset),
 ]
