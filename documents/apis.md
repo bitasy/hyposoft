@@ -704,7 +704,7 @@ PowerPort[]
 NetworkPort[]
 ```
 
-### `[GET] api/UserList`
+### `[GET] auth/api/UserList`
 
 #### Response body
 

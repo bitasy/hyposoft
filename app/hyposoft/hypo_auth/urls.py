@@ -8,4 +8,6 @@ urlpatterns = [
     path('logout', views.LogoutView.as_view()),
     path('shib_login', ShibbolethLoginView.as_view()),
     path('shib_session', ShibbolethView.as_view()),
+
+    path('api/UserList', views.UserList.as_view())
 ]
