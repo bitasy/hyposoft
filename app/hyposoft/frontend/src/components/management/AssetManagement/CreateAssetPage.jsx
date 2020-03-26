@@ -1,14 +1,18 @@
 import React from "react";
-import CreateDataForm from "../shared/CreateDataForm";
-import { assetSchema } from "./AssetSchema";
-import { Typography } from "antd";
-import { createAsset } from "../../../redux/assets/actions";
+import { Typography, Row, Col } from "antd";
+import AssetForm from "./AssetForm/AssetForm";
 
 function CreateAssetPage() {
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Create Asset</Typography.Title>
-      <CreateDataForm createRecord={createAsset} schema={assetSchema} />
+      <Typography.Title level={3}>
+        Create Model
+      </Typography.Title>
+      <Row>
+        <Col md={8}>
+          <AssetForm />
+        </Col>
+      </Row>
     </div>
   );
 }

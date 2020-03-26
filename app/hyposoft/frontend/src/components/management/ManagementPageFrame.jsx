@@ -1,98 +1,112 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { useHistory } from "react-router-dom";
-import PropTypes from "prop-types";
-import { Layout, Menu, Icon, Col, Button, Select } from "antd";
-import { useSelector, useDispatch } from "react-redux";
 import {
-  fetchDatacenters,
-  switchDatacenter
-} from "../../redux/datacenters/actions";
-
-import { logout } from "../../redux/session/actions";
-import { GLOBAL_ABBR } from "../../api/API";
+  Layout,
+  Menu,
+  Col,
+  Button,
+  Select,
+  Row,
+} from "antd";
+import {
+  EyeInvisibleOutlined,
+  LogoutOutlined,
+  AppstoreOutlined,
+  DatabaseOutlined,
+  BuildOutlined,
+  TableOutlined,
+  BookOutlined,
+  BarsOutlined,
+  UserOutlined,
+  InboxOutlined,
+} from "@ant-design/icons";
+import {
+  AuthContext,
+  DCContext,
+} from "../../contexts/Contexts";
+import HGreed from "../utility/HGreed";
+import { getDatacenters } from "../../api/datacenter";
+import { logout } from "../../api/auth";
 
 const { Header, Content, Sider } = Layout;
-const { Option } = Select;
 
 function ManagementPageFrame({ children }) {
-  const dispatch = useDispatch();
-  const isAdmin = useSelector(s => s.currentUser.is_staff);
-  const datacenters = useSelector(s => Object.values(s.datacenters));
-  const dcName = useSelector(s => s.appState.dcName);
+  const { user } = useContext(AuthContext);
+  const { datacenter, setDCByID } = useContext(DCContext);
+
+  const [datacenters, setDatacenters] = useState([]);
 
   React.useEffect(() => {
-    dispatch(
-      fetchDatacenters(dcs => {
-        if (!dcs.find(dc => dc.abbr === dcName)) {
-          dispatch(switchDatacenter(GLOBAL_ABBR));
-        }
-      })
-    );
+    (async () => {
+      const dcs = await getDatacenters();
+      setDatacenters(dcs);
+    })();
   }, []);
 
-  function onLogout() {
-    dispatch(
-      logout(res => {
-        if (res.redirectTo) {
-          window.location.href = res.redirectTo;
-        } else {
-          window.location.href = "/";
-        }
-      })
-    );
-  }
+  const isAdmin = user.is_staff;
+  const selectedDCID = datacenter?.id ?? -1;
 
-  function handleDCSelection(dcName) {
-    dispatch(switchDatacenter(dcName));
+  async function onLogout() {
+    const { redirectTo } = await logout();
+    window.location.href = redirectTo ?? "/";
   }
 
   return (
-    <Layout>
+    <Layout style={{ minHeight: "100vh" }}>
       <Header style={{ padding: 0 }}>
-        <Col lg={12} style={{ paddingLeft: 24 }}>
-          <h1 style={{ fontSize: 24, color: "#ddd", marginRight: "auto" }}>
-            IT Asset Management System
-          </h1>
-        </Col>
-        <Col xs={0} lg={12} style={{ paddingRight: 24, textAlign: "right" }}>
-          {dcName ? (
-            <Select
-              value={dcName}
-              onChange={handleDCSelection}
-              style={{ width: 150, marginRight: 8 }}
+        <Row>
+          <Col style={{ paddingLeft: 24 }}>
+            <h1
+              style={{
+                fontSize: 24,
+                color: "#ddd",
+                marginRight: "auto",
+                marginBottom: 0,
+              }}
             >
-              <Option key={GLOBAL_ABBR}>Global</Option>
-              {datacenters.map(ds => (
-                <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
-                  {`${ds.name} (${ds.abbr})`}
-                </Option>
+              IT Asset Management System
+            </h1>
+          </Col>
+          <HGreed />
+          <Col style={{ paddingRight: 24 }}>
+            <Select
+              value={selectedDCID}
+              onChange={setDCByID}
+              style={{ width: 250, marginRight: 8 }}
+            >
+              <Select.Option value={-1} title="Global">
+                Global
+              </Select.Option>
+              {datacenters.map((ds, idx) => (
+                <Select.Option
+                  key={idx}
+                  value={ds.id}
+                >{`${ds.name} (${ds.abbr})`}</Select.Option>
               ))}
             </Select>
-          ) : null}
-          {isAdmin ? (
-            <Button ghost style={{ marginRight: 8 }} href="admin">
-              <Icon type="eye" />
-              Admin page
+            {isAdmin ? (
+              <Button
+                ghost
+                style={{ marginRight: 8 }}
+                href="admin"
+              >
+                <EyeInvisibleOutlined />
+                Admin page
+              </Button>
+            ) : null}
+            <Button ghost onClick={onLogout}>
+              <LogoutOutlined />
+              Logout
             </Button>
-          ) : null}
-          <Button ghost onClick={onLogout}>
-            <Icon type="logout" />
-            Logout
-          </Button>
-        </Col>
+          </Col>
+        </Row>
       </Header>
       <Layout>
         <Sider width={160} theme="light" collapsible>
           <Sidebar />
         </Sider>
         <Layout style={{ padding: "0 16px 16px" }}>
-          <Content
-            style={{
-              marginTop: 16,
-              backgroundColor: "white",
-              minHeight: "85vh"
-            }}
-          >
+          <Content style={{ backgroundColor: "white" }}>
             {children}
           </Content>
         </Layout>
@@ -103,13 +117,14 @@ function ManagementPageFrame({ children }) {
 
 const EXTERNAL_LINKS = {
   "/user": "admin/auth/user/",
-  "/import": "/static/bulk_format_proposal.pdf"
+  "/import": "/static/bulk_format_proposal.pdf",
 };
 
 function Sidebar() {
   const history = useHistory();
 
-  const isAdmin = useSelector(s => s.currentUser.is_staff);
+  const { user } = useContext(AuthContext);
+  const isAdmin = user.is_staff;
 
   function handleClick(e) {
     const key = e.key;
@@ -122,58 +137,54 @@ function Sidebar() {
   }
 
   return (
-    <Menu onClick={handleClick} selectedKeys={[]} mode="inline">
+    <Menu
+      onClick={handleClick}
+      selectedKeys={[]}
+      mode="inline"
+    >
       <Menu.Item key="/">
-        <Icon type="appstore" />
+        <AppstoreOutlined />
         <span>Overview</span>
       </Menu.Item>
 
       <Menu.Item key="/models">
-        <Icon type="inbox" />
+        <InboxOutlined />
         <span>Models</span>
       </Menu.Item>
 
       <Menu.Item key="/assets">
-        <Icon type="database" />
+        <DatabaseOutlined />
         <span>Assets</span>
       </Menu.Item>
 
       <Menu.Item key="/datacenters">
-        <Icon type="build" />
+        <BuildOutlined />
         <span>Datacenters</span>
       </Menu.Item>
 
       <Menu.Item key="/racks">
-        <Icon type="table" />
+        <TableOutlined />
         <span>Racks</span>
       </Menu.Item>
 
       <Menu.Item key="/reports">
-        <Icon type="book" />
+        <BookOutlined />
         <span>Reports</span>
       </Menu.Item>
 
       <Menu.Item key="/logs">
-        <Icon type="bars" />
+        <BarsOutlined />
         <span>Logs</span>
       </Menu.Item>
 
       {isAdmin ? (
         <Menu.Item key="/user">
-          <Icon type="user" />
+          <UserOutlined />
           Users
         </Menu.Item>
       ) : null}
     </Menu>
   );
 }
-
-ManagementPageFrame.propTypes = {
-  children: PropTypes.node
-};
-
-ManagementPageFrame.defaultProps = {
-  children: null
-};
 
 export default ManagementPageFrame;

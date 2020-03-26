@@ -1,11 +1,9 @@
 import React from "react";
 import { useLocation, useHistory } from "react-router-dom";
-import Rack from "../shared/Rack";
+import Rack from "./Rack";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchRacks } from "../../../redux/racks/actions";
-import { fetchAssets } from "../../../redux/assets/actions";
+import { getRackViewData } from "../../../api/report";
 
 const RACKS_IN_ROW = 4;
 
@@ -25,33 +23,30 @@ function partition(arr, nPerArr) {
 }
 
 function RackView({ r }) {
-  const idsStr = new URLSearchParams(useLocation().search).get("ids");
+  const idsStr = new URLSearchParams(
+    useLocation().search,
+  ).get("ids");
 
   const history = useHistory();
 
   const rackIDs = idsStr.split(",").map(s => parseInt(s));
 
-  const dispatch = useDispatch();
+  const [rackVMs, setRackVMs] = React.useState([]);
 
-  const rackVMs = useSelector(s => {
-    const racksByID = s.racks;
-    const assetsForRack = rackIDs.map(rackID =>
-      Object.values(s.assets).filter(inst => inst.rack.id === rackID)
-    );
-
-    return assetsForRack
-      .map((assets, idx) => {
-        const id = rackIDs[idx];
-        return racksByID[id]
-          ? {
-              name: racksByID[id].rack,
-              height: 42,
-              assets: assets
-            }
-          : null;
-      })
-      .filter(o => !!o);
-  });
+  React.useEffect(() => {
+    getRackViewData(rackIDs).then(data => {
+      setRackVMs(
+        rackIDs.map(id => {
+          const { rack, assets } = data[id];
+          return {
+            name: rack.rack,
+            height: 42,
+            assets,
+          };
+        }),
+      );
+    });
+  }, [idsStr]);
 
   const rackVMSplit = partition(rackVMs, RACKS_IN_ROW);
 
@@ -72,11 +67,17 @@ function RackView({ r }) {
             pageBreakAfter: "always",
             paddingTop: 16,
             paddingBottom: 16,
-            height: "100%"
+            height: "100%",
           }}
         >
           {row.map((rackVM, idx) => (
-            <Col key={idx} style={{ marginTop: "auto", marginBottom: "auto" }}>
+            <Col
+              key={idx}
+              style={{
+                marginTop: "auto",
+                marginBottom: "auto",
+              }}
+            >
               <Rack
                 rack={rackVM}
                 onSelect={asset => {
@@ -101,7 +102,9 @@ function PrintableRackView() {
   const componentRef = React.useRef();
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title>Printable Rack View</Typography.Title>
+      <Typography.Title>
+        Printable Rack View
+      </Typography.Title>
       <ReactToPrint
         trigger={() => (
           <Button style={{ margin: 16 }}>

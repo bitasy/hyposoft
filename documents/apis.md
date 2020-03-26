@@ -690,13 +690,9 @@ PowerPort[]
 
 ### `[GET] api/network/NetworkPortList`
 
-#### Query params
+#### Notes
 
-```
-{
-  asset_id: ASSET_ID | undefined
-}
-```
+> Datacenter-dependent
 
 #### Response body
 
@@ -1018,3 +1014,67 @@ CHANGE_PLAN
 ```
 (Empty)
 ```
+
+# Rack usage report API
+
+### `[GET] api/equipment/report`
+
+> Datacenter Dependent
+> ... change plan dependent? (I don't think this is necessary tho)
+> It would be best if the list could be sorted in descending order of used
+
+#### Response body
+
+```
+{
+    total: DataRow[],
+    by_model: DataRow[],
+    by_owner: DataRow[],
+    by_vendor: DataRow[],
+}
+
+where
+
+DataRow {
+    category: string, # (for total, it'd be just "total" and for model, a string representing a single model, and so on)
+    used: number, # a number in [0, 1]
+    free: number, # a number in [0, 1]
+}
+```
+
+# Rack view API
+
+### `[POST] api/equipment/rack_view`
+
+#### Request body
+```
+{
+    rack_ids: RACK_ID[]
+}
+```
+
+#### Response body
+```
+{
+    rack_id1: RackDesc,
+    rack_id2: RackDesc,
+    rack_id3: RackDesc,
+    ...
+}
+
+where 
+
+RackDesc {
+    rack: RACK,
+    assets: AssetDesc[],
+}
+
+where
+
+AssetDesc {
+    asset: ASSET,
+    model: MODEL,
+}
+```
+
+
