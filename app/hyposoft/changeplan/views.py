@@ -241,7 +241,7 @@ def execute_assets(changeplan):
             live_asset.save()
 
         except:
-            new_asset = Asset.objects.create(
+            Asset.objects.create(
                 asset_number=changed_asset.asset_number,
                 hostname=changed_asset.hostname,
                 datacenter=changed_asset.datacenter,
@@ -275,7 +275,7 @@ def execute_networkports(changeplan):
             live_networkport.save()
 
         except:
-            new_networkport = NetworkPort.objects.create(
+            NetworkPort.objects.create(
                 asset=changed_networkport.asset,
                 label=changed_networkport.label,
                 mac_address=changed_networkport.mac_address,
@@ -304,7 +304,7 @@ def execute_powereds(changeplan):
             live_powered.save()
 
         except:
-            new_powered = Powered.objects.create(
+            Powered.objects.create(
                 plug_number=changed_powered.plug_number,
                 pdu=changed_powered.pdu,
                 asset=changed_powered.asset,
