@@ -24,7 +24,7 @@ def create_asset_diffs(changeplan):
             print(diff_fields)
             message += ('UPDATED ASSET' + '\n')
             for field in diff_fields:
-                message += ('OlD ' + str(field) + ': ' + str(live_asset.field) + '\n')
+                message += ('OLD ' + str(field) + ': ' + str(live_asset.field) + '\n')
                 message += ('NEW ' + str(field) + ': ' + str(changed_asset.field) + '\n')
             AssetDiff.objects.create(
                 changeplan=changeplan,
@@ -83,7 +83,7 @@ def create_networkport_diffs(changeplan):
             print(diff_fields)
             message += ('UPDATED NETWORKPORT' + '\n')
             for field in diff_fields:
-                message += ('OlD ' + str(field) + ': ' + str(live_networkport.field) + '\n')
+                message += ('OLD ' + str(field) + ': ' + str(live_networkport.field) + '\n')
                 message += ('NEW ' + str(field) + ': ' + str(changed_networkport.field) + '\n')
             NetworkPortDiff.objects.create(
                 changeplan=changeplan,
@@ -143,7 +143,7 @@ def create_powered_diffs(changeplan):
             print(diff_fields)
             message += ('UPDATED POWERED' + '\n')
             for field in diff_fields:
-                message += ('OlD ' + str(field) + ': ' + str(live_powered.field) + '\n')
+                message += ('OLD ' + str(field) + ': ' + str(live_powered.field) + '\n')
                 message += ('NEW ' + str(field) + ': ' + str(changed_powered.field) + '\n')
             PoweredDiff.objects.create(
                 changeplan=changeplan,
