@@ -89,7 +89,7 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
         'itmodel__vendor',
         'itmodel__model_number',
         'hostname',
-        'mac_address',
+        'networkport__mac_address',
         'owner__username',
         'owner__first_name',
         'owner__last_name',
