@@ -1,8 +1,10 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import RegexValidator, MinValueValidator
 from django.db.models import Max
 from rest_framework import serializers
 from django.contrib.auth.models import User
+
+from changeplan.models import ChangePlan
 
 
 class Datacenter(models.Model):
@@ -41,16 +43,16 @@ class ITModel(models.Model):
         default="#ddd"
     )
     power_ports = models.IntegerField(
-        null=True,
         blank=True,
+        default=0,
         validators=[
             MinValueValidator(0,
                               message="Number of power ports must be at least 0.")
         ]
     )
     network_ports = models.IntegerField(
-        null=True,
         blank=True,
+        default=0,
         validators=[
             MinValueValidator(0,
                               message="Number of network ports must be at least 0.")
@@ -97,30 +99,34 @@ class Rack(models.Model):
             RegexValidator("^[A-Z]{1,2}[0-9]{2}$",
                            message="Row number must be specified by one or two capital letters.")
         ],
-        default="A0"
     )
     datacenter = models.ForeignKey(
         Datacenter,
         on_delete=models.PROTECT,
-        default=""
+    )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
+    )
+    decommissioned = models.BooleanField(
+        # Used to show deleted racks with decommissioned assets on them
+        default=False
     )
 
     def __str__(self):
-        return "Rack {} Datacenter {}".format(self.rack, self.datacenter.abbr)
+        return "Rack {} Datacenter {}".format(self.rack, self.datacenter)
 
     class Meta:
-        unique_together = ['rack', 'datacenter']
+        unique_together = ['rack', 'datacenter', 'version']
 
 
 class Asset(models.Model):
     asset_number = models.IntegerField(
-        unique=True,
         default=0
     )
     hostname = models.CharField(
-        unique=True,
         blank=True,
-        null=False,
+        null=True,
         max_length=64,
         validators=[
             RegexValidator(r"^&|([a-zA-Z0-9](?:(?:[a-zA-Z0-9-]*|(?<!-)\.(?![-.]))*[a-zA-Z0-9]+)?)$",
@@ -150,7 +156,8 @@ class Asset(models.Model):
         User,
         null=True,
         blank=True,
-        on_delete=models.SET(None)
+        on_delete=models.SET(None),
+        related_name='owned_assets'
     )
     comment = models.TextField(
         blank=True,
@@ -159,61 +166,41 @@ class Asset(models.Model):
                            message="Comments must be enclosed by double quotes if value contains line breaks.")
         ]
     )
-    mac_address = models.CharField(
-        blank=True,
-        max_length=17,
-        validators=[
-            RegexValidator("^$|^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
-                           message="Your MAC Address must be in valid hexadecimal format (e.g. 00:1e:c9:ac:78:aa).")
-        ]
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
     )
+
+    class Decommissioned(models.TextChoices):
+        COMMISSIONED = 'C'
+        # DECOMMISSIONED = None
+
+    commissioned = models.CharField(
+        max_length=1,
+        null=True,
+        choices=Decommissioned.choices,
+        default=Decommissioned.COMMISSIONED
+    )
+
+    decommissioned_timestamp = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    decommissioned_by = models.ForeignKey(
+        User,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='decommissioned_assets'
+    )
+
+    class Meta:
+        unique_together = [
+            # Allow decommissioned assets to have conflicting hostnames
+            ['hostname', 'version', 'commissioned'],
+            ['asset_number', 'version']
+        ]
 
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:
             return self.hostname
         return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
-
-    def save(self, *args, **kwargs):
-        if self.asset_number == 0:
-            max_an = Asset.objects.all().aggregate(Max('asset_number'))
-            self.asset_number = (max_an['asset_number__max'] or 100000) + 1
-
-        if self.asset_number > 999999:
-            raise serializers.ValidationError(
-                "The asset number is too large. Please try manually setting it to be 6 digits.")
-
-        if self.asset_number < 100000:
-            raise serializers.ValidationError(
-                "The asset number is too small. Please try manually setting it to be 6 digits.")
-
-        if 42 < self.rack_position + self.itmodel.height - 1:
-            raise serializers.ValidationError(
-                "The asset does not fit on the specified rack from the given position.")
-
-        blocked = Asset.objects.filter(
-            rack=self.rack,
-            rack_position__range=(self.rack_position,
-                                  self.rack_position + self.itmodel.height),
-        ).exclude(id=self.id)
-
-        if len(blocked) > 0:
-            raise serializers.ValidationError(
-                "There is already an asset in this area of the specified rack.")
-
-        i = self.rack_position - 1
-        while i > 0:
-            under = Asset.objects.filter(
-                rack=self.rack,
-                rack_position=i
-            ).exclude(id=self.id)
-            if len(under) > 0:
-                asset = under.values_list(
-                    'rack_position', 'itmodel__height')[0]
-                if asset[0] + asset[1] > self.rack_position:
-                    raise serializers.ValidationError(
-                        "There is already an asset in this area of the specified rack.")
-                else:
-                    break
-            i -= 1
-
-        super().save(*args, **kwargs)
