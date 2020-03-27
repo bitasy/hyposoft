@@ -55,10 +55,10 @@ INSTALLED_APPS = [
     'frontend',
     'changeplan',
     'system_log',
+    'bulk',
     'hypo_auth',
     'network',
     'power',
-    'import'
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True

@@ -31,6 +31,8 @@ def create_asset_extra(asset, version, power_connections, net_ports):
     if power_connections:
         i = 1
         for connection in power_connections:
+            if i > asset.itmodel.power_ports:
+                break
             Powered.objects.create(
                 pdu=connection['pdu_id'],
                 plug_number=connection['plug'],
@@ -41,7 +43,10 @@ def create_asset_extra(asset, version, power_connections, net_ports):
             i += 1
 
     if net_ports:
+        i = 1
         for port in net_ports:
+            if i > asset.itmodel.network_ports:
+                break
             mac = port.get('mac_address')
             if mac and len(mac) == 0:
                 mac = None
@@ -56,6 +61,7 @@ def create_asset_extra(asset, version, power_connections, net_ports):
                 connection=port.get('connection'),
                 version=version,
             )
+            i += 1
 
 
 def create_rack_extra(rack, version):

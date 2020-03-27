@@ -68,7 +68,7 @@ class NetworkPortResource(resources.ModelResource):
 
     class Meta:
         model = NetworkPort
-        exclude = ('id', 'asset', 'label', 'connection')
+        exclude = ('id', 'asset', 'label', 'connection', 'version')
         import_id_fields = ('src_hostname', 'src_port')
         export_order = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         skip_unchanged = True
@@ -112,7 +112,9 @@ class NetworkPortResource(resources.ModelResource):
                 my_src_network_port.connection = None
                 my_src_network_port.save()
 
-    def export(self, queryset = None, *args, **kwargs):
+    def export(self, queryset=None, *args, **kwargs):
+        if queryset is None:
+            queryset = self.get_queryset()
         for network_connection in queryset.all():
             src = network_connection
             dest = network_connection.connection

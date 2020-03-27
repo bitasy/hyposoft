@@ -1,7 +1,12 @@
+import re
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from import_export import resources, fields
+
+from equipment.handlers import create_itmodel_extra, create_asset_extra
+from changeplan.models import ChangePlan
 from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
@@ -67,83 +72,21 @@ class ITModelResource(resources.ModelResource):
         clean_model_instances = True
 
     def after_import_row(self, row, row_result, **kwargs):
-        #from django.db import connection
-        #connection._rollback()
-        #connection.close()
         my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
         my_network_ports = int(row['network_ports'])
-        curr_network_ports = len(NetworkPortLabel.objects.filter(itmodel=my_model))
-        if curr_network_ports > my_network_ports >= 4:
+        current = [label['name'] for label in ITModel.objects.first().networkportlabel_set.order_by('order').values()]
+        if len(current) > my_network_ports >= 4:
             raise ValidationError(
                 'Cannot decrease amount of network ports.'
             )
-        elif curr_network_ports > my_network_ports:
-            if my_network_ports == 3:
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
-            elif my_network_ports == 2:
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=3).delete()
-            elif my_network_ports == 1:
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=3).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=2).delete()
-            elif my_network_ports == 1:
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=3).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=2).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, order=1).delete()
-            # network_port_name_1
-        if my_network_ports >= 1:
-            if row['network_port_name_1'] == '':
-                my_name_1 = '1'
-            else:
-                my_name_1 = row['network_port_name_1']
-            try:
-                exists_1 = NetworkPortLabel.objects.get(itmodel=my_model, order=1)
-                exists_1.name = my_name_1
-                exists_1.save()
-            except:
-                network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, order=1)
-        # network_port_name_2
-        if my_network_ports >= 2:
-            if row['network_port_name_2'] == '':
-                my_name_2 = '2'
-            else:
-                my_name_2 = row['network_port_name_2']
-            try:
-                exists_2 = NetworkPortLabel.objects.get(itmodel=my_model, order=2)
-                exists_2.name = my_name_2
-                exists_2.save()
-            except:
-                network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, order=2)
-        # network_port_name_3
-        if my_network_ports >= 3:
-            if row['network_port_name_3'] == '':
-                my_name_3 = '3'
-            else:
-                my_name_3 = row['network_port_name_3']
-            try:
-                exists_3 = NetworkPortLabel.objects.get(itmodel=my_model, order=3)
-                exists_3.name = my_name_3
-                exists_3.save()
-            except:
-                network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, order=3)
-        # network_port_name_4
-        if my_network_ports == 4:
-            if row['network_port_name_4'] == '':
-                my_name_4 = '4'
-            else:
-                my_name_4 = row['network_port_name_4']
-            try:
-                exists_4 = NetworkPortLabel.objects.get(itmodel=my_model, order=4)
-                exists_4.name = my_name_4
-                exists_4.save()
-            except:
-                network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, order=4)
-        if my_network_ports > 4:
-            for i in range(5, my_network_ports+1):
-                if i > curr_network_ports:
-                    network_port_name_n = NetworkPortLabel.objects.create(name=str(i), itmodel=my_model)
+
+        my_model.networkportlabel_sett.delete()
+
+        special = []
+        for i in range(1, min(5, my_network_ports + 1)):
+            special.append(row['network_port_name_' + str(i)])
+
+        create_itmodel_extra(my_model, special + current)
 
 
 class AssetResource(resources.ModelResource):
@@ -221,7 +164,7 @@ class AssetResource(resources.ModelResource):
 
     class Meta:
         model = Asset
-        exclude = ('id', 'itmodel', 'mac_address')
+        exclude = ('id', 'itmodel', 'commissioned', 'decommissioned_by', 'decommissioned_timestamp', 'version')
         import_id_fields = ('hostname', 'vendor', 'model_number')
         export_order = ('asset_number', 'datacenter', 'hostname', 'rack', 'rack_position', 'vendor', 'model_number',
                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2')
@@ -239,74 +182,27 @@ class AssetResource(resources.ModelResource):
                 row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
 
     def after_import_row(self, row, row_result, **kwargs):
-        my_model = ITModel.objects.get(model_number=row['model_number'], vendor=row['vendor'])
         my_asset = Asset.objects.get(asset_number=row['asset_number'])
         my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-        if not row['rack'][-2].isdigit() and row['rack'][-1].isdigit():
-            new_rack = row['rack'][:-1] + '0' + row['rack'][-1:]
-            my_rack = Rack.objects.get(rack=new_rack, datacenter=my_datacenter)
-        else:
-            my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter)
-        # power_port_connection_1
-        if my_model.power_ports >= 1:
-            powered_1 = row['power_port_connection_1']
-            if powered_1 != '':
-                my_position_1 = powered_1[0]
-                my_plug_number_1 = powered_1[1:]
-                my_pdu_1 = PDU.objects.get(rack=my_rack, position=my_position_1)
-                try:
-                    exists_1 = Powered.objects.get(
-                        pdu=my_pdu_1,
-                        asset=my_asset,
-                        special=1
-                    )
-                    exists_1.plug_number = my_plug_number_1
-                    exists_1.save()
-                except:
-                    power_port_connection_1 = Powered.objects.create(
-                        plug_number=my_plug_number_1,
-                        pdu=my_pdu_1,
-                        asset=my_asset,
-                        special=1
-                    )
-            else:
-                try:
-                    exists_1 = Powered.objects.get(
-                        asset=my_asset,
-                        special=1
-                    )
-                    exists_1.delete()
-                except:
-                    return
+        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter)
 
-        # power_port_connection_2
-        if my_model.power_ports >= 2:
-            powered_2 = row['power_port_connection_2']
-            if powered_2 != '':
-                my_position_2 = powered_2[0]
-                my_plug_number_2 = powered_2[1:]
-                my_pdu_2 = PDU.objects.get(rack=my_rack, position=my_position_2)
-                try:
-                    exists_2 = Powered.objects.get(
-                        pdu=my_pdu_2,
-                        asset=my_asset,
-                        special=2
-                    )
-                    exists_2.plug_number = my_plug_number_2
-                    exists_2.save()
-                except:
-                    power_port_connection_2 = Powered.objects.create(
-                        plug_number=my_plug_number_2,
-                        pdu=my_pdu_2,
-                        asset=my_asset,
-                        special=2
-                    )
-            else:
-                try:
-                    exists_2 = Powered.objects.get(
-                        asset=my_asset,
-                        special=2
-                    )
-                    exists_2.delete()
-                except:
-                    return
+        current = [{'pdu_id': port['pdu'], 'plug': port['plug_number']}
+                   for port in my_asset.powered_set.values('pdu', 'plug_number')]
+
+        my_asset.powered_set.delete()
+
+        special = []
+        for i in range(1, min(3, my_asset.itmodel.power_ports + 1)):
+            pc = row['power_port_connection_' + str(i)]
+            split = re.search(r"\d", pc).start()
+            position = pc[:split]
+            plug = int(pc[split:])
+            special.append({'pdu_id': PDU.objects.get(rack=my_rack, position=position), 'plug': plug})
+
+        create_asset_extra(
+            my_asset,
+            ChangePlan.objects.get(0), # todo handle creating new change plan for bulk to get diff
+            # requires getting version through the view and setting parent changeplan
+            special + current,
+            None
+        )
