@@ -6,10 +6,7 @@ import SubmitButton from "../../../utility/formik/SubmitButton";
 import InputNumber from "../../../utility/formik/InputNumber";
 import Input from "../../../utility/formik/Input";
 import TextArea from "../../../utility/formik/TextArea";
-import {
-  DisableContext,
-  AuthContext,
-} from "../../../../contexts/Contexts";
+import { DisableContext, AuthContext } from "../../../../contexts/Contexts";
 import VSpace from "../../../utility/VSpace";
 import Select from "../../../utility/formik/Select";
 import { getModel } from "../../../../api/model";
@@ -18,7 +15,6 @@ import { getUserList } from "../../../../api/auth";
 import { getRackList } from "../../../../api/rack";
 import {
   networkPortList,
-  powerPortList,
   getAsset,
   createAsset,
   updateAsset,
@@ -31,6 +27,7 @@ import DatacenterSelect from "./DatacenterSelect";
 import RackSelect from "./RackSelect";
 import NetworkGraph from "./NetworkGraph";
 import NetworkPortSelect from "./NetworkPortSelect";
+import { powerPortList } from "../../../../api/power";
 
 function AssetForm({ id }) {
   const { user } = React.useContext(AuthContext);
@@ -112,15 +109,8 @@ function AssetForm({ id }) {
           onSubmit={id ? handleUpdate : handleCreate}
         >
           <Form>
-            <ItemWithLabel
-              name="asset_number"
-              label="Asset #"
-            >
-              <InputNumber
-                name="asset_number"
-                min={100000}
-                max={999999}
-              />
+            <ItemWithLabel name="asset_number" label="Asset #">
+              <InputNumber name="asset_number" min={100000} max={999999} />
             </ItemWithLabel>
 
             <ItemWithLabel name="hostname" label="Hostname">
@@ -134,10 +124,7 @@ function AssetForm({ id }) {
               />
             </ItemWithLabel>
 
-            <ItemWithLabel
-              name="datacenter"
-              label="Datacenter"
-            >
+            <ItemWithLabel name="datacenter" label="Datacenter">
               <DatacenterSelect
                 dcList={dcList}
                 handleDCSelect={handleDCSelect}
@@ -151,28 +138,15 @@ function AssetForm({ id }) {
               />
             </ItemWithLabel>
 
-            <ItemWithLabel
-              name="rack_position"
-              label="Rack Position"
-            >
-              <InputNumber
-                name="rack_position"
-                min={1}
-                max={42}
-              />
+            <ItemWithLabel name="rack_position" label="Rack Position">
+              <InputNumber name="rack_position" min={1} max={42} />
             </ItemWithLabel>
 
-            <ItemWithLabel
-              name="power_connections"
-              label="Power connections"
-            >
+            <ItemWithLabel name="power_connections" label="Power connections">
               <PowerPortSelect powerPorts={powerPorts} />
             </ItemWithLabel>
 
-            <ItemWithLabel
-              name="network_ports"
-              label="Network ports"
-            >
+            <ItemWithLabel name="network_ports" label="Network ports">
               <NetworkPortSelect
                 selectedModel={selectedModel}
                 networkPorts={networkPorts}
@@ -199,12 +173,7 @@ function AssetForm({ id }) {
             {id && (
               <>
                 <VSpace height="16px" />
-                <Button
-                  ghost
-                  type="danger"
-                  onClick={handleDelete}
-                  block
-                >
+                <Button ghost type="danger" onClick={handleDelete} block>
                   Delete
                 </Button>
               </>
@@ -214,13 +183,8 @@ function AssetForm({ id }) {
         {id && (
           <div>
             <VSpace height="32px" />
-            <Typography.Title level={4}>
-              Network graph
-            </Typography.Title>
-            <NetworkGraph
-              assetID={id}
-              networkGraph={asset.network_graph}
-            />
+            <Typography.Title level={4}>Network graph</Typography.Title>
+            <NetworkGraph assetID={id} networkGraph={asset.network_graph} />
           </div>
         )}
       </div>

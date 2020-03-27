@@ -9,9 +9,7 @@ function AssetDetailPage() {
 
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>
-        Model Details
-      </Typography.Title>
+      <Typography.Title level={3}>Model Details</Typography.Title>
       <Row>
         <Col md={8}>
           <AssetForm id={id} />
