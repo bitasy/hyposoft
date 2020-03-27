@@ -70,16 +70,7 @@ function NetworkGraph({ assetID, networkGraph }) {
 
   return (
     <div>
-      <Typography.Title level={4}>
-        Network Graph
-      </Typography.Title>
-      {graph ? (
-        <Graph
-          options={options}
-          graph={graph}
-          events={events}
-        />
-      ) : null}
+      {graph ? <Graph options={options} graph={graph} events={events} /> : null}
     </div>
   );
 }

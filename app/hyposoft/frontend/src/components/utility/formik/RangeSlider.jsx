@@ -9,9 +9,8 @@ function RangeSlider({ name, validate, ...props }) {
   return (
     <Field name={name} validate={validate}>
       {({
-        field: { value },
         form: { setFieldValue, setFieldTouched },
-        meta: { initialValue }
+        meta: { initialValue },
       }) => {
         const [min, max] = initialValue;
         return (
@@ -22,8 +21,8 @@ function RangeSlider({ name, validate, ...props }) {
             max={max}
             disabled={disabled}
             marks={{ [min]: min, [max]: max }}
-            value={value}
-            onChange={value => {
+            defaultValue={initialValue}
+            onAfterChange={value => {
               setFieldValue(name, value);
               setFieldTouched(name, true, false);
             }}

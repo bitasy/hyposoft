@@ -224,6 +224,7 @@ class AssetSerializer(serializers.ModelSerializer):
         data['decommissioned'] = not instance.commissioned
         update_asset_power(instance)
         networked = instance.pdu_set.filter(networked=True)
+        data['network_graph'] = net_graph(instance.id)
         if networked.exists():
             for pdu in networked:
                 if pdu.powered_set.filter(asset=instance, on=True).exists():

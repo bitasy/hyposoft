@@ -4,6 +4,7 @@ import Rack from "./Rack";
 import { Row, Col, Button, Icon, Typography } from "antd";
 import ReactToPrint from "react-to-print";
 import { getRackViewData } from "../../../api/report";
+import { PrinterOutlined } from "@ant-design/icons";
 
 const RACKS_IN_ROW = 4;
 
@@ -23,9 +24,7 @@ function partition(arr, nPerArr) {
 }
 
 function RackView({ r }) {
-  const idsStr = new URLSearchParams(
-    useLocation().search,
-  ).get("ids");
+  const idsStr = new URLSearchParams(useLocation().search).get("ids");
 
   const history = useHistory();
 
@@ -102,13 +101,11 @@ function PrintableRackView() {
   const componentRef = React.useRef();
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title>
-        Printable Rack View
-      </Typography.Title>
+      <Typography.Title>Printable Rack View</Typography.Title>
       <ReactToPrint
         trigger={() => (
           <Button style={{ margin: 16 }}>
-            <Icon type="printer" />
+            <PrinterOutlined />
           </Button>
         )}
         content={() => componentRef.current}

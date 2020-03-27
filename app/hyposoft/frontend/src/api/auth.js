@@ -6,14 +6,12 @@ export function getCurrentUser() {
 }
 
 export function getUserList() {
-  return Axios.get("auth/UserList").then(getData);
+  return Axios.get("api/users/UserList").then(getData);
 }
 
 export function login(username, password) {
   return withLoading(() =>
-    Axios.post("auth/login", { username, password }).then(
-      getData,
-    ),
+    Axios.post("auth/login", { username, password }).then(getData),
   );
 }
 

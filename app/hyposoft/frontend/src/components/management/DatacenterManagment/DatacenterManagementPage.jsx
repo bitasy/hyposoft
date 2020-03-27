@@ -1,17 +1,7 @@
 import React, { useContext } from "react";
-import {
-  Typography,
-  List,
-  Card,
-  Input,
-  Button,
-  Icon,
-} from "antd";
+import { Typography, List, Card, Input, Button, Icon } from "antd";
 import CreateTooltip from "../../utility/CreateTooltip";
-import {
-  AuthContext,
-  DCContext,
-} from "../../../contexts/Contexts";
+import { AuthContext, DCContext } from "../../../contexts/Contexts";
 import {
   updateDatacenter,
   deleteDatacenter,
@@ -19,13 +9,14 @@ import {
   getDatacenters,
 } from "../../../api/datacenter";
 import useTrigger from "../../utility/useTrigger";
+import {
+  CloseOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 
-function DatacenterCard({
-  dc,
-  onUpdate,
-  onRemove,
-  disabled,
-}) {
+function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(null);
 
@@ -46,9 +37,7 @@ function DatacenterCard({
     <>
       <CreateTooltip
         isVisible={disabled}
-        tooltipText={
-          "Only users with admin privileges can edit a data center"
-        }
+        tooltipText={"Only users with admin privileges can edit a data center"}
       >
         <Button
           size="small"
@@ -56,11 +45,7 @@ function DatacenterCard({
           onClick={() => setIsEditing(!isEditing)}
           disabled={disabled}
         >
-          {isEditing ? (
-            <Icon type="close" />
-          ) : (
-            <Icon type="edit" />
-          )}
+          {isEditing ? <CloseOutlined /> : <EditOutlined />}
         </Button>
       </CreateTooltip>
       <CreateTooltip
@@ -81,7 +66,7 @@ function DatacenterCard({
             }
           }}
         >
-          <Icon type="delete" />
+          <DeleteOutlined />
         </Button>
       </CreateTooltip>
     </>
@@ -90,29 +75,21 @@ function DatacenterCard({
   if (!draft) return null;
 
   return (
-    <Card
-      title={dc.abbr}
-      extra={ExtraButtons}
-      actions={Actions}
-    >
+    <Card title={dc.abbr} extra={ExtraButtons} actions={Actions}>
       {isEditing ? (
         <>
           <h4>Name</h4>
           <Input
             size="small"
             value={draft.name}
-            onChange={e =>
-              setDraft({ ...draft, name: e.target.value })
-            }
+            onChange={e => setDraft({ ...draft, name: e.target.value })}
             onPressEnter={confirmUpdate}
           />
           <h4>Abbreviated Name</h4>
           <Input
             size="small"
             value={draft.abbr}
-            onChange={e =>
-              setDraft({ ...draft, abbr: e.target.value })
-            }
+            onChange={e => setDraft({ ...draft, abbr: e.target.value })}
             onPressEnter={confirmUpdate}
           />
         </>
@@ -132,9 +109,7 @@ function AddCard({ onCreate, disabled }) {
   return (
     <CreateTooltip
       isVisible={disabled}
-      tooltipText={
-        "Only users with admin privileges can add a data center"
-      }
+      tooltipText={"Only users with admin privileges can add a data center"}
     >
       <Card
         style={{ padding: 0, height: "100px" }}
@@ -149,7 +124,7 @@ function AddCard({ onCreate, disabled }) {
           onClick={onCreate}
           disabled={disabled}
         >
-          <Icon type="plus" />
+          <PlusOutlined />
           Add Datacenter
         </Button>
       </Card>
@@ -167,9 +142,7 @@ function GhostCard({ onCreate, onCancel }) {
     onCreate(draft);
   }
 
-  const Actions = [
-    <Button onClick={confirmCreate}>Confirm</Button>,
-  ];
+  const Actions = [<Button onClick={confirmCreate}>Confirm</Button>];
 
   const ExtraButtons = (
     <Button
@@ -178,32 +151,24 @@ function GhostCard({ onCreate, onCancel }) {
       shape="circle"
       onClick={onCancel}
     >
-      <Icon type="close" />
+      <CloseOutlined />
     </Button>
   );
 
   return (
-    <Card
-      title={draft.abbr}
-      extra={ExtraButtons}
-      actions={Actions}
-    >
+    <Card title={draft.abbr} extra={ExtraButtons} actions={Actions}>
       <h4>Name</h4>
       <Input
         size="small"
         value={draft.name}
-        onChange={e =>
-          setDraft({ ...draft, name: e.target.value })
-        }
+        onChange={e => setDraft({ ...draft, name: e.target.value })}
         onPressEnter={confirmCreate}
       />
       <h4>Abbreviated Name</h4>
       <Input
         size="small"
         value={draft.abbr}
-        onChange={e =>
-          setDraft({ ...draft, abbr: e.target.value })
-        }
+        onChange={e => setDraft({ ...draft, abbr: e.target.value })}
         onPressEnter={confirmCreate}
       />
     </Card>
@@ -249,16 +214,11 @@ function DatacenterManagementPage() {
     showGhostCard();
   }
 
-  const dataSource = [
-    ...datacenters,
-    isAdding ? "ghost" : "add",
-  ]; // the last one for +
+  const dataSource = [...datacenters, isAdding ? "ghost" : "add"]; // the last one for +
 
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>
-        Datacenters
-      </Typography.Title>
+      <Typography.Title level={3}>Datacenters</Typography.Title>
       <List
         grid={{
           gutter: 16,
@@ -275,19 +235,13 @@ function DatacenterManagementPage() {
             case "add":
               return (
                 <List.Item>
-                  <AddCard
-                    onCreate={createGhost}
-                    disabled={!isAdmin}
-                  />
+                  <AddCard onCreate={createGhost} disabled={!isAdmin} />
                 </List.Item>
               );
             case "ghost":
               return (
                 <List.Item>
-                  <GhostCard
-                    onCreate={handleCreate}
-                    onCancel={showAddCard}
-                  />
+                  <GhostCard onCreate={handleCreate} onCancel={showAddCard} />
                 </List.Item>
               );
             default:

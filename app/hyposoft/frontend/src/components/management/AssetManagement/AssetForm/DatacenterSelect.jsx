@@ -7,16 +7,16 @@ function DatacenterSelect({ dcList, handleDCSelect }) {
 
   return (
     <Select
-      name="itmodel"
+      name="datacenter"
       options={dcList.map(({ id, abbr, name }) => {
         return { value: id, text: name };
       })}
       onChange={id => {
         handleDCSelect(id);
-        setFieldValue("rack", null);
-        setFieldValue("rack_position", null);
-        setFieldValue("network_ports", []);
-        setFieldValue("power_connections", []);
+        setFieldValue("rack", null, false);
+        setFieldValue("rack_position", null, false);
+        setFieldValue("network_ports", [], false);
+        setFieldValue("power_connections", [], false);
       }}
     />
   );

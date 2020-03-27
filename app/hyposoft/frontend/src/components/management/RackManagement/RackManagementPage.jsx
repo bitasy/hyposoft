@@ -1,19 +1,12 @@
 import React, { useContext, useState } from "react";
 import Grid from "../RackManagement/Grid";
-import { isEqual } from "lodash";
-import { Typography, Button, Select } from "antd";
+import { Typography, Button, Select, message, Alert } from "antd";
 import { toIndex, indexToRow } from "./GridUtils";
 import CreateTooltip from "../../utility/CreateTooltip";
-import {
-  getRackList,
-  createRack,
-  deleteRacks,
-} from "../../../api/rack";
-import {
-  DCContext,
-  AuthContext,
-} from "../../../contexts/Contexts";
+import { getRackList, createRack, deleteRacks } from "../../../api/rack";
+import { DCContext, AuthContext } from "../../../contexts/Contexts";
 import { getDatacenters } from "../../../api/datacenter";
+import VSpace from "../../utility/VSpace";
 
 const { Option } = Select;
 
@@ -85,7 +78,10 @@ function RackManagementPage() {
   const [datacenters, setDatacenters] = useState([]);
   const [selectedDC, setSelectedDC] = useState(null);
 
-  const finalSelectedDC = selectedDC && datacenter;
+  const [warnings, setWarnings] = useState([]);
+  const [errors, setErrors] = useState([]);
+
+  const finalSelectedDC = datacenter ?? selectedDC;
 
   let textCreate = isAdmin
     ? "Select range to create racks"
@@ -107,8 +103,7 @@ function RackManagementPage() {
       }
     };
     window.addEventListener("keydown", listener);
-    return () =>
-      window.removeEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
   }, []);
 
   React.useEffect(() => {
@@ -118,7 +113,7 @@ function RackManagementPage() {
   function rehydrate() {
     const abbr = finalSelectedDC?.abbr;
     if (abbr) {
-      getRackList().then(setRacks);
+      getRackList(abbr).then(setRacks);
     } else {
       setRacks([]);
     }
@@ -128,18 +123,23 @@ function RackManagementPage() {
     const dcID = finalSelectedDC?.id;
     if (dcID) {
       createRack(dcID, r1, r2, c1, c2)
+        .then(({ warn, err }) => {
+          setWarnings(warn);
+          setErrors(err);
+        })
         .then(clear)
         .then(rehydrate);
     }
   }
 
-  function remove(racks) {
-    if (
-      confirm(
-        `Removing ${racks.length} rack(s). Are you sure about this?`,
-      )
-    ) {
-      deleteRacks(racks.map(rack => rack.id))
+  function remove([r1, r2, c1, c2]) {
+    const dcID = finalSelectedDC?.id;
+    if (dcID && confirm(`Are you sure about this?`)) {
+      deleteRacks(dcID, r1, r2, c1, c2)
+        .then(({ warn, err }) => {
+          setWarnings(warn);
+          setErrors(err);
+        })
         .then(clear)
         .then(rehydrate);
     }
@@ -153,9 +153,7 @@ function RackManagementPage() {
   ];
 
   const selectedRacks = arrangedRange
-    ? racks.filter(rack =>
-        isInside(arrangedRange, ...toIndex(rack.rack)),
-      )
+    ? racks.filter(rack => isInside(arrangedRange, ...toIndex(rack.rack)))
     : [];
 
   function createColorMap() {
@@ -187,12 +185,9 @@ function RackManagementPage() {
         <Select
           value={selectedDC?.abbr}
           onChange={abbr => {
-            setSelectedDC(
-              datacenters.find(dc => dc.abbr === abbr) ??
-                null,
-            );
+            setSelectedDC(datacenters.find(dc => dc.abbr === abbr) ?? null);
           }}
-          style={{ width: 150 }}
+          style={{ width: 300 }}
         >
           {Object.values(datacenters).map((ds, idx) => (
             <Option key={idx} value={ds.abbr}>
@@ -203,60 +198,89 @@ function RackManagementPage() {
       ) : (
         <span>{datacenter.abbr}</span>
       )}
-      <>
-        <Legend />
-        <Grid
-          rows={ROWS}
-          columns={COLS}
-          colorMap={colorMap}
-          setRange={setRange}
-          range={range}
-        />
-        <div style={{ marginTop: 16 }}>
-          <CreateTooltip
-            isVisible={!isAdmin || !range}
-            tooltipText={textCreate}
-          >
-            <Button
-              disabled={!isAdmin || !range}
-              type="primary"
-              style={{ marginRight: 8 }}
-              onClick={() => create(range)}
+      {finalSelectedDC && (
+        <>
+          <Legend />
+          <Grid
+            rows={ROWS}
+            columns={COLS}
+            colorMap={colorMap}
+            setRange={setRange}
+            range={range}
+          />
+          <div style={{ marginTop: 16 }}>
+            <CreateTooltip
+              isVisible={!isAdmin || !range}
+              tooltipText={textCreate}
             >
-              Create
-            </Button>
-          </CreateTooltip>
-          <CreateTooltip
-            isVisible={!isAdmin || !range}
-            tooltipText={textDelete}
-          >
-            <Button
-              disabled={
-                !isAdmin || selectedRacks.length === 0
-              }
-              type="danger"
-              style={{ marginRight: 8 }}
-              onClick={() => remove(selectedRacks)}
+              <Button
+                disabled={!isAdmin || !range}
+                type="primary"
+                style={{ marginRight: 8 }}
+                onClick={() => create(range)}
+              >
+                Create
+              </Button>
+            </CreateTooltip>
+            <CreateTooltip
+              isVisible={!isAdmin || !range}
+              tooltipText={textDelete}
             >
-              Remove
-            </Button>
-          </CreateTooltip>
-          <CreateTooltip
-            isVisible={!range}
-            tooltipText={
-              "Select range to open printable rack view"
-            }
-          >
-            <Button
-              disabled={selectedRacks.length == 0}
-              type="default"
-              onClick={() => showRacks(selectedRacks)}
+              <Button
+                disabled={!isAdmin || !range}
+                type="danger"
+                style={{ marginRight: 8 }}
+                onClick={() => remove(range)}
+              >
+                Remove
+              </Button>
+            </CreateTooltip>
+            <CreateTooltip
+              isVisible={!range}
+              tooltipText={"Select range to open printable rack view"}
             >
-              View
-            </Button>
-          </CreateTooltip>
-        </div>
-      </>
+              <Button
+                disabled={selectedRacks.length == 0}
+                type="default"
+                onClick={() => showRacks(selectedRacks)}
+              >
+                View
+              </Button>
+            </CreateTooltip>
+            {warnings.length > 0 && (
+              <>
+                <VSpace height="16px" />
+                <Alert
+                  closable
+                  type="warning"
+                  message={
+                    <div>
+                      {warnings.map((warn, idx) => (
+                        <p key={idx}>{warn}</p>
+                      ))}
+                    </div>
+                  }
+                />
+              </>
+            )}
+            {errors.length > 0 && (
+              <>
+                <VSpace height="16px" />
+                <Alert
+                  closable
+                  type="error"
+                  message={
+                    <div>
+                      {errors.map((err, idx) => (
+                        <p key={idx}>{err}</p>
+                      ))}
+                    </div>
+                  }
+                />
+              </>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

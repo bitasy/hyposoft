@@ -20,7 +20,7 @@ axios.interceptors.request.use(config => {
         "options",
         "OPTIONS",
         "trace",
-        "TRACE"
+        "TRACE",
       ].includes(config.method)
     ) {
       config.headers["X-CSRFToken"] = Cookies.get("csrftoken");

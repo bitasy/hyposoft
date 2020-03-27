@@ -1,10 +1,10 @@
 import Axios from "axios";
+import { getData, makeQueryString, makeHeaders, withLoading } from "./utils";
 import {
-  getData,
-  makeQueryString,
-  makeHeaders,
-  withLoading,
-} from "./utils";
+  indexToRow,
+  toIndex,
+  indexToCol,
+} from "../components/management/RackManagement/GridUtils";
 
 export function createAsset(fields) {
   return withLoading(() =>
@@ -15,26 +15,47 @@ export function createAsset(fields) {
 }
 
 export function getAssetList(query) {
-  return Axios.get(
-    `api/equipment/AssetList?${makeQueryString(query)}`,
-    { headers: makeHeaders() },
-  ).then(getData);
+  const directionPrefix = `${query.direction === "descending" ? "-" : ""}`;
+
+  const whatCanIDoIfDjangoForcesMeToLOL = {
+    model: ["itmodel__vendor", "itmodel__model_number"],
+    hostname: ["hostname"],
+    location: ["datacenter__abbr", "rack__rack", "rack_position"],
+    owner: ["owner"],
+  };
+
+  const ordering = whatCanIDoIfDjangoForcesMeToLOL[query.ordering];
+
+  const [r1, c1] = toIndex(query.rack_from);
+  const [r2, c2] = toIndex(query.rack_to);
+
+  const q = {
+    ...query,
+    r1: indexToRow(r1),
+    r2: indexToRow(r2),
+    c1: indexToCol(c1),
+    c2: indexToCol(c2),
+    ordering: ordering
+      ? ordering.map(o => directionPrefix + o).join(",")
+      : undefined,
+  };
+
+  return Axios.get(`api/equipment/AssetList?${makeQueryString(q)}`, {
+    headers: makeHeaders(),
+  }).then(getData);
 }
 
 export function getDecommissionedAssetList(query) {
   return Axios.get(
-    `api/equipment/DecommissionedAssetList?${makeQueryString(
-      query,
-    )}`,
+    `api/equipment/DecommissionedAssetList?${makeQueryString(query)}`,
     { headers: makeHeaders() },
   ).then(getData);
 }
 
 export function getAssetPicklist(query) {
-  return Axios.get(
-    `api/equipment/AssetPickList?${makeQueryString(query)}`,
-    { headers: makeHeaders() },
-  ).then(getData);
+  return Axios.get(`api/equipment/AssetPickList?${makeQueryString(query)}`, {
+    headers: makeHeaders(),
+  }).then(getData);
 }
 
 export function decommissionAsset(id) {
@@ -52,19 +73,16 @@ export function getAsset(id) {
 }
 
 export function getAssetDetail(id) {
-  return Axios.get(
-    `api/equipment/AssetDetailRetrieve/${id}`,
-    { headers: makeHeaders() },
-  ).then(getData);
+  return Axios.get(`api/equipment/AssetDetailRetrieve/${id}`, {
+    headers: makeHeaders(),
+  }).then(getData);
 }
 
 export function updateAsset(id, updates) {
   return withLoading(() =>
-    Axios.patch(
-      `api/equipment/AssetUpdate/${id}`,
-      updates,
-      { headers: makeHeaders() },
-    ).then(getData),
+    Axios.patch(`api/equipment/AssetUpdate/${id}`, updates, {
+      headers: makeHeaders(),
+    }).then(getData),
   );
 }
 
@@ -76,16 +94,8 @@ export function deleteAsset(id) {
   );
 }
 
-export function powerPortList(rackID) {
-  return Axios.get(
-    `api/equipment/PowerPortList?${makeQueryString({
-      rack_id: rackID,
-    })}`,
-  );
-}
-
 export function networkPortList(dcName) {
-  return Axios.get(`api/equipment/NetworkPortList`, {
+  return Axios.get(`api/network/NetworkPortList`, {
     headers: makeHeaders({ dcName }),
-  });
+  }).then(getData);
 }

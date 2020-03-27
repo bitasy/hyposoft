@@ -5,25 +5,21 @@ import { CHANGE_PLAN_SESSION_KEY } from "../components/App";
 
 export const GLOBAL_ABBR = "global";
 
-export function makeHeaders({ dcName, changePlanID }) {
+// overrides: { dcName: string, changePlanID: number }
+export function makeHeaders(overrides) {
   const dcname =
-    dcName ??
-    sessionStorage.getItem(DATACENTER_ABBR_SESSION_KEY);
+    overrides?.dcName ?? sessionStorage.getItem(DATACENTER_ABBR_SESSION_KEY);
   const cpid =
-    changePlanID ??
-    sessionStorage.getItem(CHANGE_PLAN_SESSION_KEY);
+    overrides?.changePlanID ?? sessionStorage.getItem(CHANGE_PLAN_SESSION_KEY);
 
   return {
-    "X-DATACENTER": dcname,
-    "X-CHANGE-PLAN": cpid,
+    ...(dcname != null ? { "X-DATACENTER": dcname } : {}),
+    ...(dcname != null ? { "X-CHANGE-PLAN": cpid } : {}),
   };
 }
 
 export async function withLoading(op) {
-  const handle = message.loading(
-    "Action in progress...",
-    0,
-  );
+  const handle = message.loading("Action in progress...", 0);
   try {
     const res = await op();
     message.success("Success!");
@@ -37,9 +33,7 @@ export async function withLoading(op) {
 }
 
 export function getData(res) {
-  return res.status < 300
-    ? res.data
-    : Promise.reject(res.data);
+  return res.status < 300 ? res.data : Promise.reject(res.data);
 }
 
 export function makeQueryString(query) {

@@ -10,15 +10,14 @@ import SubmitButton from "../../../utility/formik/SubmitButton";
 import InputNumber from "../../../utility/formik/InputNumber";
 import Input from "../../../utility/formik/Input";
 import TextArea from "../../../utility/formik/TextArea";
-import {
-  DisableContext,
-  AuthContext,
-} from "../../../../contexts/Contexts";
+import { DisableContext, AuthContext } from "../../../../contexts/Contexts";
 import VSpace from "../../../utility/VSpace";
 import {
   createModel,
   getVendors,
   getModel,
+  updateModel,
+  deleteModel,
 } from "../../../../api/model";
 import { useHistory } from "react-router-dom";
 
@@ -103,10 +102,7 @@ function ModelForm({ id }) {
             <AutoComplete name="vendor" acList={vendors} />
           </ItemWithLabel>
 
-          <ItemWithLabel
-            name="model_number"
-            label="Model #"
-          >
+          <ItemWithLabel name="model_number" label="Model #">
             <Input name="model_number" />
           </ItemWithLabel>
 
@@ -114,29 +110,16 @@ function ModelForm({ id }) {
             <InputNumber name="height" min={1} max={42} />
           </ItemWithLabel>
 
-          <ItemWithLabel
-            name="display_color"
-            label="Display Color"
-          >
+          <ItemWithLabel name="display_color" label="Display Color">
             <ColorPicker name="display_color" />
           </ItemWithLabel>
 
-          <ItemWithLabel
-            name="network_port_labels"
-            label="Network Port Labels"
-          >
+          <ItemWithLabel name="network_port_labels" label="Network Port Labels">
             <NetworkPortLabelFormItem name="network_port_labels" />
           </ItemWithLabel>
 
-          <ItemWithLabel
-            name="power_ports"
-            label="# of Power ports"
-          >
-            <InputNumber
-              name="power_ports"
-              min={0}
-              max={10}
-            />
+          <ItemWithLabel name="power_ports" label="# of Power ports">
+            <InputNumber name="power_ports" min={0} max={10} />
           </ItemWithLabel>
 
           <ItemWithLabel name="cpu" label="CPU">
@@ -158,12 +141,7 @@ function ModelForm({ id }) {
           {id && (
             <>
               <VSpace height="16px" />
-              <Button
-                ghost
-                type="danger"
-                onClick={handleDelete}
-                block
-              >
+              <Button ghost type="danger" onClick={handleDelete} block>
                 Delete
               </Button>
             </>
