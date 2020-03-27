@@ -1,7 +1,7 @@
 import React from "react";
 import { Field } from "formik";
 import { Slider } from "antd";
-import { DisableContext } from "../../../contexts/Contexts";
+import { DisableContext } from "../../../contexts/contexts";
 
 function RangeSlider({ name, validate, ...props }) {
   const { disabled } = React.useContext(DisableContext);

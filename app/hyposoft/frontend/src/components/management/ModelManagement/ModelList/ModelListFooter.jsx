@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { AuthContext } from "../../../../contexts/Contexts";
+import { AuthContext } from "../../../../contexts/contexts";
 import { useHistory } from "react-router-dom";
 import { PlusOutlined } from "@ant-design/icons";
 import CreateTooltip from "../../../utility/CreateTooltip";
@@ -19,14 +19,9 @@ function ModelListFooter() {
     <div>
       <CreateTooltip
         isVisible={createDisabled}
-        tooltipText={
-          "Only users with admin privileges can create a new item"
-        }
+        tooltipText={"Only users with admin privileges can create a new item"}
       >
-        <Button
-          onClick={onCreate}
-          disabled={createDisabled}
-        >
+        <Button onClick={onCreate} disabled={createDisabled}>
           <PlusOutlined />
         </Button>
       </CreateTooltip>

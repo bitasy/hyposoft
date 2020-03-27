@@ -12,8 +12,8 @@ export const DCContext = React.createContext({
 });
 
 export const ChangePlanContext = React.createContext({
-  planID: null,
-  setChangePlanID: () => {},
+  changePlan: null, // just id and name
+  setChangePlan: () => {},
 });
 
 export const DisableContext = React.createContext({

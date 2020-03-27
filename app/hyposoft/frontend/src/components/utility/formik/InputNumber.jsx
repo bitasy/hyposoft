@@ -1,7 +1,7 @@
 import React from "react";
 import { Field } from "formik";
 import { InputNumber as $InputNumber } from "antd";
-import { DisableContext } from "../../../contexts/Contexts";
+import { DisableContext } from "../../../contexts/contexts";
 
 function InputNumber({ name, validate, ...props }) {
   const { disabled } = React.useContext(DisableContext);

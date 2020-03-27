@@ -6,7 +6,7 @@ import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
-import { DCContext } from "../../../../contexts/Contexts";
+import { DCContext } from "../../../../contexts/contexts";
 
 const AssetTable = styled(Table)`
   :hover {

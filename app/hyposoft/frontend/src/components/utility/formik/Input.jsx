@@ -1,7 +1,7 @@
 import React from "react";
 import { Field } from "formik";
 import { Input as $Input } from "antd";
-import { DisableContext } from "../../../contexts/Contexts";
+import { DisableContext } from "../../../contexts/contexts";
 
 function Input({ name, validate, ...props }) {
   const { disabled } = React.useContext(DisableContext);
@@ -13,7 +13,7 @@ function Input({ name, validate, ...props }) {
           <$Input
             {...props}
             value={value}
-            disabled={disabled}
+            disabled={props.disabled || disabled}
             onChange={e => {
               const value = e.target.value;
               setFieldValue(name, value);

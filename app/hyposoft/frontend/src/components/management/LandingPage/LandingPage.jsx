@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { Typography, Row } from "antd";
-import { AuthContext } from "../../../contexts/Contexts";
+import { AuthContext } from "../../../contexts/contexts";
 
 const FullDiv = styled("div")`
   display: flex;

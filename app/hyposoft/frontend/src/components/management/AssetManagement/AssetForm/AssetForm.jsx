@@ -6,7 +6,7 @@ import SubmitButton from "../../../utility/formik/SubmitButton";
 import InputNumber from "../../../utility/formik/InputNumber";
 import Input from "../../../utility/formik/Input";
 import TextArea from "../../../utility/formik/TextArea";
-import { DisableContext, AuthContext } from "../../../../contexts/Contexts";
+import { DisableContext, AuthContext } from "../../../../contexts/contexts";
 import VSpace from "../../../utility/VSpace";
 import Select from "../../../utility/formik/Select";
 import { getModel, getModelPicklist } from "../../../../api/model";
@@ -68,8 +68,10 @@ function AssetForm({ id }) {
     if (asset?.rack) handleRackSelect(asset.rack);
   }, [asset]);
 
-  function handleModelSelect(id) {
-    return getModel(id).then(setSelectedModel);
+  async function handleModelSelect(id) {
+    const model = await getModel(id);
+    setSelectedModel(model);
+    return model;
   }
 
   function handleDCSelect(id) {
@@ -101,7 +103,7 @@ function AssetForm({ id }) {
 
   async function handleDelete() {
     await deleteAsset(id);
-    history.push("/models");
+    history.push("/assets");
   }
 
   return asset ? (

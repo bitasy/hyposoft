@@ -3,6 +3,7 @@ import styled from "styled-components";
 import Select from "../../../utility/formik/Select";
 import Input from "../../../utility/formik/Input";
 import VSpace from "../../../utility/VSpace";
+import { useField } from "formik";
 
 const BlockHeader = styled("h4")`
   margin: 0;
@@ -18,7 +19,8 @@ function NetworkPortSelect({ selectedModel, networkPorts }) {
     selectedModel.network_port_labels.map((label, idx) => (
       <div key={idx}>
         <VSpace height="8px" />
-        <BlockHeader>Port: {label}</BlockHeader>
+        <BlockHeader>Label</BlockHeader>
+        <Input name={`network_ports.${idx}.label`} disabled />
         <BlockText>MAC address</BlockText>
         <Input name={`network_ports.${idx}.mac_address`} />
         <BlockText>Connection</BlockText>
