@@ -219,7 +219,8 @@ class AssetSerializer(serializers.ModelSerializer):
             connections.values('pdu', 'plug_number')]
         ports = NetworkPort.objects.filter(asset=instance)
         data['network_ports'] = [
-            port for port in ports.values('id', 'mac_address', 'connection')
+            dict(**{'label': port.pop('label__name')}, **port)
+            for port in ports.values('label__name', 'mac_address', 'connection')
         ]
         data['decommissioned'] = not instance.commissioned
         update_asset_power(instance)
