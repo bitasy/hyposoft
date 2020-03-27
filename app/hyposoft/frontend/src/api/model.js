@@ -8,7 +8,14 @@ export function createModel(fields) {
 }
 
 export function getModelList(query) {
-  return Axios.get(`api/equipment/ITModelList?${makeQueryString(query)}`).then(
+  const q = {
+    ...query,
+    ordering: query.ordering
+      ? `${query.direction === "descending" ? "-" : ""}${query.ordering}`
+      : undefined,
+  };
+
+  return Axios.get(`api/equipment/ITModelList?${makeQueryString(q)}`).then(
     getData,
   );
 }

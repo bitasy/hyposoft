@@ -13,8 +13,8 @@ function ModelSelect({ modelPickList, handleModelSelect }) {
       })}
       onChange={id => {
         handleModelSelect(id);
-        setFieldValue("network_ports", []);
-        setFieldValue("power_connections", []);
+        setFieldValue("network_ports", [], false);
+        setFieldValue("power_connections", [], false);
       }}
     />
   );

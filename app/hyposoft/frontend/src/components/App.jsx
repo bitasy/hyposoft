@@ -20,7 +20,7 @@ import { AuthContext, DCContext } from "../contexts/Contexts";
 export const DATACENTER_SESSION_KEY = "DATACENTER";
 export const DATACENTER_ABBR_SESSION_KEY = "DATACENTER_ABBR";
 
-export const CHANGE_PLAN_SESSION_KEY = "DATACENTER";
+export const CHANGE_PLAN_SESSION_KEY = "CHANGE_PLAN";
 
 import { getCurrentUser } from "../api/auth";
 import { getDatacenters } from "../api/datacenter";
@@ -74,28 +74,34 @@ function App() {
         const dc = await getDatacenters().then(
           dcs => dcs.find(dc => dc.abbr == dcName) ?? null,
         );
-        sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
-        sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
-        setDatacenter(dc);
-      } else {
-        sessionStorage.removeItem(DATACENTER_SESSION_KEY);
-        sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
-        setDatacenter(null);
+        if (dc) {
+          sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
+          sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
+          setDatacenter(dc);
+          return;
+        }
       }
+
+      sessionStorage.removeItem(DATACENTER_SESSION_KEY);
+      sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
+      setDatacenter(null);
     },
     setDCByID: async dcID => {
       if (dcID) {
         const dc = await getDatacenters().then(
           dcs => dcs.find(dc => dc.id == dcID) ?? null,
         );
-        sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
-        sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
-        setDatacenter(dc);
-      } else {
-        sessionStorage.removeItem(DATACENTER_SESSION_KEY);
-        sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
-        setDatacenter(null);
+        if (dc) {
+          sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
+          sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
+          setDatacenter(dc);
+          return;
+        }
       }
+
+      sessionStorage.removeItem(DATACENTER_SESSION_KEY);
+      sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
+      setDatacenter(null);
     },
   };
 

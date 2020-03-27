@@ -6,6 +6,7 @@ import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
+import { DCContext } from "../../../../contexts/Contexts";
 
 const AssetTable = styled(Table)`
   :hover {
@@ -61,6 +62,8 @@ const initialFilterValues = {
 function AssetList({ modelID }) {
   const history = useHistory();
 
+  const { datacenter } = React.useContext(DCContext);
+
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
@@ -92,7 +95,7 @@ function AssetList({ modelID }) {
         setTotal(r.count);
       }
     });
-  }, [filterValues, page, pageSize, ordering, direction]);
+  }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
 
   React.useEffect(() => {
     setPage(1);

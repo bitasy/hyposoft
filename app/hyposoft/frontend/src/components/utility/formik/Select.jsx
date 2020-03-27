@@ -8,20 +8,9 @@ import { DisableContext } from "../../../contexts/Contexts";
 // encode?: (value: T) => string
 // decode?: (encoded: string) => T
 // onChange?: ()
-function Select({
-  name,
-  options,
-  encode,
-  decode,
-  onChange,
-  ...props
-}) {
+function Select({ name, options, encode, decode, onChange, ...props }) {
   const { disabled } = React.useContext(DisableContext);
-  const [
-    { value },
-    {},
-    { setValue, setTouched },
-  ] = useField(name);
+  const [{ value }, {}, { setValue, setTouched }] = useField(name);
 
   function enc(value) {
     return value && encode ? encode(value) : value;
@@ -36,8 +25,13 @@ function Select({
   return (
     <$Select
       {...props}
+      style={{ width: "100%" }}
       disabled={disabled}
       value={multiple ? value.map(enc) : enc(value)}
+      showSearch
+      filterOption={(input, option) => {
+        return option.children.toLowerCase().includes(input.toLowerCase());
+      }}
       onChange={s => {
         setTouched();
         if (multiple) {

@@ -12,6 +12,7 @@ function InputNumber({ name, validate, ...props }) {
         return (
           <$InputNumber
             {...props}
+            style={{ width: "100%" }}
             disabled={disabled}
             value={value}
             onChange={value => {

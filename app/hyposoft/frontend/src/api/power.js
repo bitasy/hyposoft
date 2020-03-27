@@ -1,12 +1,12 @@
 import Axios from "axios";
-import { getData } from "./utils";
+import { getData, makeQueryString } from "./utils";
 
 export function powerPortList(rackID) {
   return Axios.get(
     `api/power/PowerPortList?${makeQueryString({
       rack_id: rackID,
     })}`,
-  );
+  ).then(getData);
 }
 
 export function getPowerState(assetID) {

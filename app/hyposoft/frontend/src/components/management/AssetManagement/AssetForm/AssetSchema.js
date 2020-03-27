@@ -10,7 +10,12 @@ export const schema = Yup.object()
     itmodel: Yup.number().required(),
     datacenter: Yup.number().required(),
     rack: Yup.number().required(),
-    rack_position: Yup.number().required(),
+    rack_position: Yup.number()
+      .typeError("Should be a number!")
+      .required()
+      .integer()
+      .min(1)
+      .max(42),
     power_connections: Yup.array(
       Yup.object({
         pdu_id: Yup.number().required(),
