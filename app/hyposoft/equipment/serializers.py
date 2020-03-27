@@ -117,19 +117,24 @@ class ITModelPickSerializer(serializers.ModelSerializer):
 
 
 class AssetEntrySerializer(serializers.ModelSerializer):
+    location = serializers.CharField(source='rack.rack')
+    model = serializers.CharField(source='itmodel')
+    owner = serializers.CharField()
+
     class Meta:
         model = Asset
         fields = [
             'id',
-            'itmodel',
+            'model',
             'hostname',
             'owner',
-            'rack',
-            'rack_position'
+            'location'
         ]
 
     def to_representation(self, instance):
         data = super(AssetEntrySerializer, self).to_representation(instance)
+
+        data['location'] = "{}: Rack {}U{}".format(instance.datacenter.abbr, instance.rack.rack, instance.rack_position)
 
         networked = False
         for pdu in instance.pdu_set.all():
