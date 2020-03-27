@@ -5,6 +5,7 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 
 from hyposoft.utils import generate_racks
+from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra
 from .serializers import *
 from .models import *
@@ -12,17 +13,17 @@ from .models import *
 import logging
 
 
-class DatacenterCreate(generics.CreateAPIView):
+class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
 
 
-class ITModelCreate(generics.CreateAPIView):
+class ITModelCreate(CreateAndLogMixin, generics.CreateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class AssetCreate(generics.CreateAPIView):
+class AssetCreate(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -63,17 +64,17 @@ class RackRangeCreate(views.APIView):
         })
 
 
-class ITModelUpdate(generics.UpdateAPIView):
+class ITModelUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class AssetUpdate(generics.UpdateAPIView):
+class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
 
-class DatacenterUpdate(generics.UpdateAPIView):
+class DatacenterUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
 
@@ -85,7 +86,7 @@ class DestroyWithIdMixin(object):
         return Response(id, status=status.HTTP_200_OK)
 
 
-class ITModelDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
+class ITModelDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
@@ -96,7 +97,7 @@ class VendorList(views.APIView):
         return Response([v['vendor'] for v in vendors])
 
 
-class AssetDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
+class AssetDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -147,7 +148,7 @@ class RackRangeDestroy(views.APIView):
         })
 
 
-class DatacenterDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
+class DatacenterDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
     queryset = Datacenter.objects.all()
     serializer_class = DatacenterSerializer
 
@@ -269,6 +270,8 @@ class DecommissionAsset(views.APIView):
             loop_ports(old_asset, True)
 
             old_asset.delete()
+
+            log_decommission(self, old_asset)
 
             response = AssetDetailSerializer(asset, context={"request": request, "version": 0})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)

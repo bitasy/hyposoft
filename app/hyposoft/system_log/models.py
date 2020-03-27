@@ -31,6 +31,7 @@ class ActionLog(models.Model):
         CREATE = 'Create', 'Create'
         UPDATE = 'Update', 'Update'
         DESTROY = 'Destroy', 'Destroy'
+        DECOMMISSION = 'Decommission', 'Decommission'
 
     action = models.CharField(
         choices=Action.choices,
