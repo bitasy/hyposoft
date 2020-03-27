@@ -74,7 +74,6 @@ class ITModelPickList(generics.ListAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelPickSerializer
 
-
 class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.

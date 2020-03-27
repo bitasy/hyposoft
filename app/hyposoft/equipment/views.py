@@ -90,6 +90,12 @@ class ITModelDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
     serializer_class = ITModelSerializer
 
 
+class VendorList(views.APIView):
+    def get(self, request):
+        vendors = ITModel.objects.values('vendor')
+        return Response([v['vendor'] for v in vendors])
+
+
 class AssetDestroy(DestroyWithIdMixin, generics.DestroyAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer

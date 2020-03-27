@@ -44,9 +44,7 @@ export const assetColumns = [
     sorter: false,
     render: r => {
       return (
-        r.power_action_visible && (
-          <NetworkPowerActionButtons asset={r.id} />
-        )
+        r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />
       );
     },
   },
@@ -63,17 +61,13 @@ const initialFilterValues = {
 function AssetList({ modelID }) {
   const history = useHistory();
 
-  const [filterValues, setFilterValues] = React.useState(
-    initialFilterValues,
-  );
+  const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [total, setTotal] = React.useState(0);
   const [data, setData] = React.useState([]);
   const [ordering, setOrdering] = React.useState(undefined);
-  const [direction, setDirection] = React.useState(
-    undefined,
-  );
+  const [direction, setDirection] = React.useState(undefined);
 
   const realm = React.useRef(0);
 
@@ -138,16 +132,13 @@ function AssetList({ modelID }) {
 
   return (
     <>
-      {modelID != null && (
+      {modelID == null && (
         <AssetFilters
           initialFilterValues={initialFilterValues}
           onChange={setFilterValues}
         />
       )}
-      <Pagination
-        {...paginationConfig}
-        style={{ margin: "8px 0" }}
-      />
+      <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <AssetTable
         rowKey={r => r.id}
         columns={assetColumns}
