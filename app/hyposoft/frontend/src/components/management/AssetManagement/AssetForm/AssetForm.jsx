@@ -55,18 +55,18 @@ function AssetForm({ id }) {
       ]);
 
       if (id) {
-        const asset = await getAsset(id);
-        await Promise.all([
-          handleModelSelect(asset.itmodel),
-          handleDCSelect(asset.datacenter),
-          handleRackSelect(asset.rack),
-        ]);
-        setAsset(asset);
+        getAsset(id).then(setAsset);
       } else {
         setAsset(schema.default());
       }
     })();
   }, []);
+
+  React.useEffect(() => {
+    if (asset?.itmodel) handleModelSelect(asset.itmodel);
+    if (asset?.datacenter) handleDCSelect(asset.datacenter);
+    if (asset?.rack) handleRackSelect(asset.rack);
+  }, [asset]);
 
   function handleModelSelect(id) {
     return getModel(id).then(setSelectedModel);
