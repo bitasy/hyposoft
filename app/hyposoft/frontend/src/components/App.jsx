@@ -14,6 +14,7 @@ import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import LogManagementPage from "./management/LogManagement/LogManagementPage";
+import DecommissionManagementPage from "./management/DecommissionManagement/DecommissionManagementPage";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCurrentUser } from "../redux/session/actions";
 import DatacenterManagementPage from "./management/DatacenterManagment/DatacenterManagementPage";
@@ -87,6 +88,10 @@ function Routes() {
 
               <Route exact path="/logs">
                 <LogManagementPage />
+              </Route>
+
+              <Route exact path="/decommission">
+                <DecommissionManagementPage />
               </Route>
 
               <Route>

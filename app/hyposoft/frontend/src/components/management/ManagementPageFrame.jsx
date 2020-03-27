@@ -138,6 +138,12 @@ function Sidebar() {
         <span>Assets</span>
       </Menu.Item>
 
+      {/*TODO:  check permissions  */}
+      <Menu.Item key="/decommission">
+        <Icon type="disconnect" />
+        <span>Decommission</span>
+      </Menu.Item>
+
       <Menu.Item key="/datacenters">
         <Icon type="build" />
         <span>Datacenters</span>
