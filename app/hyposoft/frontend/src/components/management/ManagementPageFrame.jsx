@@ -1,13 +1,6 @@
 import React, { useContext, useState } from "react";
 import { useHistory } from "react-router-dom";
-import {
-  Layout,
-  Menu,
-  Col,
-  Button,
-  Select,
-  Row,
-} from "antd";
+import { Layout, Menu, Col, Button, Select, Row } from "antd";
 import {
   EyeInvisibleOutlined,
   LogoutOutlined,
@@ -20,10 +13,7 @@ import {
   UserOutlined,
   InboxOutlined,
 } from "@ant-design/icons";
-import {
-  AuthContext,
-  DCContext,
-} from "../../contexts/Contexts";
+import { AuthContext, DCContext } from "../../contexts/contexts";
 import HGreed from "../utility/HGreed";
 import { getDatacenters } from "../../api/datacenter";
 import { logout } from "../../api/auth";
@@ -85,11 +75,7 @@ function ManagementPageFrame({ children }) {
               ))}
             </Select>
             {isAdmin ? (
-              <Button
-                ghost
-                style={{ marginRight: 8 }}
-                href="admin"
-              >
+              <Button ghost style={{ marginRight: 8 }} href="admin">
                 <EyeInvisibleOutlined />
                 Admin page
               </Button>
@@ -106,9 +92,7 @@ function ManagementPageFrame({ children }) {
           <Sidebar />
         </Sider>
         <Layout style={{ padding: "0 16px 16px" }}>
-          <Content style={{ backgroundColor: "white" }}>
-            {children}
-          </Content>
+          <Content style={{ backgroundColor: "white" }}>{children}</Content>
         </Layout>
       </Layout>
     </Layout>
@@ -137,11 +121,7 @@ function Sidebar() {
   }
 
   return (
-    <Menu
-      onClick={handleClick}
-      selectedKeys={[]}
-      mode="inline"
-    >
+    <Menu onClick={handleClick} selectedKeys={[]} mode="inline">
       <Menu.Item key="/">
         <AppstoreOutlined />
         <span>Overview</span>

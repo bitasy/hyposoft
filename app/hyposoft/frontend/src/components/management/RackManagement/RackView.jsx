@@ -49,11 +49,6 @@ function RackView({ r }) {
 
   const rackVMSplit = partition(rackVMs, RACKS_IN_ROW);
 
-  React.useEffect(() => {
-    dispatch(fetchRacks());
-    dispatch(fetchAssets());
-  }, []);
-
   return (
     <div ref={r}>
       {rackVMSplit.map((row, rIdx) => (

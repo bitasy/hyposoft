@@ -5,7 +5,7 @@ import produce from "immer";
 import Input from "../../../utility/formik/Input";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import VSpace from "../../../utility/VSpace";
-import { DisableContext } from "../../../../contexts/Contexts";
+import { DisableContext } from "../../../../contexts/contexts";
 
 function fitNum(arr, num) {
   return produce(arr, draft => {

@@ -4,7 +4,7 @@ import { Typography, Button, Select, message, Alert } from "antd";
 import { toIndex, indexToRow } from "./GridUtils";
 import CreateTooltip from "../../utility/CreateTooltip";
 import { getRackList, createRack, deleteRacks } from "../../../api/rack";
-import { DCContext, AuthContext } from "../../../contexts/Contexts";
+import { DCContext, AuthContext } from "../../../contexts/contexts";
 import { getDatacenters } from "../../../api/datacenter";
 import VSpace from "../../utility/VSpace";
 

@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Typography, List, Card, Input, Button, Icon } from "antd";
 import CreateTooltip from "../../utility/CreateTooltip";
-import { AuthContext, DCContext } from "../../../contexts/Contexts";
+import { AuthContext, DCContext } from "../../../contexts/contexts";
 import {
   updateDatacenter,
   deleteDatacenter,

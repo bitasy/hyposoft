@@ -3,7 +3,7 @@ import styled from "styled-components";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import { Form, Row, Col, Button, Typography, Divider } from "antd";
-import { AuthContext } from "../../../contexts/Contexts";
+import { AuthContext } from "../../../contexts/contexts";
 import ItemWithLabel from "../../utility/formik/ItemWithLabel";
 import Input from "../../utility/formik/Input";
 import SubmitButton from "../../utility/formik/SubmitButton";

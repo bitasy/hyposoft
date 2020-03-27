@@ -11,9 +11,19 @@ function ModelSelect({ modelPickList, handleModelSelect }) {
       options={modelPickList.map(({ id, str }) => {
         return { value: id, text: str };
       })}
-      onChange={id => {
-        handleModelSelect(id);
-        setFieldValue("network_ports", [], false);
+      onChange={async id => {
+        const model = await handleModelSelect(id);
+        setFieldValue(
+          "network_ports",
+          model.network_port_labels.map(label => {
+            return {
+              label,
+              mac_address: null,
+              connection: null,
+            };
+          }),
+          false,
+        );
         setFieldValue("power_connections", [], false);
       }}
     />

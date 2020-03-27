@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { AuthContext } from "../../../../contexts/Contexts";
+import { AuthContext } from "../../../../contexts/contexts";
 import { useHistory } from "react-router-dom";
 import { PlusOutlined } from "@ant-design/icons";
 import CreateTooltip from "../../../utility/CreateTooltip";
