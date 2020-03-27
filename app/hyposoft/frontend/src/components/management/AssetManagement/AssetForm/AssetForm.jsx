@@ -20,7 +20,7 @@ import {
   updateAsset,
   deleteAsset,
 } from "../../../../api/asset";
-import PowerPortSelect from "./PowerPOrtSelect";
+import PowerPortSelect from "./PowerPortSelect";
 import { schema } from "./AssetSchema";
 import ModelSelect from "./ModelSelect";
 import DatacenterSelect from "./DatacenterSelect";
