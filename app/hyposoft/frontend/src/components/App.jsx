@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  HashRouter as Router,
-  Switch,
-  Route,
-} from "react-router-dom";
+import { HashRouter as Router, Switch, Route } from "react-router-dom";
 
 import LoginPage from "./auth/LoginPage/LoginPage";
 import ManagementPageFrame from "./management/ManagementPageFrame";
@@ -19,24 +15,19 @@ import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import LogManagementPage from "./management/LogManagement/LogManagementPage";
 import DatacenterManagementPage from "./management/DatacenterManagment/DatacenterManagementPage";
-import API from "../api/API";
-import {
-  AuthContext,
-  DCContext,
-} from "../contexts/Contexts";
-import { set } from "immer/dist/common";
+import { AuthContext, DCContext } from "../contexts/Contexts";
 
 export const DATACENTER_SESSION_KEY = "DATACENTER";
-export const DATACENTER_ABBR_SESSION_KEY =
-  "DATACENTER_ABBR";
+export const DATACENTER_ABBR_SESSION_KEY = "DATACENTER_ABBR";
 
 export const CHANGE_PLAN_SESSION_KEY = "DATACENTER";
 
+import { getCurrentUser } from "../api/auth";
+import { getDatacenters } from "../api/datacenter";
+
 function App() {
   const [loading, setLoading] = React.useState(true);
-  const [currentUser, setCurrentUser] = React.useState(
-    null,
-  );
+  const [currentUser, setCurrentUser] = React.useState(null);
   const [datacenter, setDatacenter] = React.useState(null);
   const [cpID, setCpID] = React.useState(null);
 
@@ -44,7 +35,7 @@ function App() {
     (async () => {
       try {
         setLoading(true);
-        await API.fetchCurrentUser().then(setCurrentUser);
+        await getCurrentUser().then(setCurrentUser);
       } finally {
         setLoading(false);
       }
@@ -53,21 +44,18 @@ function App() {
 
   React.useEffect(() => {
     (async () => {
-      const dcID = parseInt(
-        sessionStorage.getItem(DATACENTER_SESSION_KEY),
-      );
+      const dcID = parseInt(sessionStorage.getItem(DATACENTER_SESSION_KEY));
       if (!isNaN(dcID)) {
-        const dc = await API.getDatacenter(dcID);
+        const dc = await getDatacenters().then(
+          dcs => dcs.find(dc => dc.id == dcID) ?? null,
+        );
         setDatacenter(dc);
       }
     })();
   }, []);
 
   React.useEffect(() => {
-    setCpID(
-      sessionStorage.getItem(CHANGE_PLAN_SESSION_KEY) ??
-        null,
-    );
+    setCpID(sessionStorage.getItem(CHANGE_PLAN_SESSION_KEY) ?? null);
   });
 
   if (loading) {
@@ -83,41 +71,29 @@ function App() {
     datacenter,
     setDCName: async dcName => {
       if (dcName) {
-        const dc = await API.getDatacenterByAbbr(dcName);
-        sessionStorage.setItem(
-          DATACENTER_SESSION_KEY,
-          dc?.id,
+        const dc = await getDatacenters().then(
+          dcs => dcs.find(dc => dc.abbr == dcName) ?? null,
         );
-        sessionStorage.setItem(
-          DATACENTER_ABBR_SESSION_KEY,
-          dc?.abbr,
-        );
+        sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
+        sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
         setDatacenter(dc);
       } else {
         sessionStorage.removeItem(DATACENTER_SESSION_KEY);
-        sessionStorage.removeItem(
-          DATACENTER_ABBR_SESSION_KEY,
-        );
+        sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
         setDatacenter(null);
       }
     },
     setDCByID: async dcID => {
       if (dcID) {
-        const dc = await API.getDatacenter(dcID);
-        sessionStorage.setItem(
-          DATACENTER_SESSION_KEY,
-          dc?.id,
+        const dc = await getDatacenters().then(
+          dcs => dcs.find(dc => dc.id == dcID) ?? null,
         );
-        sessionStorage.setItem(
-          DATACENTER_ABBR_SESSION_KEY,
-          dc?.abbr,
-        );
+        sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
+        sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
         setDatacenter(dc);
       } else {
         sessionStorage.removeItem(DATACENTER_SESSION_KEY);
-        sessionStorage.removeItem(
-          DATACENTER_ABBR_SESSION_KEY,
-        );
+        sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
         setDatacenter(null);
       }
     },

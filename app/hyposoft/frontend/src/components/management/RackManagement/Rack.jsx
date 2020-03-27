@@ -1,6 +1,5 @@
 import React from "react";
 import style from "./Rack.module.css";
-import { DEFAULT_COLOR_VALUE } from "../ModelManagement/ModelSchema";
 
 function byLevel(rackHeight, assets) {
   const rack = Array(rackHeight + 1).fill(null);
@@ -37,10 +36,7 @@ function Rack({ rack, onSelect }) {
         <tr
           key={level}
           onClick={() => onSelect(null, level)}
-          className={join([
-            style.noBorderBottom,
-            style.noBorderTop,
-          ])}
+          className={join([style.noBorderBottom, style.noBorderTop])}
         >
           <td className={style.numberColumn}>{level}</td>
           <td className={style.infoColumnLeft} />
@@ -51,20 +47,14 @@ function Rack({ rack, onSelect }) {
 
     const { asset, model } = assetsByLevel[level];
     const isBottom = level === asset.rack_position;
-    const isTop =
-      level === asset.rack_position + model.height - 1;
+    const isTop = level === asset.rack_position + model.height - 1;
 
     return (
       <tr
-        style={{
-          backgroundColor:
-            model.display_color || DEFAULT_COLOR_VALUE,
-        }}
+        style={{ backgroundColor: model.display_color }}
         className={join([
           isTop ? style.borderTop : style.noBorderTop,
-          isBottom
-            ? style.borderBottom
-            : style.noBorderBottom,
+          isBottom ? style.borderBottom : style.noBorderBottom,
         ])}
         onClick={() => onSelect(asset, level)}
         key={level}
@@ -72,9 +62,7 @@ function Rack({ rack, onSelect }) {
         <td className={style.numberColumn}>{level}</td>
         <td className={style.infoColumnLeft}>
           {isBottom && asset.isTmp ? "*" : ""}
-          {isBottom
-            ? model.vendor + "\t" + model.model_number
-            : ""}
+          {isBottom ? model.vendor + "\t" + model.model_number : ""}
         </td>
         <td className={style.infoColumnRight}>
           {isBottom ? asset.hostname || "" : ""}
