@@ -156,6 +156,16 @@ CHANGE_PLAN {
   }[]
 }
 
+Permission {
+  user: User,
+  model_perm: boolean,    
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: MultiSelectField
+}
+
 ```
 
 # Create APIs
@@ -276,6 +286,32 @@ The necessary `PDU`s should be created.
 Datacenter
 ```
 
+### `[POST] auth/PermissionCreate`
+
+#### Request Body
+
+```
+{
+  user: User,
+  model_perm: boolean,    
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: MultiSelectField
+}
+```
+
+#### Notes
+
+The datacenter_perm contains global permission and a field for each datacenter.
+
+#### Response Body
+
+```
+Permission
+```
+
 # Update APIs
 
 ### `[PATCH] api/equipment/ITModelUpdate/:itmodel_id`
@@ -357,6 +393,28 @@ Asset # updated one
 Datacenter # updated one
 ```
 
+### `[POST] auth/PermissionUpdate`
+
+#### Request Body
+
+```
+{
+  user: User,
+  model_perm: boolean,    
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: MultiSelectField
+}
+```
+
+#### Response Body
+
+```
+Permission
+```
+
 # Destroy APIs
 
 ### `[DELETE] api/equipment/ITModelDestroy/:itmodel_id`
@@ -422,6 +480,18 @@ c1 and c2 refer to column numbers, currently 1 through 99.
 DATACENTER_ID
 ```
 
+### `[DELETE] auth/PermissionDestroy/:permission_id`
+
+#### Notes
+
+The request should fail if the user has no asset permission.
+
+#### Response Body
+
+```
+PERMISSION_ID
+```
+
 # Retrieve APIs
 
 ### `[GET] api/equipment/ITModelRetrieve/:itmodel_id`
@@ -446,6 +516,14 @@ ASSET
 
 ```
 ASSET_DETAILS
+```
+
+### `[GET] auth/PermissionRetrieve/:permission_id`
+
+#### Response Body
+
+```
+Permission
 ```
 
 # List APIs
@@ -715,6 +793,14 @@ User[]
   id: MODEL_ID,
   str: MODEL_STR,
 }
+```
+
+### `[GET] auth/PermissionList`
+
+#### Response body
+
+```
+Permission[]
 ```
 
 # Log APIs

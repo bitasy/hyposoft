@@ -6,3 +6,4 @@ django-filter
 requests
 --no-binary=psycopg2
 psycopg2
+django-multiselectfield
