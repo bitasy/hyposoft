@@ -25,6 +25,8 @@ urlpatterns = [
     path('api/equipment/', include('equipment.urls')),
     path('api/network/', include('network.urls')),
     path('api/power/', include('power.urls')),
+    path('api/changeplan/', include('changeplan.urls')),
     path('api/log/', include('system_log.urls')),
     path('api/users/UserList/', UserList.as_view()),
+    path('api/auth/', include('rest_framework.urls')),
 ]

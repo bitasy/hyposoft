@@ -18,7 +18,7 @@ class ITModelResource(resources.ModelResource):
     def dehydrate_network_port_name_1(self, itmodel):
         try:
             if itmodel.network_ports >= 1:
-                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=1)
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, order=1)
                 return my_network_port_label.name
             else:
                 return ''
@@ -28,7 +28,7 @@ class ITModelResource(resources.ModelResource):
     def dehydrate_network_port_name_2(self, itmodel):
         try:
             if itmodel.network_ports >= 2:
-                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=2)
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, order=2)
                 return my_network_port_label.name
             else:
                 return ''
@@ -38,7 +38,7 @@ class ITModelResource(resources.ModelResource):
     def dehydrate_network_port_name_3(self, itmodel):
         try:
             if itmodel.network_ports >= 3:
-                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=3)
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, order=3)
                 return my_network_port_label.name
             else:
                 return ''
@@ -48,7 +48,7 @@ class ITModelResource(resources.ModelResource):
     def dehydrate_network_port_name_4(self, itmodel):
         try:
             if itmodel.network_ports >= 4:
-                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, special=4)
+                my_network_port_label = NetworkPortLabel.objects.get(itmodel=itmodel, order=4)
                 return my_network_port_label.name
             else:
                 return ''
@@ -76,19 +76,19 @@ class ITModelResource(resources.ModelResource):
             )
         elif curr_network_ports > my_network_ports:
             if my_network_ports == 3:
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
             elif my_network_ports == 2:
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=3).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=3).delete()
             elif my_network_ports == 1:
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=3).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=2).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=3).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=2).delete()
             elif my_network_ports == 1:
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=4).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=3).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=2).delete()
-                NetworkPortLabel.objects.filter(itmodel=my_model, special=1).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=4).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=3).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=2).delete()
+                NetworkPortLabel.objects.filter(itmodel=my_model, order=1).delete()
             # network_port_name_1
         if my_network_ports >= 1:
             if row['network_port_name_1'] == '':
@@ -96,11 +96,11 @@ class ITModelResource(resources.ModelResource):
             else:
                 my_name_1 = row['network_port_name_1']
             try:
-                exists_1 = NetworkPortLabel.objects.get(itmodel=my_model, special=1)
+                exists_1 = NetworkPortLabel.objects.get(itmodel=my_model, order=1)
                 exists_1.name = my_name_1
                 exists_1.save()
             except:
-                network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, special=1)
+                network_port_name_1 = NetworkPortLabel.objects.create(name=my_name_1, itmodel=my_model, order=1)
         # network_port_name_2
         if my_network_ports >= 2:
             if row['network_port_name_2'] == '':
@@ -108,11 +108,11 @@ class ITModelResource(resources.ModelResource):
             else:
                 my_name_2 = row['network_port_name_2']
             try:
-                exists_2 = NetworkPortLabel.objects.get(itmodel=my_model, special=2)
+                exists_2 = NetworkPortLabel.objects.get(itmodel=my_model, order=2)
                 exists_2.name = my_name_2
                 exists_2.save()
             except:
-                network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, special=2)
+                network_port_name_2 = NetworkPortLabel.objects.create(name=my_name_2, itmodel=my_model, order=2)
         # network_port_name_3
         if my_network_ports >= 3:
             if row['network_port_name_3'] == '':
@@ -120,11 +120,11 @@ class ITModelResource(resources.ModelResource):
             else:
                 my_name_3 = row['network_port_name_3']
             try:
-                exists_3 = NetworkPortLabel.objects.get(itmodel=my_model, special=3)
+                exists_3 = NetworkPortLabel.objects.get(itmodel=my_model, order=3)
                 exists_3.name = my_name_3
                 exists_3.save()
             except:
-                network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, special=3)
+                network_port_name_3 = NetworkPortLabel.objects.create(name=my_name_3, itmodel=my_model, order=3)
         # network_port_name_4
         if my_network_ports == 4:
             if row['network_port_name_4'] == '':
@@ -132,11 +132,11 @@ class ITModelResource(resources.ModelResource):
             else:
                 my_name_4 = row['network_port_name_4']
             try:
-                exists_4 = NetworkPortLabel.objects.get(itmodel=my_model, special=4)
+                exists_4 = NetworkPortLabel.objects.get(itmodel=my_model, order=4)
                 exists_4.name = my_name_4
                 exists_4.save()
             except:
-                network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, special=4)
+                network_port_name_4 = NetworkPortLabel.objects.create(name=my_name_4, itmodel=my_model, order=4)
         if my_network_ports > 4:
             for i in range(5, my_network_ports+1):
                 if i > curr_network_ports:
@@ -199,7 +199,7 @@ class AssetResource(resources.ModelResource):
     def dehydrate_power_port_connection_1 (self, asset):
         try:
             if asset.itmodel.power_ports >= 1:
-                my_powered = Powered.objects.get(asset=asset, special=1)
+                my_powered = Powered.objects.get(asset=asset, order=1)
                 return str(my_powered.pdu.position) + str(my_powered.plug_number)
             else:
                 return ''
@@ -209,7 +209,7 @@ class AssetResource(resources.ModelResource):
     def dehydrate_power_port_connection_2(self, asset):
         try:
             if asset.itmodel.power_ports >= 2:
-                my_powered = Powered.objects.get(asset=asset, special=2)
+                my_powered = Powered.objects.get(asset=asset, order=2)
                 return str(my_powered.pdu.position) + str(my_powered.plug_number)
             else:
                 return ''
@@ -255,7 +255,7 @@ class AssetResource(resources.ModelResource):
                     exists_1 = Powered.objects.get(
                         pdu=my_pdu_1,
                         asset=my_asset,
-                        special=1
+                        order=1
                     )
                     exists_1.plug_number = my_plug_number_1
                     exists_1.save()
@@ -264,13 +264,13 @@ class AssetResource(resources.ModelResource):
                         plug_number=my_plug_number_1,
                         pdu=my_pdu_1,
                         asset=my_asset,
-                        special=1
+                        order=1
                     )
             else:
                 try:
                     exists_1 = Powered.objects.get(
                         asset=my_asset,
-                        special=1
+                        order=1
                     )
                     exists_1.delete()
                 except:
@@ -287,7 +287,7 @@ class AssetResource(resources.ModelResource):
                     exists_2 = Powered.objects.get(
                         pdu=my_pdu_2,
                         asset=my_asset,
-                        special=2
+                        order=2
                     )
                     exists_2.plug_number = my_plug_number_2
                     exists_2.save()
@@ -296,13 +296,13 @@ class AssetResource(resources.ModelResource):
                         plug_number=my_plug_number_2,
                         pdu=my_pdu_2,
                         asset=my_asset,
-                        special=2
+                        order=2
                     )
             else:
                 try:
                     exists_2 = Powered.objects.get(
                         asset=my_asset,
-                        special=2
+                        order=2
                     )
                     exists_2.delete()
                 except:
