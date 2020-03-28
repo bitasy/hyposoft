@@ -55,6 +55,10 @@ def validate_asset(sender, instance, *args, **kwargs):
         raise serializers.ValidationError(
             "The asset does not fit on the specified rack from the given position.")
 
+    if instance.rack.decommissioned:
+        raise serializers.ValidationError(
+            "The rack does not exist, please create it first.")
+
     blocked = Asset.objects.filter(
         rack=instance.rack,
         rack_position__range=(instance.rack_position,
