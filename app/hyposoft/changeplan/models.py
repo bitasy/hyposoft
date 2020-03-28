@@ -14,7 +14,7 @@ class ChangePlan(models.Model):
     executed = models.BooleanField(
         default=False
     )
-    time_executed = models.DateTimeField(
+    executed_at = models.DateTimeField(
         null=True
     )
     auto_created = models.BooleanField(
