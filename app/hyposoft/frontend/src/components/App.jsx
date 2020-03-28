@@ -171,6 +171,9 @@ function App() {
                       <Route exact path="/logs">
                         <LogManagementPage />
                       </Route>
+                      <Route exact path="/decommission">
+                        <DecommissionManagementPage />
+                      </Route>
                       <Route>
                         <LandingPage />
                       </Route>
@@ -185,7 +188,6 @@ function App() {
         </ChangePlanContext.Provider>
       </DCContext.Provider>
     </AuthContext.Provider>
->>>>>>> e155c45b4887239947314f369583d373079fa50b
   );
 }
 
