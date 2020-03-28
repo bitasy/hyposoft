@@ -9,7 +9,7 @@ from .serializers import ChangePlanSerializer
 
 class UserChangePlansMixin():
     def get_queryset(self):
-        return ChangePlan.objects.filter(owner=self.request.user, auto_created=False)
+        return ChangePlan.objects.filter(owner=self.request.user, auto_created=False, id__gt=0)
 
 
 class ChangePlanList(UserChangePlansMixin, generics.ListAPIView):
