@@ -40,6 +40,8 @@ class PDU(models.Model):
             str(self.rack)
         )
 
+    IDENTITY_FIELDS = Rack.IDENTITY_FIELDS + ['position']
+
 
 class Powered(models.Model):
     plug_number = models.IntegerField(
@@ -61,20 +63,14 @@ class Powered(models.Model):
     on = models.BooleanField(
         default=False
     )
-    special = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(1,
-                              message="Special network port ID must be at least 1"),
-            MaxValueValidator(2,
-                              message="Special network port ID must be no greater than 2")
-        ]
-    )
+    order = models.IntegerField()
+
     version = models.ForeignKey(
         ChangePlan,
         on_delete=models.CASCADE
     )
 
     class Meta:
-        unique_together = [['plug_number', 'pdu', 'version'], ['special', 'asset', 'version']]
+        unique_together = [['plug_number', 'pdu', 'version'], ['order', 'asset', 'version']]
+
+    IDENTITY_FIELDS = PDU.IDENTITY_FIELDS + ['plug_number']

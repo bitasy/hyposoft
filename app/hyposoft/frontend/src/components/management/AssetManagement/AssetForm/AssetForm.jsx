@@ -79,7 +79,7 @@ function AssetForm({ id }) {
     if (dcName) {
       return Promise.all([
         getRackList(dcName).then(setRackList),
-        networkPortList(dcName).then(setNetworkPorts),
+        networkPortList(dcName, { asset_id: asset?.id }).then(setNetworkPorts),
       ]);
     } else {
       return Promise.resolve();
@@ -161,6 +161,7 @@ function AssetForm({ id }) {
                   <NetworkPortSelect
                     selectedModel={selectedModel}
                     networkPorts={networkPorts}
+                    asset={asset}
                   />
                 </ItemWithLabel>
 

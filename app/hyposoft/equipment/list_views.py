@@ -1,9 +1,9 @@
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import dateparse
 from rest_framework import filters, generics
 from rest_framework.pagination import PageNumberPagination
-
-from hyposoft.utils import get_version
+from hyposoft.utils import get_version, versioned_queryset
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
     AssetSerializer, RackSerializer, DatacenterSerializer, ITModelPickSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter
@@ -11,13 +11,12 @@ from .models import *
 
 
 class FilterVersionMixin(object):
+
     def get_queryset(self):
         version = get_version(self.request)
-        queryset = self.get_serializer_class().Meta.model.objects.all()
-        try:
-            return queryset.filter(version_id=version)
-        except:
-            return queryset
+        model = self.get_serializer_class().Meta.model
+        queryset = model.objects.all()
+        return versioned_queryset(queryset, ChangePlan.objects.get(id=version), model.IDENTITY_FIELDS)
 
 
 # Filters the Rack and Asset ListAPIViews based on the datacenter in the request

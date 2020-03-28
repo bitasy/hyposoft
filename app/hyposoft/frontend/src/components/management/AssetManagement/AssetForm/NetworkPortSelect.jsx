@@ -26,14 +26,12 @@ function NetworkPortSelect({ selectedModel, networkPorts }) {
         <BlockText>Connection</BlockText>
         <Select
           name={`network_ports.${idx}.connection`}
-          options={networkPorts.map(
-            ({ id, label, mac_address, connection }) => {
-              return {
-                value: id,
-                text: `${label} ${mac_address ?? ""}`,
-              };
-            },
-          )}
+          options={networkPorts.map(({ id, label, mac_address, asset_str }) => {
+            return {
+              value: id,
+              text: `${asset_str} — ${label} ${mac_address ?? ""}`,
+            };
+          })}
         />
         <VSpace height="8px" />
       </div>
