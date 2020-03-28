@@ -2,6 +2,7 @@ from django.db.models import Max
 
 from power.models import Powered, PDU
 from network.models import NetworkPortLabel, NetworkPort
+from hyposoft.utils import versioned_object, add_asset, add_network_conn
 
 """
 Functions to be used by both bulk import and model serializers.
@@ -29,7 +30,7 @@ def create_itmodel_extra(itmodel, labels):
 def create_asset_extra(asset, version, power_connections, net_ports):
     # Other objects
     if power_connections:
-        i = 1
+        order = 1
         for connection in power_connections:
             if i > asset.itmodel.power_ports:
                 break
@@ -38,9 +39,9 @@ def create_asset_extra(asset, version, power_connections, net_ports):
                 plug_number=connection['plug'],
                 version=version,
                 asset=asset,
-                special=i if i <= 2 else None
+                order=order
             )
-            i += 1
+            order += 1
 
     if net_ports:
         i = 1
@@ -50,6 +51,11 @@ def create_asset_extra(asset, version, power_connections, net_ports):
             mac = port.get('mac_address')
             if mac and len(mac) == 0:
                 mac = None
+
+            if version.id != 0:
+                if port['connection'] is not None:
+                    versioned_conn = add_network_conn(port['connection'], version)
+                    port['connection'] = versioned_conn
 
             NetworkPort.objects.create(
                 asset=asset,

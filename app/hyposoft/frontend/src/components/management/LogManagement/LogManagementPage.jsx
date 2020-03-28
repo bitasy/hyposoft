@@ -1,16 +1,25 @@
 import React from "react";
-import { Typography, Table, Input, Button, Icon, Pagination } from "antd";
-import RealAPI from "../../../api/API";
+import { Typography, Table, Input, Pagination } from "antd";
+import { getLogs } from "../../../api/log";
 
 // a function to create an array of data from a JSON list object based on searchable items
-async function createLogArray(username, displayName, identifier, model, page) {
-  const { results, count } = await RealAPI.getLog(
-    username,
-    displayName,
-    model,
-    identifier,
-    page
-  );
+async function createLogArray(
+  username,
+  displayName,
+  identifier,
+  model,
+  page,
+) {
+  const { results, count } = await getLogs({
+    page,
+    page_size: 10, // for now
+    username_search: username,
+    display_name_search: displayName,
+    model_search: model,
+    identifier_search: identifier,
+    ordering: undefined,
+    direction: undefined,
+  });
   const logList = results;
   console.log("log as list", logList);
 
@@ -34,13 +43,13 @@ async function createLogArray(username, displayName, identifier, model, page) {
       field_change: obj.field_change,
       old_value: obj.old_value,
       new_value: obj.new_value,
-      timestamp: obj.timestamp
+      timestamp: obj.timestamp,
     });
   }
 
   return {
     total: count,
-    data: logArray
+    data: logArray,
   };
 }
 
@@ -49,32 +58,32 @@ const columns = [
   {
     title: "ID",
     dataIndex: "id",
-    key: "id"
+    key: "id",
   },
   {
     title: "Action",
     dataIndex: "action",
-    key: "action"
+    key: "action",
   },
   {
     title: "Username",
     dataIndex: "username",
-    key: "username"
+    key: "username",
   },
   {
     title: "Display Name",
     dataIndex: "display_name",
-    key: "display_name"
+    key: "display_name",
   },
   {
     title: "Model",
     dataIndex: "model",
-    key: "model"
+    key: "model",
   },
   {
     title: "Instance ID",
     dataIndex: "instance_id",
-    key: "instance_id"
+    key: "instance_id",
   },
   {
     title: "Identifier",
@@ -82,36 +91,42 @@ const columns = [
     key: "identifier",
     render: (text, record) =>
       MAPPING[record.model] ? (
-        <a href={`/#/${MAPPING[record.model]}/${record.instance_id}`}>{text}</a>
+        <a
+          href={`/#/${MAPPING[record.model]}/${
+            record.instance_id
+          }`}
+        >
+          {text}
+        </a>
       ) : (
         text
-      )
+      ),
   },
   {
     title: "Field Changed",
     dataIndex: "field_changed",
-    key: "field_changed"
+    key: "field_changed",
   },
   {
     title: "Old Value",
     dataIndex: "old_value",
-    key: "old_value"
+    key: "old_value",
   },
   {
     title: "New Value",
     dataIndex: "new_value",
-    key: "new_value"
+    key: "new_value",
   },
   {
     title: "Timestamp",
     dataIndex: "timestamp",
-    key: "timestamp"
-  }
+    key: "timestamp",
+  },
 ];
 
 const MAPPING = {
   ITModel: "models",
-  Asset: "assets"
+  Asset: "assets",
 };
 
 // a class to build a table searchable by column
@@ -123,7 +138,7 @@ class LogManagementPage extends React.Component {
     model: "",
     total: 0,
     page: 1,
-    datasource: []
+    datasource: [],
   };
 
   componentDidMount() {
@@ -132,8 +147,10 @@ class LogManagementPage extends React.Component {
       this.state.displayName,
       this.state.identifier,
       this.state.model,
-      this.state.page
-    ).then(({ data, total }) => this.setState({ datasource: data, total }));
+      this.state.page,
+    ).then(({ data, total }) =>
+      this.setState({ datasource: data, total }),
+    );
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -153,9 +170,13 @@ class LogManagementPage extends React.Component {
           this.state.displayName,
           this.state.identifier,
           this.state.model,
-          1
+          1,
         ).then(({ data, total }) =>
-          this.setState({ datasource: data, total, page: 1 })
+          this.setState({
+            datasource: data,
+            total,
+            page: 1,
+          }),
         );
       } else {
         createLogArray(
@@ -163,8 +184,10 @@ class LogManagementPage extends React.Component {
           this.state.displayName,
           this.state.identifier,
           this.state.model,
-          this.state.page
-        ).then(({ data, total }) => this.setState({ datasource: data, total }));
+          this.state.page,
+        ).then(({ data, total }) =>
+          this.setState({ datasource: data, total }),
+        );
       }
     }
   }
@@ -177,28 +200,36 @@ class LogManagementPage extends React.Component {
         <Input
           placeholder="Search exact username"
           value={this.state.username}
-          onChange={e => this.setState({ username: e.target.value })}
+          onChange={e =>
+            this.setState({ username: e.target.value })
+          }
           allowClear
         />
 
         <Input
           placeholder="Search display name"
           value={this.state.displayName}
-          onChange={e => this.setState({ displayName: e.target.value })}
+          onChange={e =>
+            this.setState({ displayName: e.target.value })
+          }
           allowClear
         />
 
         <Input
           placeholder="Search exact model"
           value={this.state.model}
-          onChange={e => this.setState({ model: e.target.value })}
+          onChange={e =>
+            this.setState({ model: e.target.value })
+          }
           allowClear
         />
 
         <Input
           placeholder="Search identifier"
           value={this.state.identifier}
-          onChange={e => this.setState({ identifier: e.target.value })}
+          onChange={e =>
+            this.setState({ identifier: e.target.value })
+          }
           allowClear
         />
 

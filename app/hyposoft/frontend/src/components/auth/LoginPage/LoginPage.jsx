@@ -1,39 +1,33 @@
 import React from "react";
-import { Form, Icon, Input, Button, Row, Col, Typography } from "antd";
-import { useDispatch } from "react-redux";
-import { login } from "../../../redux/session/actions";
+import styled from "styled-components";
+import * as Yup from "yup";
+import { Formik } from "formik";
+import { Form, Row, Col, Button, Typography, Divider } from "antd";
+import { AuthContext } from "../../../contexts/contexts";
+import ItemWithLabel from "../../utility/formik/ItemWithLabel";
+import Input from "../../utility/formik/Input";
+import SubmitButton from "../../utility/formik/SubmitButton";
+import { login } from "../../../api/auth";
+import VSpace from "../../utility/VSpace";
 
 const { Title, Paragraph } = Typography;
 
+const CenteringRow = styled(Row)`
+  text-align: center;
+  height: 100vh;
+`;
+
+const schema = Yup.object({
+  username: Yup.string().required(),
+  password: Yup.string().required(),
+});
+
 function LoginPage() {
-  return (
-    <Row type="flex" align="middle" justify="center" className="h100">
-      <Col xs={22} lg={10} xl={6}>
-        <Title className="center-text" level={2}>
-          Hyposoft
-        </Title>
-        <Paragraph className="center-text">
-          IT Asset Management System
-        </Paragraph>
-        <div className="mt-3">
-          <WrappedLoginForm />
-        </div>
-      </Col>
-    </Row>
-  );
-}
+  const { setUser } = React.useContext(AuthContext);
 
-function LoginForm({ form }) {
-  const dispatch = useDispatch();
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    form.validateFields((err, values) => {
-      if (!err) {
-        const { username, password } = values;
-        dispatch(login(username, password));
-      }
-    });
+  async function handleSubmit(username, password) {
+    const user = await login(username, password);
+    setUser(user);
   }
 
   function sso(e) {
@@ -42,42 +36,44 @@ function LoginForm({ form }) {
   }
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <Form.Item>
-        {form.getFieldDecorator("username", {
-          rules: [{ required: true, message: "Please input your username!" }]
-        })(
-          <Input
-            prefix={<Icon type="user" style={{ color: "rgba(0,0,0,.25)" }} />}
-            placeholder="Username"
-          />
-        )}
-      </Form.Item>
-      <Form.Item>
-        {form.getFieldDecorator("password", {
-          rules: [{ required: true, message: "Please input your Password!" }]
-        })(
-          <Input
-            prefix={<Icon type="lock" style={{ color: "rgba(0,0,0,.25)" }} />}
-            type="password"
-            placeholder="Password"
-          />
-        )}
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" htmlType="submit" className="w100">
-          Log in
-        </Button>
-      </Form.Item>
-      <Form.Item>
-        <Button type="primary" onClick={sso} className="w100">
-          Duke SSO
-        </Button>
-      </Form.Item>
-    </Form>
+    <CenteringRow type="flex" align="middle" justify="center">
+      <Col md={6}>
+        <Title level={2}>Hyposoft</Title>
+        <Paragraph>IT Asset Management System</Paragraph>
+        <VSpace height="8px" />
+        <Formik
+          initialValues={{ username: "", password: "" }}
+          validationSchema={schema}
+          onSubmit={async ({ username, password }, actions) => {
+            actions.setSubmitting(true);
+            await handleSubmit(username, password);
+            actions.setSubmitting(false);
+          }}
+        >
+          {() => (
+            <Form>
+              <ItemWithLabel name="username" label="Username">
+                <Input name="username" placeholder="john123" />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="password" label="Password">
+                <Input name="password" type="password" placeholder="Password" />
+              </ItemWithLabel>
+
+              <SubmitButton htmlType="submit" type="primary" block>
+                Log in
+              </SubmitButton>
+
+              <Divider>or</Divider>
+
+              <Button type="primary" onClick={sso} block>
+                Duke SSO
+              </Button>
+            </Form>
+          )}
+        </Formik>
+      </Col>
+    </CenteringRow>
   );
 }
-
-const WrappedLoginForm = Form.create({ name: "login_form" })(LoginForm);
-
 export default LoginPage;

@@ -34,7 +34,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "hyposoft.tech",
     "dev.bitasy.me",
-    "carter.bitasy.me"
+    "carter.bitasy.me",
+    "amber.bitasy.me"
 ]
 
 # Application definition
@@ -104,11 +105,10 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'dev'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASS'),
-        'HOST': os.getenv('DB_HOST'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': '5432',
     }
 }
-
 
 
 # Password validation

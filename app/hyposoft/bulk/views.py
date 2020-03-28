@@ -11,7 +11,7 @@ from django.db import models
 from equipment.resources import ITModelResource, AssetResource
 from equipment.models import ITModel, Asset
 from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter
-from equipment.new_serializers import ITModelSerializer, AssetSerializer
+from equipment.serializers import ITModelSerializer, AssetSerializer
 from network.models import NetworkPort
 from network.resources import NetworkPortResource
 

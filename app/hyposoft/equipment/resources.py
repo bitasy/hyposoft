@@ -1,5 +1,3 @@
-import re
-
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Max
@@ -11,6 +9,8 @@ from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
 from import_export.widgets import ForeignKeyWidget
+
+import re
 
 
 class ITModelResource(resources.ModelResource):
@@ -80,7 +80,7 @@ class ITModelResource(resources.ModelResource):
                 'Cannot decrease amount of network ports.'
             )
 
-        my_model.networkportlabel_sett.delete()
+        my_model.networkportlabel_set.delete()
 
         special = []
         for i in range(1, min(5, my_network_ports + 1)):
@@ -145,7 +145,7 @@ class AssetResource(resources.ModelResource):
     def dehydrate_power_port_connection_1 (self, asset):
         try:
             if asset.itmodel.power_ports >= 1:
-                my_powered = Powered.objects.get(asset=asset, special=1)
+                my_powered = Powered.objects.get(asset=asset, order=1)
                 return str(my_powered.pdu.position) + str(my_powered.plug_number)
             else:
                 return ''
@@ -155,7 +155,7 @@ class AssetResource(resources.ModelResource):
     def dehydrate_power_port_connection_2(self, asset):
         try:
             if asset.itmodel.power_ports >= 2:
-                my_powered = Powered.objects.get(asset=asset, special=2)
+                my_powered = Powered.objects.get(asset=asset, order=2)
                 return str(my_powered.pdu.position) + str(my_powered.plug_number)
             else:
                 return ''
@@ -182,9 +182,9 @@ class AssetResource(resources.ModelResource):
                 row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
 
     def after_import_row(self, row, row_result, **kwargs):
-        my_asset = Asset.objects.get(asset_number=row['asset_number'])
+        my_asset = Asset.objects.get(asset_number=row['asset_number']) #todo handle change plan?
         my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter)
+        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter) #todo find a version number for here
 
         current = [{'pdu_id': port['pdu'], 'plug': port['plug_number']}
                    for port in my_asset.powered_set.values('pdu', 'plug_number')]

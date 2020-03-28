@@ -42,13 +42,14 @@ def validate_asset(sender, instance, *args, **kwargs):
         raise serializers.ValidationError(
             "Asset datacenter cannot be different from rack datacenter.")
 
-    if instance.asset_number > 999999:
-        raise serializers.ValidationError(
-            "The asset number is too large. Please try manually setting it to be 6 digits.")
+    if instance.asset_number is not None:
+        if instance.asset_number > 999999:
+            raise serializers.ValidationError(
+                "The asset number is too large. Please try manually setting it to be 6 digits.")
 
-    if instance.asset_number < 100000:
-        raise serializers.ValidationError(
-            "The asset number is too small. Please try manually setting it to be 6 digits.")
+        if instance.asset_number < 100000:
+            raise serializers.ValidationError(
+                "The asset number is too small. Please try manually setting it to be 6 digits.")
 
     if 42 < instance.rack_position + instance.itmodel.height - 1:
         raise serializers.ValidationError(

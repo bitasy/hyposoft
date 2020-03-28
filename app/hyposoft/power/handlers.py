@@ -28,6 +28,25 @@ def get_pdu(rack, position):
     return result, code
 
 
+def post_pdu(rack, position, port, state):
+    try:
+        split = re.search(r"\d", rack).start()
+        rack = rack[:split] + "0" + rack[split:]
+        response = requests.post(PDU_url + POST_suf, {
+            'pdu': rack_pre + rack + position,
+            'port': port,
+            'v': state
+        }, timeout=0.5)
+        # The following regex extracts the result string from the HTML response text
+        # If there are no matches, the post failed so return the error text
+        result = re.findall(r'(set .*)\n', response.text)
+        result = result[0] if len(result) > 0 else response.text
+
+    except ConnectTimeout:
+        return "couldn't connect", 400
+    return result, response.status_code
+
+
 def update_asset_power(asset):
     if asset.datacenter.abbr == 'rtp1':
         pdus = asset.pdu_set.all()

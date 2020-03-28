@@ -1,8 +1,9 @@
 from django_filters import rest_framework as filters
 from rest_framework.filters import BaseFilterBackend
 
+from changeplan.models import ChangePlan
 from .models import ITModel, Asset
-from hyposoft.utils import generate_racks
+from hyposoft.utils import generate_racks, get_version, versioned_queryset
 
 
 class ITModelFilter(filters.FilterSet):
@@ -39,3 +40,12 @@ class AssetFilter(filters.FilterSet):
     class Meta:
         model = Asset
         fields = ['itmodel', 'rack_position', 'asset_number']
+
+
+class ChangePlanFilter(BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        version = get_version(request)
+        return versioned_queryset(
+            queryset,
+            ChangePlan.objects.get(id=version),
+            view.serializer_class.Meta.model.IDENTITY_FIELDS)

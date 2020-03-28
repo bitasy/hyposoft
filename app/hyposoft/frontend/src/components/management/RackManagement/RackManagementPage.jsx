@@ -1,16 +1,12 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import Grid from "../RackManagement/Grid";
-import { isEqual } from "lodash";
-import { Typography, Button, Select } from "antd";
+import { Typography, Button, Select, message, Alert } from "antd";
 import { toIndex, indexToRow } from "./GridUtils";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  fetchRacks,
-  createRacks,
-  removeRacks
-} from "../../../redux/racks/actions";
-import { GLOBAL_ABBR } from "../../../api/API";
-import CreateTooltip from "../../../global/CreateTooltip";
+import CreateTooltip from "../../utility/CreateTooltip";
+import { getRackList, createRack, deleteRacks } from "../../../api/rack";
+import { DCContext, AuthContext } from "../../../contexts/contexts";
+import { getDatacenters } from "../../../api/datacenter";
+import VSpace from "../../utility/VSpace";
 
 const { Option } = Select;
 
@@ -28,7 +24,7 @@ export const GRID_COLOR_MAP = {
   0: "white",
   [RED]: "red",
   [GRAY]: "gray",
-  [DARKRED]: "darkred"
+  [DARKRED]: "darkred",
 };
 
 export const MAX_ROW = 26;
@@ -54,7 +50,7 @@ function LegendItem({ color, text }) {
           width: 20,
           height: 20,
           backgroundColor: color,
-          display: "inline-block"
+          display: "inline-block",
         }}
       />
       <span style={{ marginLeft: 5 }}>{text}</span>
@@ -73,34 +69,32 @@ function Legend() {
 }
 
 function RackManagementPage() {
-  const dispatch = useDispatch();
-  const racks = useSelector(s => Object.values(s.racks));
-  const dcName = useSelector(s => s.appState.dcName, isEqual);
-  const datacenters = useSelector(s => s.datacenters, isEqual);
+  const { datacenter } = useContext(DCContext);
 
-  const [selectedDCName, setSelectedDCName] = React.useState(null);
-  const selectedDCID = Object.values(datacenters).find(
-    dc => dc.abbr === selectedDCName
-  )?.id;
-  const filteredRacks = racks.filter(r => r.datacenter === selectedDCID);
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.is_staff;
 
-  const isAdmin = useSelector(s => s.currentUser.is_staff);
-  let textCreate = "";
-  let textDelete = "";
+  const [racks, setRacks] = useState([]);
+  const [datacenters, setDatacenters] = useState([]);
+  const [selectedDC, setSelectedDC] = useState(null);
 
-  if (isAdmin) {
-    textCreate = "Select range to create racks";
-    textDelete = "Select range to delete racks";
-  }
-  if (!isAdmin) {
-    textCreate = "Only users with admin privileges can create racks";
-    textDelete = "Only users with admin privileges can delete racks";
-  }
+  const [warnings, setWarnings] = useState([]);
+  const [errors, setErrors] = useState([]);
+
+  const finalSelectedDC = datacenter ?? selectedDC;
+
+  let textCreate = isAdmin
+    ? "Select range to create racks"
+    : "Only users with admin privileges can create racks";
+  let textDelete = isAdmin
+    ? "Select range to delete racks"
+    : "Only users with admin privileges can delete racks";
 
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
 
   React.useEffect(() => {
+    getDatacenters().then(setDatacenters);
     rehydrate();
     const listener = ({ keyCode }) => {
       if (keyCode === 27) {
@@ -113,43 +107,41 @@ function RackManagementPage() {
   }, []);
 
   React.useEffect(() => {
-    const dcs = Object.values(datacenters);
-    if ((!dcName || dcName === GLOBAL_ABBR) && dcs.length > 0) {
-      setSelectedDCName(dcs[0].abbr);
-    } else if (dcName !== GLOBAL_ABBR) {
-      setSelectedDCName(dcName);
-    } else {
-      setSelectedDCName(null);
-    }
-  }, [dcName, datacenters]);
+    rehydrate();
+  }, [finalSelectedDC]);
 
   function rehydrate() {
-    dispatch(fetchRacks(selectedDCName));
+    const abbr = finalSelectedDC?.abbr;
+    if (abbr) {
+      getRackList(abbr).then(setRacks);
+    } else {
+      setRacks([]);
+    }
   }
 
   function create([r1, r2, c1, c2]) {
-    if (selectedDCID) {
-      dispatch(
-        createRacks(r1, r2, c1, c2, selectedDCID, clear, () => {
-          rehydrate();
-          clear();
+    const dcID = finalSelectedDC?.id;
+    if (dcID) {
+      createRack(dcID, r1, r2, c1, c2)
+        .then(({ warn, err }) => {
+          setWarnings(warn);
+          setErrors(err);
         })
-      );
+        .then(clear)
+        .then(rehydrate);
     }
   }
 
-  function remove(racks) {
-    if (confirm(`Removing ${racks.length} rack(s). Are you sure about this?`)) {
-      dispatch(
-        removeRacks(
-          racks.map(rack => rack.id),
-          clear,
-          () => {
-            rehydrate();
-            clear();
-          }
-        )
-      );
+  function remove([r1, r2, c1, c2]) {
+    const dcID = finalSelectedDC?.id;
+    if (dcID && confirm(`Are you sure about this?`)) {
+      deleteRacks(dcID, r1, r2, c1, c2)
+        .then(({ warn, err }) => {
+          setWarnings(warn);
+          setErrors(err);
+        })
+        .then(clear)
+        .then(rehydrate);
     }
   }
 
@@ -157,13 +149,11 @@ function RackManagementPage() {
     Math.min(range[0], range[1]),
     Math.max(range[0], range[1]),
     Math.min(range[2], range[3]),
-    Math.max(range[2], range[3])
+    Math.max(range[2], range[3]),
   ];
 
   const selectedRacks = arrangedRange
-    ? filteredRacks.filter(rack =>
-        isInside(arrangedRange, ...toIndex(rack.rack))
-      )
+    ? racks.filter(rack => isInside(arrangedRange, ...toIndex(rack.rack)))
     : [];
 
   function createColorMap() {
@@ -177,7 +167,7 @@ function RackManagementPage() {
         }
       }
     }
-    filteredRacks.forEach(rack => {
+    racks.forEach(rack => {
       const [r, c] = toIndex(rack.rack);
       if (!grid[r]) grid[r] = {};
       grid[r][c] = grid[r][c] === RED ? DARKRED : GRAY;
@@ -187,28 +177,28 @@ function RackManagementPage() {
 
   const colorMap = createColorMap();
 
-  console.log(dcName);
-
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
       <span>Datacenter: </span>
-      {dcName === GLOBAL_ABBR ? (
+      {!datacenter ? (
         <Select
-          value={selectedDCName}
-          onChange={setSelectedDCName}
-          style={{ width: 150 }}
+          value={selectedDC?.abbr}
+          onChange={abbr => {
+            setSelectedDC(datacenters.find(dc => dc.abbr === abbr) ?? null);
+          }}
+          style={{ width: 300 }}
         >
-          {Object.values(datacenters).map(ds => (
-            <Option key={ds.abbr} title={`${ds.name} (${ds.abbr})`}>
+          {Object.values(datacenters).map((ds, idx) => (
+            <Option key={idx} value={ds.abbr}>
               {`${ds.name} (${ds.abbr})`}
             </Option>
           ))}
         </Select>
       ) : (
-        <span>{dcName}</span>
+        <span>{datacenter.abbr}</span>
       )}
-      {selectedDCName ? (
+      {finalSelectedDC && (
         <>
           <Legend />
           <Grid
@@ -237,10 +227,10 @@ function RackManagementPage() {
               tooltipText={textDelete}
             >
               <Button
-                disabled={!isAdmin || selectedRacks.length === 0}
+                disabled={!isAdmin || !range}
                 type="danger"
                 style={{ marginRight: 8 }}
-                onClick={() => remove(selectedRacks)}
+                onClick={() => remove(range)}
               >
                 Remove
               </Button>
@@ -257,9 +247,41 @@ function RackManagementPage() {
                 View
               </Button>
             </CreateTooltip>
+            {warnings.length > 0 && (
+              <>
+                <VSpace height="16px" />
+                <Alert
+                  closable
+                  type="warning"
+                  message={
+                    <div>
+                      {warnings.map((warn, idx) => (
+                        <p key={idx}>{warn}</p>
+                      ))}
+                    </div>
+                  }
+                />
+              </>
+            )}
+            {errors.length > 0 && (
+              <>
+                <VSpace height="16px" />
+                <Alert
+                  closable
+                  type="error"
+                  message={
+                    <div>
+                      {errors.map((err, idx) => (
+                        <p key={idx}>{err}</p>
+                      ))}
+                    </div>
+                  }
+                />
+              </>
+            )}
           </div>
         </>
-      ) : null}
+      )}
     </div>
   );
 }
