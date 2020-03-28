@@ -28,6 +28,16 @@ class AssetCreate(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
+    def create(self, request, *args, **kwargs):
+        version = ChangePlan.objects.get(id=get_version(request))
+        if version.id != 0:
+            rack = Rack.objects.get(id=request.data['rack'])
+            versioned_rack = versioned_object(rack, version, Rack.IDENTITY_FIELDS)
+            if not versioned_rack:
+                versioned_rack = add_rack(rack, version)
+            request.data['rack'] = versioned_rack.id
+        return super(AssetCreate, self).create(request, *args, **kwargs)
+
 
 class RackRangeCreate(views.APIView):
     def post(self, request):
@@ -80,14 +90,9 @@ class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
         asset_ver = asset.version
         if version != asset_ver:
             data = request.data
-            if not Rack.objects.filter(rack=asset.rack.rack, datacenter=asset.datacenter, version=version).exists():
-                rack = Rack.objects.create(
-                    rack=asset.rack.rack,
-                    datacenter=asset.datacenter,
-                    version=version
-                )
-            else:
-                rack = Rack.objects.get(id=request.data['rack'])
+            rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
+            if not rack:
+                rack = add_rack(asset.rack, version)
             old_pdus = {port['id']: port['position']
                         for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
             new_pdus = {port['position']: port['id']
