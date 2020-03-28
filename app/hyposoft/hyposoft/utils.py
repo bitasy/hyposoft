@@ -54,8 +54,8 @@ def generate_racks(r1, r2, c1, c2):
 
 
 def get_version(request):
-    val = request.META.get('HTTP_X_CHANGE_PLAN', 3)
-    return val if isinstance(val, int) else 3
+    val = request.META.get('HTTP_X_CHANGE_PLAN', 0)
+    return val if isinstance(val, int) else 0
 
 
 def versioned_object(obj, version, identity_fields):
