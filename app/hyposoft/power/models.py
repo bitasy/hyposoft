@@ -2,14 +2,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from equipment.models import Asset, Rack
+from changeplan.models import ChangePlan
 
 
 class PDU(models.Model):
-    pdu_model = models.CharField(
-        max_length=64,
-        blank=True,
-        default="PDU Networx 98 Pro"
-    )
     assets = models.ManyToManyField(
         "equipment.Asset",
         through='Powered'
@@ -30,15 +26,18 @@ class PDU(models.Model):
         choices=Position.choices,
         max_length=16
     )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
+    )
 
     class Meta:
-        unique_together = ['rack', 'position']
+        unique_together = ['rack', 'position', 'version']
 
     def __str__(self):
-        return "{} PDU on {} in {}".format(
+        return "{} PDU on {}".format(
             self.position,
-            str(self.rack),
-            self.rack.datacenter
+            str(self.rack)
         )
 
 
@@ -72,6 +71,10 @@ class Powered(models.Model):
                               message="Special network port ID must be no greater than 2")
         ]
     )
+    version = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.CASCADE
+    )
 
     class Meta:
-        unique_together = (('plug_number', 'pdu'), ('special', 'asset'))
+        unique_together = [['plug_number', 'pdu', 'version'], ['special', 'asset', 'version']]

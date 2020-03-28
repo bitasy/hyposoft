@@ -1,12 +1,11 @@
 from django_filters import rest_framework as pkg_filters
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, filters
+from rest_framework import filters
 
 from rest_framework import generics, serializers
 from rest_framework.pagination import PageNumberPagination
 
-import copy
-
+from hyposoft.utils import get_version
 from .serializers import LogSerializer
 from .models import ActionLog, display_name, username
 from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, DestroyModelMixin
@@ -26,6 +25,8 @@ def create_dict(self, action, instance_id):
 class CreateAndLogMixin(CreateModelMixin):
     def perform_create(self, serializer):
         super(CreateAndLogMixin, self).perform_create(serializer)
+        if(get_version(self.request)) != 0:
+            return
         entry = ActionLog.objects.create(
             **create_dict(self, ActionLog.Action.CREATE, serializer.data['id'])
         )
@@ -36,7 +37,9 @@ class UpdateAndLogMixin(UpdateModelMixin):
     def perform_update(self, serializer):
         diffs = []
         old = model_to_dict(serializer.instance)
-        super(UpdateAndLogMixin, self).perform_update(serializer) ## Move all the above stuff to out here, use actual model for new
+        super(UpdateAndLogMixin, self).perform_update(serializer)
+        if(get_version(self.request)) != 0:
+            return
         new = model_to_dict(serializer.Meta.model.objects.get(id=old['id']))
         for key in new:
             if key == 'comment':
@@ -60,12 +63,20 @@ class DeleteAndLogMixin(DestroyModelMixin):
         entry = ActionLog.objects.create(
             **create_dict(self, ActionLog.Action.DESTROY, instance.id),
         )
-        entry.save()
+        if(get_version(self.request)) == 0:
+            entry.save()
         try:
             super(DeleteAndLogMixin, self).perform_destroy(instance)
         except serializers.ValidationError as e:
             entry.delete()
             raise e
+
+
+def log_decommission(self, old_asset):
+    entry = ActionLog.objects.create(
+        **create_dict(self, ActionLog.Action.DECOMMISSION, old_asset.id)
+    )
+    entry.save()
 
 
 class LogView(generics.ListAPIView):

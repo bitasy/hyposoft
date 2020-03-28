@@ -87,6 +87,7 @@ ASSET_DETAILS {
     label: string, # ex) L1, R2
   }[],
   network_ports: {
+    id: int,
     label: string,
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
@@ -252,7 +253,7 @@ The necessary `PDU`s should be created.
 
 ```
 {
-  res: Rack[]
+  created: Rack[],
   warn: string[],
   err: string[]
 }
@@ -378,25 +379,36 @@ ITMODEL_ID
 ASSET_ID
 ```
 
-### `[DELETE] api/equipment/BulkRackDestroy`
+### `[POST] api/equipment/RackRangeDestroy`
 
 #### Request Body
 
 ```
-RACK_ID[]
+{
+  datacenter: DATACENTER_ID,
+  r1: string,
+  r2: string,
+  c1: int,
+  c2: int
+}
+
 ```
 
 #### Notes
 
 > Not transactional
 
+POST is used to allow for sending data.
+r1 and r2 refer to row letters, e.g. 'D' or 'AA'.
+c1 and c2 refer to column numbers, currently 1 through 99.
+
 #### Response Body
 
 ```
 {
-  removed: RACK_ID[],
-  warn: string[],
-  err: string[],
+  removed: RACK_ID[], # All of the successfully deleted racks
+  warn: string[], # Racks that are decommissioned
+  err: string[] # Racks that are skipped
 }
 ```
 
@@ -453,25 +465,23 @@ Also, filters with undefined query params shouldn't filter out anything.
   page_size: int | undefined, # default 10
   height_min: number | undefined,
   height_max: number | undefined,
-  network_port_min: number | undefined,
-  network_port_max: number | undefined,
-  power_port_min: number | undefined,
-  power_port_max: number | undefined,
+  memory_min: number | undefined,
+  memory_max: number | undefined,
+  network_ports_min: number | undefined,
+  network_ports_max: number | undefined,
+  power_ports_min: number | undefined,
+  power_ports_max: number | undefined,
   ordering:
-    | 'vendor'
-    | 'model_number'
-    | 'height'
-    | 'display_color'
-    | 'network_ports'
-    | 'power_ports'
-    | 'cpu'
-    | 'memory'
-    | 'storage'
+    | '[-]vendor'
+    | '[-]model_number'
+    | '[-]height'
+    | '[-]display_color'
+    | '[-]network_ports'
+    | '[-]power_ports'
+    | '[-]cpu'
+    | '[-]memory'
+    | '[-]storage'
     | undefined, # default 'id'
-  direction:
-    | 'ascending'
-    | 'descending'
-    | undefined # default 'descending'
 }
 ```
 
@@ -479,8 +489,10 @@ Also, filters with undefined query params shouldn't filter out anything.
 
 ```
 {
-  num_pages: int,
-  result: ITModelEntry[],
+  count: int,
+  next: hyperlink | null,
+  previous: hyperlink | null,
+  results: ITModelEntry[],
 }
 
 where
@@ -499,6 +511,13 @@ ITModelEntry {
 }
 ```
 
+#### Notes
+
+Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
+
+Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
+
+
 ### `[GET] api/equipment/AssetList`
 
 #### Query params
@@ -509,20 +528,21 @@ ITModelEntry {
   page: int | undefined, # default 1,
   page_size: int | undefined, # default 10
   itmodel: ITMODEL_ID | undefined,
-  rack_from: string | undefined, # ex) A01
-  rack_to: string | undefined,
+  r1: string | undefined,
+  r2: string | undefined,
+  c1: int | undefined,
+  c2: int | undefined,
   rack_position_min: int | undefined
   rack_position_max: int | undefined
   ordering:
-    | 'model' # combination of vendor / model_number
-    | 'hostname'
-    | 'location' # combination of datacenter, rack, rack_position
-    | 'owner'
-    | undefined, # default 'id'
-  direction:
-    | 'ascending'
-    | 'descending'
-    | undefined # default 'descending'
+    | '[-]itmodel__vendor',
+    | '[-]itmodel__model_number',
+    | '[-]hostname',
+    | '[-]datacenter__abbr',
+    | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
+    | '[-]rack_position',
+    | '[-]owner',
+    | undefined # default 'id'
 }
 ```
 
@@ -530,7 +550,13 @@ ITModelEntry {
 
 > Datacenter-dependent
 
+r1, r2, c1, and c2 must all be defined if any of them is defined. They filter based on a rack range.
+
 Exclude Decommissioned Assets
+
+Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
+
+Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
 
 `power_action_visible` field in the response can be determined since the request contains the user session.
 
@@ -538,7 +564,9 @@ Exclude Decommissioned Assets
 
 ```
 {
-  num_pages: int,
+  count: int,
+  next: hyperlink | null,
+  previous: hyperlink | null,
   result: AssetEntry[],
 }
 
@@ -562,21 +590,20 @@ AssetEntry {
 {
   page: number,
   page_size: number,
-  username: string | undefined,
-  timestamp_from: number | undefined, # Of course, in UTC
+  username: string | undefined, # Currently assuming this is owner, not decommissioned_by
+  timestamp_from: number | undefined, # Time zone dependent (Django default - see SystemLog for format)
   timestamp_to: number | undefined,
   ordering:
-    | 'model' # combination of vendor / model_number
-    | 'hostname'
-    | 'location' # combination of datacenter, rack, rack_position
-    | 'owner'
-    | 'decom_by',
-    | 'decom_timestamp',
-    | undefined, # default 'id'
-  direction:
-    | 'ascending'
-    | 'descending'
-    | undefined # default 'descending'
+      | '[-]itmodel__vendor',
+      | '[-]itmodel__model_number',
+      | '[-]hostname',
+      | '[-]datacenter__abbr',
+      | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
+      | '[-]rack_position',
+      | '[-]owner',
+      | '[-]decommissioned_by,
+      | '[-]decommissioned_timestamp,
+      | undefined # default 'id'
 }
 ```
 
@@ -584,7 +611,9 @@ AssetEntry {
 
 ```
 {
-  num_pages: int,
+  count: int,
+  next: hyperlink | null,
+  previous: hyperlink | null,
   result: DecommissionedAssetEntry[],
 }
 
@@ -596,7 +625,13 @@ DecommissionedAssetEntry = AssetEntry + {
 }
 ```
 
-### `[GET] prefix/AssetPickList`
+#### Notes
+
+Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
+
+Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
+
+### `[GET] api/equipment/AssetPickList`
 
 #### QueryParams
 
@@ -617,7 +652,7 @@ Obviously, they're both filters.
 Asset[]
 ```
 
-### `[GET] prefix/RackList`
+### `[GET] api/equipment/RackList`
 
 #### Notes
 
@@ -629,7 +664,7 @@ Asset[]
 Rack[]
 ```
 
-### `[GET] prefix/DatacenterList`
+### `[GET] api/equipment/DatacenterList`
 
 #### Response body
 
@@ -637,7 +672,7 @@ Rack[]
 Datacenter[]
 ```
 
-### `[GET] prefix/PowerPortList`
+### `[GET] api/power/PowerPortList`
 
 #### Query params
 
@@ -653,7 +688,7 @@ Datacenter[]
 PowerPort[]
 ```
 
-### `[GET] prefix/NetworkPortList`
+### `[GET] api/network/NetworkPortList`
 
 #### Notes
 
@@ -665,7 +700,7 @@ PowerPort[]
 NetworkPort[]
 ```
 
-### `[GET] api/UserList`
+### `[GET] auth/api/UserList`
 
 #### Response body
 
@@ -673,7 +708,7 @@ NetworkPort[]
 User[]
 ```
 
-### `[GET] prefix/ITModelPickList`
+### `[GET] api/equipment/ITModelPickList`
 
 ```
 {
@@ -708,7 +743,7 @@ User[]
 
 # Power Management APIs
 
-### `[GET] prefix/PDUNetwork/get/:asset_id`
+### `[GET] api/network/PDUNetwork/get/:asset_id`
 
 #### Notes
 
@@ -720,7 +755,7 @@ It's guaranteed that this api will be called only on assets that had `power_stat
 "On" | "Off" | "Unavailable"
 ```
 
-### `[POST] prefix/PDUNetwork/post`
+### `[POST] api/network/PDUNetwork/post`
 
 #### Request body
 
@@ -737,7 +772,7 @@ It's guaranteed that this api will be called only on assets that had `power_stat
 (empty)
 ```
 
-### `[POST] prefix/PDUNetwork/cycle`
+### `[POST] api/network/PDUNetwork/cycle`
 
 #### Request body
 
@@ -861,23 +896,13 @@ serialized bytestream of the csv file (make sure that the content-type header is
 
 # Decommissioning
 
-### `[POST] api/equipment/DecommissionAsset/:asset_id/:user_id`
+### `[POST] api/equipment/DecommissionAsset/:asset_id`
 
 #### Response body
-
-#### Notes
-
-user_id refers to the user that decommissioned this asset.
 
 ```
 ASSET_DETAILS
 ```
-
-### ``
-
-### ``
-
-### Notes
 
 # Change plan APIs
 
@@ -901,7 +926,7 @@ DecommissionAsset,
 Logs
 ) should behave differently when the header is present.
 
-### `[GET] prefix/ChangePlanList`
+### `[GET] api/changeplan/ChangePlanList`
 
 #### Notes
 
@@ -922,7 +947,7 @@ ChangePlanEntry {
 }
 ```
 
-### `[GET] prefix/ChangePlanDetails/:change_plan_id`
+### `[GET] api/changeplan/ChangePlanDetails/:change_plan_id`
 
 #### Response body
 
@@ -930,7 +955,7 @@ ChangePlanEntry {
 CHANGE_PLAN
 ```
 
-### `[GET] prefix/ChangePlanActions/:change_plan_id`
+### `[GET] api/changeplan/ChangePlanActions/:change_plan_id`
 
 #### Response body
 
@@ -938,7 +963,7 @@ CHANGE_PLAN
 string[] // See 10.7
 ```
 
-### `[POST] prefix/ChangePlanCreate`
+### `[POST] api/changeplan/ChangePlanCreate`
 
 #### Request body
 
@@ -954,7 +979,7 @@ string[] // See 10.7
 CHANGE_PLAN_ID
 ```
 
-### `[POST] prefix/ChangePlanExecute/:change_plan_id`
+### `[POST] api/changeplan/ChangePlanExecute/:change_plan_id`
 
 #### Notes
 
@@ -966,7 +991,7 @@ Reject if there are conflicts
 CHANGE_PLAN
 ```
 
-### `[PATCH] prefix/ChangePlanUpdate/:change_plan_id`
+### `[PATCH] api/changeplan/ChangePlanUpdate/:change_plan_id`
 
 #### Request body
 
@@ -982,7 +1007,7 @@ CHANGE_PLAN
 (Empty)
 ```
 
-### `[DELETE] prefix/ChangePlanDestroy/:change_plan_id`
+### `[DELETE] api/changeplan/ChangePlanDestroy/:change_plan_id`
 
 #### Response body
 

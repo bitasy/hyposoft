@@ -1,15 +1,12 @@
+from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
-from django.core import serializers
 from django.contrib import auth
-from rest_framework import views
+from rest_framework import views, generics
 from hyposoft.users import UserSerializer
 from .serializers import LoginSerializer
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import redirect
-from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 from urllib.parse import quote
 
@@ -104,3 +101,8 @@ class ShibbolethLogoutView(TemplateView):
         #Log the user out.
         auth.logout(self.request)
         #Get target url in order of preference.
+
+
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

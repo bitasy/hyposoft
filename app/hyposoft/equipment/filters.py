@@ -1,7 +1,8 @@
-from django import forms
-from django_filters import rest_framework as filters, fields
+from django_filters import rest_framework as filters
+from rest_framework.filters import BaseFilterBackend
+
 from .models import ITModel, Asset
-from django.db.models import Q
+from hyposoft.utils import generate_racks
 
 
 class ITModelFilter(filters.FilterSet):
@@ -13,35 +14,28 @@ class ITModelFilter(filters.FilterSet):
     class Meta:
         model = ITModel
         fields = ['height', 'network_ports', 'power_ports', 'memory']
-        power_ports = filters.Filter(method='power_ports__range')
-
-    def power_ports__range(self, queryset, value, *args, **kwargs):
-        try:
-            [mini, maxi, include_null] =  args[0].split(',')
-            if include_null == "true":
-                queryset = queryset.filter(Q(power_ports__gte=mini, power_ports__lte=maxi) | Q(power_ports=None))
-            else:
-                queryset = queryset.filter(power_ports__gte=mini, power_ports__lte=maxi)
-        except ValueError:
-            pass
-
-        return queryset
 
 
-class CharRangeFilter(filters.RangeFilter):
-    class CharRangeField(fields.RangeField):
-        def __init__(self, *args, **kwargs):
-            super().__init__(fields=(
-                forms.CharField(),
-                forms.CharField()
-            ), *args, **kwargs)
-    field_class = CharRangeField
+class RackRangeFilter(BaseFilterBackend):
+    template = 'rest_framework/filters/search.html'
+
+    def filter_queryset(self, request, queryset, view):
+        r1 = request.query_params.get('r1')
+        r2 = request.query_params.get('r2')
+        c1 = request.query_params.get('c1')
+        c2 = request.query_params.get('c2')
+
+        if r1 and r2 and c1 and c2:
+            return queryset.filter(
+                rack__rack__in=generate_racks(r1, r2, c1, c2)
+            )
+        else:
+            return queryset
 
 
 class AssetFilter(filters.FilterSet):
-    rack__rack = CharRangeFilter()
     rack_position = filters.RangeFilter()
 
     class Meta:
         model = Asset
-        fields = ['itmodel__id', 'rack__rack', 'rack_position', 'asset_number']
+        fields = ['itmodel', 'rack_position', 'asset_number']
