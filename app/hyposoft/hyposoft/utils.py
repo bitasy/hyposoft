@@ -54,12 +54,16 @@ def generate_racks(r1, r2, c1, c2):
 
 
 def get_version(request):
-    val = request.META.get('HTTP_X_CHANGE_PLAN', 1)
-    return val if isinstance(val, int) else 1
+    val = request.META.get('HTTP_X_CHANGE_PLAN', 3)
+    return val if isinstance(val, int) else 3
 
 
 def versioned_object(obj, version, identity_fields):
+    if obj.version == version:
+        return obj
     obj_list = obj.__class__.objects.filter(id=obj.id).values(*identity_fields)[0]
+    if any([v is None for v in obj_list.values()]):
+        return None
     return obj.__class__.objects.filter(version=version, **obj_list).first()
 
 
@@ -100,7 +104,7 @@ def add_asset(asset, change_plan):
     asset.version = change_plan
     asset.rack = rack
     asset.save()
-    return asset, rack
+    return asset
 
 
 def add_network_conn(connection, version):
@@ -113,5 +117,6 @@ def add_network_conn(connection, version):
         connection.asset = new_asset
         connection.connection = None
         connection.version = version
+        connection.save()
         return connection
     return versioned_conn

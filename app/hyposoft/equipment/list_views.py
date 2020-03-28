@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import dateparse
 from rest_framework import filters, generics
@@ -6,24 +5,16 @@ from rest_framework.pagination import PageNumberPagination
 from hyposoft.utils import get_version, versioned_queryset
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
     AssetSerializer, RackSerializer, DatacenterSerializer, ITModelPickSerializer
-from .filters import ITModelFilter, AssetFilter, RackRangeFilter
+from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter
 from .models import *
 
 
-class FilterVersionMixin(object):
-
-    def get_queryset(self):
-        version = get_version(self.request)
-        model = self.get_serializer_class().Meta.model
-        queryset = model.objects.all()
-        return versioned_queryset(queryset, ChangePlan.objects.get(id=version), model.IDENTITY_FIELDS)
-
-
 # Filters the Rack and Asset ListAPIViews based on the datacenter in the request
-class FilterByDatacenterMixin(FilterVersionMixin):
+class FilterByDatacenterMixin(object):
     def get_queryset(self):
         datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
-        queryset = super(FilterByDatacenterMixin, self).get_queryset()
+        model = self.get_serializer_class().Meta.model
+        queryset = model.objects.all()
         if datacenter:
             if not Datacenter.objects.filter(abbr=datacenter).exists():
                 raise serializers.ValidationError("Datacenter does not exist")
@@ -73,6 +64,7 @@ class ITModelPickList(generics.ListAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelPickSerializer
 
+
 class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.
@@ -82,7 +74,8 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
         filters.SearchFilter,
         DjangoFilterBackend,
         filters.OrderingFilter,
-        RackRangeFilter
+        RackRangeFilter,
+        ChangePlanFilter
     ]
     search_fields = [
         'itmodel__vendor',
@@ -116,7 +109,7 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
 
 class AssetPickList(generics.ListAPIView):
     def get_queryset(self):
-        queryset = Asset.objects.all()
+        queryset = versioned_queryset(Asset.objects.all(), get_version(self.request), Asset.IDENTITY_FIELDS)
         datacenter_id = self.request.query_params.get('datacenter_id', None)
         if datacenter_id is not None:
             queryset = queryset.filter(datacenter_id=datacenter_id)
@@ -126,6 +119,7 @@ class AssetPickList(generics.ListAPIView):
         return queryset
 
     serializer_class = AssetSerializer
+    filter_backends = [ChangePlanFilter]
 
 
 class DecommissionedAssetList(generics.ListAPIView):
@@ -178,6 +172,7 @@ class DecommissionedAssetList(generics.ListAPIView):
 class RackList(FilterByDatacenterMixin, generics.ListAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
+    filter_backends = [ChangePlanFilter]
 
 
 class DatacenterList(generics.ListAPIView):

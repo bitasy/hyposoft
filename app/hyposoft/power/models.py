@@ -40,7 +40,7 @@ class PDU(models.Model):
             str(self.rack)
         )
 
-    IDENTITY_FIELDS = Rack.IDENTITY_FIELDS + ['position']
+    IDENTITY_FIELDS = ['rack__' + field for field in Rack.IDENTITY_FIELDS] + ['position']
 
 
 class Powered(models.Model):
@@ -73,4 +73,4 @@ class Powered(models.Model):
     class Meta:
         unique_together = [['plug_number', 'pdu', 'version'], ['order', 'asset', 'version']]
 
-    IDENTITY_FIELDS = PDU.IDENTITY_FIELDS + ['plug_number']
+    IDENTITY_FIELDS = ['pdu__' + field for field in PDU.IDENTITY_FIELDS] + ['plug_number']

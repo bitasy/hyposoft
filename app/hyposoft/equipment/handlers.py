@@ -49,8 +49,8 @@ def create_asset_extra(asset, version, power_connections, net_ports):
 
             if version.id != 0:
                 if port['connection'] is not None:
-                    versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
-                    port['connection'] = versioned_conn.id
+                    versioned_conn = add_network_conn(port['connection'], version)
+                    port['connection'] = versioned_conn
 
             NetworkPort.objects.create(
                 asset=asset,

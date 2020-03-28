@@ -5,7 +5,7 @@ from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
-from hyposoft.utils import generate_racks, versioned_object, add_rack, add_asset, add_network_conn
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra
 from .serializers import *
@@ -227,16 +227,17 @@ class DecommissionAsset(views.APIView):
             old_rack = Rack.objects.get(id=asset.rack.id)
             old_asset = Asset.objects.get(id=asset.id)
 
-            asset, rack = add_asset(asset, version)
+            asset = add_asset(asset, change_plan)
+            rack = asset.rack
             asset.commissioned = None
             asset.decommissioned_by = user
             asset.decommissioned_timestamp = now
             asset.save()
 
             for asset in old_rack.asset_set.exclude(asset_number=old_asset.asset_number):
-                add_asset(asset, version)
+                add_asset(asset, change_plan)
 
-            for pdu in old_rack.pdu_set.all():
+            for pdu in old_rack.pdu_set.filter(version=version):
                 old_pdu = PDU.objects.get(id=pdu.id)
                 pdu.id = None
                 pdu.rack = rack
@@ -244,7 +245,7 @@ class DecommissionAsset(views.APIView):
                 pdu.version = change_plan
                 pdu.save()
 
-                for power in old_pdu.powered_set.all():
+                for power in old_pdu.powered_set.filter(version=version):
                     power.id = None
                     power.pdu = pdu
                     power.asset = Asset.objects.get(asset_number=power.asset.asset_number, version=change_plan)
@@ -293,7 +294,7 @@ class DecommissionAsset(views.APIView):
 
             log_decommission(self, old_asset)
 
-            response = AssetDetailSerializer(asset, context={'request': request, 'version': 0})
+            response = AssetDetailSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)
         except Asset.DoesNotExist:
             raise serializers.ValidationError(

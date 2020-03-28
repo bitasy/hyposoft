@@ -56,4 +56,4 @@ class NetworkPort(models.Model):
     def __str__(self):
         return '{} : {}'.format(self.asset.hostname, self.label.name)
 
-    IDENTITY_FIELDS = Asset.IDENTITY_FIELDS + ['label']
+    IDENTITY_FIELDS = ['asset__' + field for field in Asset.IDENTITY_FIELDS] + ['label']
