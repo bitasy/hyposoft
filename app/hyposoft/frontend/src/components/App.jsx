@@ -189,10 +189,9 @@ function App() {
                       <Route exact path="/logs">
                         <LogManagementPage />
                       </Route>
-<<<<<<< HEAD
                       <Route exact path="/decommission">
                         <DecommissionManagementPage />
-=======
+                      </Route>
                       <Route exact path="/changeplan">
                         <ChangePlanList />
                       </Route>
@@ -201,7 +200,6 @@ function App() {
                       </Route>
                       <Route exact path="/changeplan/:id">
                         <ChangePlanDetail />
->>>>>>> 2c9819f8ea4767735b9abde04ac94c955e454ca6
                       </Route>
                       <Route>
                         <LandingPage />
