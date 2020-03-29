@@ -13,10 +13,8 @@ def create_asset_diffs(changeplan):
     for changed_asset in changed_assets:
         try:
             live_asset = Asset.objects.get(
-                hostname=changed_asset.hostname,
-                datacenter=changed_asset.datacenter,
-                itmodel=changed_asset.itmodel,
-                version=0
+                asset_number=changed_asset.asset_number,
+                version_id=0
             )
             AssetDiff.objects.create(
                 changeplan=changeplan,
@@ -58,7 +56,7 @@ def create_networkport_diffs(changeplan):
             live_networkport = NetworkPort.objects.get(
                 asset=changed_networkport.asset,
                 label=changed_networkport.label,
-                version=0
+                version_id=0
             )
             NetworkPortDiff.objects.create(
                 changeplan=changeplan,
@@ -101,7 +99,7 @@ def create_powered_diffs(changeplan):
                 plug_number=changed_powered.plug_number,
                 pdu=changed_powered.pdu,
                 asset=changed_powered.asset,
-                version=0
+                version_id=0
             )
             PoweredDiff.objects.create(
                 changeplan=changeplan,
@@ -142,7 +140,7 @@ def execute_assets(changeplan):
         try:
             live_asset = Asset.objects.get(
                 asset_number=changed_asset.asset_number,
-                changeplan=0
+                version_id=0
             )
             live_asset.asset_number = changed_asset.asset_number
             live_asset.hostname = changed_asset.hostname
@@ -152,7 +150,6 @@ def execute_assets(changeplan):
             live_asset.itmodel = changed_asset.itmodel
             live_asset.owner = changed_asset.owner
             live_asset.comment = changed_asset.comment
-            live_asset.version = 0
             live_asset.commissioned = changed_asset.commissioned
             live_asset.decommissioned_timestamp = changed_asset.decommissioned_timestamp
             live_asset.decommissioned_by = changed_asset.decommissioned_by
@@ -168,7 +165,7 @@ def execute_assets(changeplan):
                 itmodel=changed_asset.itmodel,
                 owner=changed_asset.owner,
                 comment=changed_asset.comment,
-                version=0,
+                version_id=0,
                 commissioned=changed_asset.commissioned,
                 decommissioned_timestamp=changed_asset.decommissioned_timestamp,
                 decommissioned_by=changed_asset.decommissioned_by
@@ -183,13 +180,12 @@ def execute_networkports(changeplan):
             live_networkport = NetworkPort.objects.get(
                 asset=changed_networkport.asset,
                 label=changed_networkport.label,
-                version=0
+                version_id=0
             )
             live_networkport.asset = changed_networkport.asset
             live_networkport.label = changed_networkport.label
             live_networkport.mac_address = changed_networkport.mac_address
             live_networkport.connection = changed_networkport.connection
-            live_networkport.version = 0
             live_networkport.save()
 
         except:
@@ -198,7 +194,7 @@ def execute_networkports(changeplan):
                 label=changed_networkport.label,
                 mac_address=changed_networkport.mac_address,
                 connection=changed_networkport.connection,
-                version=0
+                version_id=0
             )
         changed_networkport.destroy()
 
@@ -211,14 +207,13 @@ def execute_powereds(changeplan):
                 plug_number=changed_powered.plug_number,
                 pdu=changed_powered.pdu,
                 asset=changed_powered.asset,
-                version=0
+                version_id=0
             )
             live_powered.plug_number = changed_powered.plug_number
             live_powered.pdu = changed_powered.pdu
             live_powered.asset = changed_powered.asset
             live_powered.on = changed_powered.on
             live_powered.special = changed_powered.special
-            live_powered.version = 0
             live_powered.save()
 
         except:
@@ -228,7 +223,7 @@ def execute_powereds(changeplan):
                 asset=changed_powered.asset,
                 on=changed_powered.on,
                 special=changed_powered.special,
-                version=0
+                version_id=0
             )
         changed_powered.destroy()
 
@@ -239,7 +234,8 @@ class ExecuteChangePlan(views.APIView):
             # Get ChangePlan
             changeplan = ChangePlan.objects.get(
                 name=name,
-                executed=False
+                executed=False,
+                owner=request.user
             )
             children = changeplan.changeplan_set.all()
             # Update Objects
