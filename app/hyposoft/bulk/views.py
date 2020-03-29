@@ -9,10 +9,11 @@ import io
 from django.db import models
 
 from equipment.resources import ITModelResource, AssetResource
-from equipment.models import ITModel, Asset
+from equipment.models import ITModel, Asset, Rack
 from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter
 from equipment.serializers import ITModelSerializer, AssetSerializer
 from changeplan.models import ChangePlan
+from power.models import Powered, PDU
 from network.models import NetworkPort
 from network.resources import NetworkPortResource
 
@@ -102,9 +103,21 @@ class AssetImport(generics.CreateAPIView):
                     # No changes, all objects skipped
                     return Response({}, status=HTTP_200_OK)
 
-                assert(not result.has_errors())
+                errors = [
+                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                    for row in result.rows if len(row.errors) > 0
+                ]
+
+                if len(errors) > 0:
+                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
                 #todo calculate diff
+
+                for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                    model.objects.filter(version=changeplan).delete()
+                changeplan.delete()
+
+                #todo return response diff
             else:
                 return Response({}, status=HTTP_200_OK)
 
@@ -115,13 +128,47 @@ class NetworkImport(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
+        force = bool(request.query_params['force'])
         file = data.get('file')
         with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
             dataset = Dataset().load(text, format="csv")
             if not dataset.headers == ['src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port']:
                 raise serializers.ValidationError("Improperly formatted CSV")
-            NetworkPortResource(get_version(request), request.user, request.query_params['force']).import_data(dataset)
-            return Response({}, HTTP_200_OK)
+            result = NetworkPortResource(
+                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+
+            errors = [
+                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                for row in result.rows if len(row.errors) > 0
+            ]
+
+            if len(errors) > 0:
+                return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+            elif not force:
+                resource = NetworkPortResource(get_version(request), request.user, False)
+                result = resource.import_data(dataset)
+
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    # No changes, all objects skipped
+                    return Response({}, status=HTTP_200_OK)
+
+                errors = [
+                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                    for row in result.rows if len(row.errors) > 0
+                ]
+
+                if len(errors) > 0:
+                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+
+                #todo calculate diff
+
+                for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                    model.objects.filter(version=changeplan).delete()
+                changeplan.delete()
+            else:
+                return Response({}, status=HTTP_200_OK)
 
 
 class CSVRenderer(renderers.BaseRenderer):
@@ -209,14 +256,11 @@ class NetworkExport(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        return Asset.objects.filter(
-            commissioned=Asset.Decommissioned.COMMISSIONED,
-            version_id=get_version(self.request))
+        return NetworkPort.objects.filter(asset__commissioned=Asset.Decommissioned.COMMISSIONED)
+
     serializer_class = AssetSerializer
     filterset_class = AssetFilter
 
     def get(self, request, *args, **kwargs):
-        data = NetworkPortResource(get_version(request), request.user).export(queryset=
-            NetworkPort.objects.filter(asset__in=self.filter_queryset(self.get_queryset()))
-        )
+        data = NetworkPortResource(get_version(request), request.user).export(version_id=get_version(request))
         return Response(data, HTTP_200_OK)

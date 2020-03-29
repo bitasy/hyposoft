@@ -5,7 +5,7 @@ from import_export import resources, fields
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
-from utils import versioned_object
+from hyposoft.utils import versioned_object
 from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
@@ -157,30 +157,36 @@ class AssetResource(VersionedResource):
         return super(AssetResource, self).skip_row(instance, original)
 
     def dehydrate_power_port_connection_1(self, asset):
-        if asset.itmodel.power_ports >= 1:
-            my_powered = Powered.objects.filter(asset=asset, order=1).first()
-            if self.version != 0 and my_powered is None:
-                my_powered = Powered.objects.filter(
-                    asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
-                    order=1
-                ).first()
-            if my_powered:
-                return str(my_powered.pdu.position) + str(my_powered.plug_number)
-            else:
-                return ''
+        try:
+            if asset.itmodel.power_ports >= 1:
+                my_powered = Powered.objects.filter(asset=asset, order=1).first()
+                if self.version != 0 and my_powered is None:
+                    my_powered = Powered.objects.filter(
+                        asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
+                        order=1
+                    ).first()
+                if my_powered:
+                    return str(my_powered.pdu.position) + str(my_powered.plug_number)
+                else:
+                    return ''
+        except:
+            return ''
 
     def dehydrate_power_port_connection_2(self, asset):
-        if asset.itmodel.power_ports >= 2:
-            my_powered = Powered.objects.filter(asset=asset, order=2).first()
-            if self.version != 0 and my_powered is None:
-                my_powered = Powered.objects.filter(
-                    asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
-                    order=2
-                ).first()
-            if my_powered:
-                return str(my_powered.pdu.position) + str(my_powered.plug_number)
-            else:
-                return ''
+        try:
+            if asset.itmodel.power_ports >= 2:
+                my_powered = Powered.objects.filter(asset=asset, order=2).first()
+                if self.version != 0 and my_powered is None:
+                    my_powered = Powered.objects.filter(
+                        asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
+                        order=2
+                    ).first()
+                if my_powered:
+                    return str(my_powered.pdu.position) + str(my_powered.plug_number)
+                else:
+                    return ''
+        except:
+            return ''
 
     class Meta:
         model = Asset
@@ -244,14 +250,21 @@ class AssetResource(VersionedResource):
             new_version = ChangePlan.objects.get(id=self.version)
         else:
             parent = ChangePlan.objects.get(id=self.version)
-            new_version = ChangePlan.objects.create(
-                owner=self.owner,
-                name="_BULK_IMPORT_" + str(id(self)),
-                executed=False,
-                auto_created=True,
-                parent=parent
-            )
+            try:
+                new_version = ChangePlan.objects.get(
+                    owner=self.owner,
+                    name="_BULK_IMPORT_" + str(id(self))
+                )
+            except ChangePlan.DoesNotExist:
+                new_version = ChangePlan.objects.create(
+                    owner=self.owner,
+                    name="_BULK_IMPORT_" + str(id(self)),
+                    executed=False,
+                    auto_created=True,
+                    parent=parent
+                )
 
+        my_asset.version = new_version
         create_asset_extra(
             my_asset,
             new_version,
