@@ -134,6 +134,23 @@ class PoweredChangePlanDiff(views.APIView):
             return Response([])
 
 
+def create_live_asset(changed_asset):
+    Asset.objects.create(
+        asset_number=changed_asset.asset_number,
+        hostname=changed_asset.hostname,
+        datacenter=changed_asset.datacenter,
+        rack=changed_asset.rack,
+        rack_position=changed_asset.rack_position,
+        itmodel=changed_asset.itmodel,
+        owner=changed_asset.owner,
+        comment=changed_asset.comment,
+        version_id=0,
+        commissioned=changed_asset.commissioned,
+        decommissioned_timestamp=changed_asset.decommissioned_timestamp,
+        decommissioned_by=changed_asset.decommissioned_by
+    )
+
+
 def execute_assets(changeplan):
     changed_assets = Asset.objects.filter(changeplan=changeplan)
     for changed_asset in changed_assets:
@@ -156,21 +173,32 @@ def execute_assets(changeplan):
             live_asset.save()
 
         except:
-            Asset.objects.create(
-                asset_number=changed_asset.asset_number,
-                hostname=changed_asset.hostname,
-                datacenter=changed_asset.datacenter,
-                rack=changed_asset.rack,
-                rack_position=changed_asset.rack_position,
-                itmodel=changed_asset.itmodel,
-                owner=changed_asset.owner,
-                comment=changed_asset.comment,
-                version_id=0,
-                commissioned=changed_asset.commissioned,
-                decommissioned_timestamp=changed_asset.decommissioned_timestamp,
-                decommissioned_by=changed_asset.decommissioned_by
-            )
+            create_live_asset(changed_asset)
         changed_asset.destroy()
+
+
+def execute_decommissioned_assets(changeplan):
+    changed_assets = Asset.objects.filter(changeplan=changeplan)
+    for changed_asset in changed_assets:
+        try:
+            live_asset = Asset.objects.get(
+                asset_number=changed_asset.asset_number,
+                version_id=0
+            )
+            live_asset.destroy()
+            create_live_asset(changed_asset)
+        except:
+            create_live_asset(changed_asset)
+
+
+def create_live_networkport(changed_networkport):
+    NetworkPort.objects.create(
+        asset=changed_networkport.asset,
+        label=changed_networkport.label,
+        mac_address=changed_networkport.mac_address,
+        connection=changed_networkport.connection,
+        version_id=0
+    )
 
 
 def execute_networkports(changeplan):
@@ -189,14 +217,34 @@ def execute_networkports(changeplan):
             live_networkport.save()
 
         except:
-            NetworkPort.objects.create(
+            create_live_networkport(changed_networkport)
+        changed_networkport.destroy()
+
+
+def execute_decommissioned_networkports(changeplan):
+    changed_networkports = NetworkPort.objects.filter(changeplan=changeplan)
+    for changed_networkport in changed_networkports:
+        try:
+            live_networkport = NetworkPort.objects.get(
                 asset=changed_networkport.asset,
                 label=changed_networkport.label,
-                mac_address=changed_networkport.mac_address,
-                connection=changed_networkport.connection,
                 version_id=0
             )
-        changed_networkport.destroy()
+            live_networkport.destroy()
+            create_live_networkport(changed_networkport)
+        except:
+            create_live_networkport(changed_networkport)
+
+
+def create_live_powered(changed_powered):
+    Powered.objects.create(
+        plug_number=changed_powered.plug_number,
+        pdu=changed_powered.pdu,
+        asset=changed_powered.asset,
+        on=changed_powered.on,
+        special=changed_powered.special,
+        version_id=0
+    )
 
 
 def execute_powereds(changeplan):
@@ -217,15 +265,24 @@ def execute_powereds(changeplan):
             live_powered.save()
 
         except:
-            Powered.objects.create(
+            create_live_powered(changed_powered)
+        changed_powered.destroy()
+
+
+def execute_decommissioned_powereds(changeplan):
+    changed_powereds = Powered.objects.filter(changeplan=changeplan)
+    for changed_powered in changed_powereds:
+        try:
+            live_powered = Powered.objects.get(
                 plug_number=changed_powered.plug_number,
                 pdu=changed_powered.pdu,
                 asset=changed_powered.asset,
-                on=changed_powered.on,
-                special=changed_powered.special,
                 version_id=0
             )
-        changed_powered.destroy()
+            live_powered.destroy()
+            create_live_powered(changed_powered)
+        except:
+            create_live_powered(changed_powered)
 
 
 class ExecuteChangePlan(views.APIView):
@@ -246,9 +303,9 @@ class ExecuteChangePlan(views.APIView):
             changeplan.time_executed = now()
             changeplan.save()
             for child in children:
-                execute_assets(child)
-                execute_networkports(child)
-                execute_powereds(child)
+                execute_decommissioned_assets(child)
+                execute_decommissioned_networkports(child)
+                execute_decommissioned_powereds(child)
                 child.executed = True
                 child.time_executed = now()
                 child.save()
