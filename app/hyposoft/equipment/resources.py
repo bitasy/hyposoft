@@ -8,7 +8,7 @@ from changeplan.models import ChangePlan
 from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
-from import_export.widgets import ForeignKeyWidget, Widget
+from import_export.widgets import ForeignKeyWidget
 
 import re
 
@@ -250,3 +250,6 @@ class AssetResource(VersionedResource):
             special + current,
             None
         )
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        del data['version']
