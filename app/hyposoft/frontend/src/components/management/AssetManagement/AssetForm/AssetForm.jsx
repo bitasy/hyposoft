@@ -196,7 +196,7 @@ function AssetForm({ id }) {
                 {id && (
                   <>
                     <div>
-                      <VSpace height="16px" />
+                      <VSpace height="32px" />
                     </div>
                     <Button ghost type="danger" onClick={handleDelete} block>
                       Delete

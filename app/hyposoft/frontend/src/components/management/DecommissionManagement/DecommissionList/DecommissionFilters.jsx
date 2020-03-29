@@ -10,9 +10,8 @@ import Input from "../../../utility/formik/Input";
 /*
   initialFilterValues: {
     search: string,
-    rack_from: string,
-    rack_to: string,
-    rack_position: [number, number],
+    time_from: string,
+    time_to: string,
   }
 */
 // onChange: (an object with the same form as the initialFilterValues) => void
@@ -46,7 +45,7 @@ function DecommissionFilters({ initialFilterValues, onChange }) {
                                         //dateFullCellRender={}
                                         fullscreen={false}
                                         //onPanelChange={}
-                                        onSelect={}
+                                        //onSelect={}
                                     />
                                     <Input name="time_from" />
                                 </ItemWithLabel>
