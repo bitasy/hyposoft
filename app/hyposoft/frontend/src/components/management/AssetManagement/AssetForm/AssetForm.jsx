@@ -192,9 +192,16 @@ function AssetForm({ id }) {
                   {id ? "Update" : "Create"}
                 </SubmitButton>
 
+
+                {id && (
+                    <>
+                      <VSpace height="16px" />
                 <Button ghost type="primary" onClick={handleDecommission} block>
                   Decommission
                 </Button>
+                    </>
+                )}
+
 
                 {id && (
                   <>

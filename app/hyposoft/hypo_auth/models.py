@@ -5,7 +5,7 @@ from multiselectfield import MultiSelectField
 
 DATACENTER_CHOICES = [
     ('GLOBAL', 'Global'),
-    *[(dc.abbr, dc.name) for dc in Datacenter.objects.all()]
+    # *[(dc.abbr, dc.name) for dc in Datacenter.objects.all()]
 ]
 
 class Permission(models.Model):

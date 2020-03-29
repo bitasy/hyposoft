@@ -29,11 +29,8 @@ const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const { user } = useContext(AuthContext);
-<<<<<<< HEAD
     console.log(user); //testing
-  const { datacenter, setDCByID } = useContext(DCContext);
 
-=======
   const {
     datacenter,
     setDCByID,
@@ -46,7 +43,6 @@ function ManagementPageFrame({ children }) {
   } = useContext(ChangePlanContext);
 
   const [changePlans, setChangePlans] = useState([]);
->>>>>>> 2c9819f8ea4767735b9abde04ac94c955e454ca6
   const [datacenters, setDatacenters] = useState([]);
 
   React.useEffect(() => {
