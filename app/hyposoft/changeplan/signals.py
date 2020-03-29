@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from .models import ChangePlan, AssetDiff, NetworkPortDiff, PoweredDiff
 from equipment.models import Asset
-from network.models import NetworkPort
 from power.models import Powered
 from django.db.models.signals import pre_save
 
@@ -12,7 +11,6 @@ from django.db.models.signals import pre_save
 def create_live(*args, **kwargs):
     if not ChangePlan.objects.filter(id=0).exists():
         ChangePlan.objects.create(id=0, owner=User.objects.filter(username="admin").first(), name="live")
-
 
 
 @receiver(pre_save, sender=AssetDiff)
