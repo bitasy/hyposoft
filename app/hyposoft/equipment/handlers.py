@@ -32,7 +32,7 @@ def create_asset_extra(asset, version, power_connections, net_ports):
     if power_connections:
         order = 1
         for connection in power_connections:
-            if i > asset.itmodel.power_ports:
+            if order > asset.itmodel.power_ports:
                 break
             Powered.objects.create(
                 pdu=connection['pdu_id'],
@@ -71,5 +71,6 @@ def create_asset_extra(asset, version, power_connections, net_ports):
 
 
 def create_rack_extra(rack, version):
-    PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version_id=version)
-    PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version_id=version)
+    if version == 0:
+        PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version_id=version)
+        PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version_id=version)
