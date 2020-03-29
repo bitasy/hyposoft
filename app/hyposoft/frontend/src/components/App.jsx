@@ -36,6 +36,7 @@ import ChangePlanList from "./management/ChangePlan/ChangePlanList";
 import CreateChangePlan from "./management/ChangePlan/CreateChangePlan";
 import ChangePlanDetail from "./management/ChangePlan/ChangePlanDetail";
 import useTrigger from "./utility/useTrigger";
+// import ModelImportPage from "./management/Import/ModelImportPage";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -201,6 +202,9 @@ function App() {
                       <Route exact path="/changeplan/:id">
                         <ChangePlanDetail />
                       </Route>
+                      {/* <Route exact path="/import/model">
+                        <ModelImportPage />
+                      </Route> */}
                       <Route>
                         <LandingPage />
                       </Route>
