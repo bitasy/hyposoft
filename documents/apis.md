@@ -961,11 +961,11 @@ This request should always "succeed" with status code 2XX.
 }
 ```
 
-### `[GET] api/export/ITModel`
+### `[GET] api/export/ITModel.csv`
 
-### `[GET] api/export/Asset`
+### `[GET] api/export/Asset.csv`
 
-### `[GET] api/export/Network`
+### `[GET] api/export/Network.csv`
 
 #### Query params
 
