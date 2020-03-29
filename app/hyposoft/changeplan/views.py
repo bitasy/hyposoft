@@ -13,7 +13,9 @@ def create_asset_diffs(changeplan):
     for changed_asset in changed_assets:
         try:
             live_asset = Asset.objects.get(
-                asset_number=changed_asset.asset_number,
+                hostname=changed_asset.hostname,
+                datacenter=changed_asset.datacenter,
+                itmodel=changed_asset.itmodel,
                 version=0
             )
             AssetDiff.objects.create(
@@ -103,8 +105,8 @@ def create_powered_diffs(changeplan):
             )
             PoweredDiff.objects.create(
                 changeplan=changeplan,
-                live_networkport=live_powered,
-                changed_networkport=changed_powered,
+                live_powered=live_powered,
+                changed_powered=changed_powered,
             )
         except:
             PoweredDiff.objects.create(

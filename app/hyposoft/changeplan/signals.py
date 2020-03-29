@@ -39,15 +39,8 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         if instance.changed_asset.comment != instance.live_asset.comment:
             message += ('OLD COMMENT: ' + str(instance.live_asset.comment) + '\n')
             message += ('NEW COMMENT: ' + str(instance.changed_asset.comment) + '\n')
-        if instance.changed_asset.commissioned != instance.live_asset.commissioned:
-            message += ('OLD COMMISSIONED: ' + str(instance.live_asset.commissioned) + '\n')
-            message += ('NEW COMMISSIONED: ' + str(instance.changed_asset.commissioned) + '\n')
-        if instance.changed_asset.decommissioned_timestamp != instance.live_asset.decommissioned_timestamp:
-            message += ('OLD DECOMMISSIONED TIMESTAMP: ' + str(instance.live_asset.decommissioned_timestamp) + '\n')
-            message += ('NEW DECOMMISSIONED TIMESTAMP: ' + str(instance.changed_asset.decommissioned_timestamp) + '\n')
-        if instance.changed_asset.comment != instance.live_asset.comment:
-            message += ('OLD DECOMMISSIONED BY: ' + str(instance.live_asset.decommissioned_by.username) + '\n')
-            message += ('NEW DECOMMISSIONED BY: ' + str(instance.changed_asset.decommissioned_by.username) + '\n')
+        if instance.live_asset.decommissioned_timestamp:
+            message += ('CONFLICT: LIVE ASSET IS DECOMMISSIONED' + '\n')
     else:
         message += ('CREATED ASSET' + '\n')
         message += ('ASSET NUMBER: ' + str(instance.changed_asset.asset_number) + '\n')
