@@ -6,6 +6,7 @@ import {
   LogoutOutlined,
   AppstoreOutlined,
   DatabaseOutlined,
+  DisconnectOutlined,
   BuildOutlined,
   TableOutlined,
   BookOutlined,
@@ -137,9 +138,8 @@ function Sidebar() {
         <span>Assets</span>
       </Menu.Item>
 
-      {/*TODO:  check permissions  */}
       <Menu.Item key="/decommission">
-        <Icon type="disconnect" />
+        <DisconnectOutlined/>
         <span>Decommission</span>
       </Menu.Item>
 
