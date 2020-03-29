@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../../../../contexts/contexts";
 import { useHistory } from "react-router-dom";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, PrinterOutlined } from "@ant-design/icons";
 import CreateTooltip from "../../../utility/CreateTooltip";
 import { Button } from "antd";
 
@@ -11,8 +11,15 @@ function AssetListFooter() {
 
   const createDisabled = !user?.is_staff;
 
+  //TODO: if selected asset list is null
+  const printDisabled = false;
+
   function onCreate() {
     history.push("/assets/create");
+  }
+
+  function onPrint() {
+    history.push("/assets/print_view")
   }
 
   return user ? (
@@ -25,6 +32,9 @@ function AssetListFooter() {
           <PlusOutlined />
         </Button>
       </CreateTooltip>
+      <Button onClick={onPrint} disabled={printDisabled}>
+        <PrinterOutlined />
+      </Button>
     </div>
   ) : null;
 }

@@ -1,10 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-<<<<<<< HEAD
-import { Table, Pagination, Button, Checkbox} from "antd";
-=======
-import { Table, Pagination, Button, Row, Col } from "antd";
->>>>>>> dev
+import { Table, Pagination, Button, Row, Col, Checkbox } from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
@@ -145,8 +141,7 @@ function AssetList({ modelID }) {
     return { onClick };
   }
 
-<<<<<<< HEAD
-  //TODO: a function to add selected rows to an array
+  //TODO: function to add selected rows to an array
   function onSelectChange(r) {
     const onClick = () => selectedRowKeys.concat(`${r.id}`);
     console.log(selectedRowKeys); //testing
@@ -166,8 +161,6 @@ function AssetList({ modelID }) {
 
   }
 
-
-=======
   function handleAssetExport() {
     exportAssets(assetQuery);
   }
@@ -176,7 +169,6 @@ function AssetList({ modelID }) {
     exportNetwork(assetQuery);
   }
 
->>>>>>> dev
   return (
     <>
       {modelID == null && (

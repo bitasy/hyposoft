@@ -8,6 +8,7 @@ import ModelDetailPage from "./management/ModelManagement/ModelDetailPage";
 import AssetManagementPage from "./management/AssetManagement/AssetManagementPage";
 import ReportManagementPage from "./management/ReportManagement/ReportManagementPage";
 import LandingPage from "./management/LandingPage/LandingPage";
+import BarcodeView from "./management/AssetManagement/BarcodeView";
 import AssetDetailPage from "./management/AssetManagement/AssetDetailPage";
 import CreateModelPage from "./management/ModelManagement/CreateModelPage";
 import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
@@ -159,6 +160,9 @@ function App() {
                 </Route>
                 <Route exact path="/changeplan/workorder">
                   <WorkOrderPage />
+                </Route>
+                <Route exact path="/assets/print_view">
+                  <BarcodeView />
                 </Route>
                 <Route>
                   <ManagementPageFrame>
