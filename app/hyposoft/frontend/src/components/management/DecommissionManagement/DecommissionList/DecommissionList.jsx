@@ -2,7 +2,6 @@ import React from "react";
 import styled from "styled-components";
 import { Table, Pagination } from "antd";
 import { useHistory } from "react-router-dom";
-import AssetListFooter from "../../AssetManagement/AssetList/AssetListFooter";
 import AssetFilters from "../../AssetManagement/AssetList/AssetFilters";
 import DecommissionFilters from "./DecommissionFilters";
 import NetworkPowerActionButtons from "../../AssetManagement/NetworkPowerActionButtons";

@@ -23,6 +23,7 @@ const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const { user } = useContext(AuthContext);
+    console.log(user); //testing
   const { datacenter, setDCByID } = useContext(DCContext);
 
   const [datacenters, setDatacenters] = useState([]);

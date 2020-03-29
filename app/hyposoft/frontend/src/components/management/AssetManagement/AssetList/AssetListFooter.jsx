@@ -1,14 +1,16 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../../../../contexts/contexts";
 import { useHistory } from "react-router-dom";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, DisconnectOutlined } from "@ant-design/icons";
 import CreateTooltip from "../../../utility/CreateTooltip";
 import { Button } from "antd";
 
 function AssetListFooter() {
   const history = useHistory();
   const { user } = useContext(AuthContext);
+  console.log(user); //testing
 
+  //TODO: fix this
   const createDisabled = !user?.is_staff;
 
   function onCreate() {
@@ -19,7 +21,7 @@ function AssetListFooter() {
     <div>
       <CreateTooltip
         isVisible={createDisabled}
-        tooltipText={"Only users with admin privileges can create a new item"}
+        tooltipText={"Must have asset management privileges"}
       >
         <Button onClick={onCreate} disabled={createDisabled}>
           <PlusOutlined />
