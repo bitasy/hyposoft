@@ -2,6 +2,12 @@
 
 # Given a rack row letter, provides the next row letter
 # Essentially, after Z is AA and after AA is AB etc.
+from django.db.models import Q
+
+from equipment.models import Rack
+from network.models import NetworkPort
+
+
 def next_char(char):
     if len(char) == 1:
         if char < "Z":
@@ -48,4 +54,69 @@ def generate_racks(r1, r2, c1, c2):
 
 
 def get_version(request):
-    return request.META.get('HTTP_X_CHANGE_PLAN', 0)
+    val = request.META.get('HTTP_X_CHANGE_PLAN', 3)
+    return val if isinstance(val, int) else 3
+
+
+def versioned_object(obj, version, identity_fields):
+    if obj.version == version:
+        return obj
+    obj_list = obj.__class__.objects.filter(id=obj.id).values(*identity_fields)[0]
+    if any([v is None for v in obj_list.values()]):
+        return None
+    return obj.__class__.objects.filter(version=version, **obj_list).first()
+
+
+def versioned_queryset(queryset, version, identity_fields):
+    if version.id == 0:
+        return queryset.filter(version=version)
+    try:
+        versioned = queryset.filter(version=version)
+        values = versioned.values_list(*identity_fields)
+        q = Q()
+        for item in values:
+            d = {}
+            for i in range(len(identity_fields)):
+                d[identity_fields[i]] = item[i]
+            q = q | Q(**d)
+
+        # Return all objects in live, except for objects that exist separately in the change plan
+        return queryset.filter(version_id=0).exclude(q).union(versioned)
+
+    except:
+        return queryset
+
+
+# For adding various objects from live to a change plan
+def add_rack(rack, change_plan):
+    rack.id = None
+    rack.version = change_plan
+    rack.save()
+    return rack
+
+
+def add_asset(asset, change_plan):
+    rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
+    if rack is None:
+        rack = add_rack(asset.rack, change_plan)
+
+    asset.id = None
+    asset.version = change_plan
+    asset.rack = rack
+    asset.save()
+    return asset
+
+
+def add_network_conn(connection, version):
+    versioned_conn = versioned_object(connection, version, NetworkPort.IDENTITY_FIELDS)
+    if versioned_conn is None:
+        # Add connected asset to change plan
+        conn_asset = connection.asset
+        new_asset = add_asset(conn_asset, version)
+        connection.id = None
+        connection.asset = new_asset
+        connection.connection = None
+        connection.version = version
+        connection.save()
+        return connection
+    return versioned_conn

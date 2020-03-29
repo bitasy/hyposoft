@@ -14,8 +14,9 @@ class ChangePlan(models.Model):
     executed = models.BooleanField(
         default=False
     )
-    time_executed = models.DateTimeField(
-        null=True
+    executed_at = models.DateTimeField(
+        null=True,
+        blank=True
     )
     auto_created = models.BooleanField(
         # This field is used to track changesets that are
@@ -33,6 +34,9 @@ class ChangePlan(models.Model):
         null=True,
         blank=True
     )
+
+    class Meta:
+        unique_together = ['owner', 'name']
 
 
 class AssetDiff(models.Model):
@@ -99,7 +103,3 @@ class PoweredDiff(models.Model):
     message = models.CharField(
         max_length=1000000
     )
-
-
-
-

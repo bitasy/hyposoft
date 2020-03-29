@@ -1,14 +1,18 @@
 import React from "react";
-import CreateDataForm from "../shared/CreateDataForm";
-import { modelSchema } from "./ModelSchema";
-import { Typography } from "antd";
-import { createModel } from "../../../redux/models/actions";
+import { Typography, Row, Col } from "antd";
+import ModelForm from "./ModelForm/ModelForm";
 
 function CreateModelPage() {
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Create Model</Typography.Title>
-      <CreateDataForm createRecord={createModel} schema={modelSchema} />
+      <Typography.Title level={3}>
+        Create Model
+      </Typography.Title>
+      <Row>
+        <Col md={8}>
+          <ModelForm />
+        </Col>
+      </Row>
     </div>
   );
 }

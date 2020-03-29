@@ -114,15 +114,18 @@ class Rack(models.Model):
     )
 
     def __str__(self):
-        return "Rack {} Datacenter {}".format(self.rack, self.datacenter.abbr)
+        return "Rack {} Datacenter {}".format(self.rack, self.datacenter)
 
     class Meta:
         unique_together = ['rack', 'datacenter', 'version']
 
+    IDENTITY_FIELDS = ['rack', 'datacenter']
+
 
 class Asset(models.Model):
     asset_number = models.IntegerField(
-        default=0
+        null=True,
+        blank=True
     )
     hostname = models.CharField(
         blank=True,
@@ -189,6 +192,7 @@ class Asset(models.Model):
     decommissioned_by = models.ForeignKey(
         User,
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         related_name='decommissioned_assets'
     )
@@ -204,3 +208,5 @@ class Asset(models.Model):
         if self.hostname is not None and len(self.hostname) > 0:
             return self.hostname
         return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
+
+    IDENTITY_FIELDS = ['asset_number']

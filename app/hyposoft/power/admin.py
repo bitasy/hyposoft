@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import PDU, Powered
 
-# Register your models here.
+admin.site.register(PDU)
+admin.site.register(Powered)

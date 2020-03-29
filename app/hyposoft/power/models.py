@@ -6,11 +6,6 @@ from changeplan.models import ChangePlan
 
 
 class PDU(models.Model):
-    pdu_model = models.CharField(
-        max_length=64,
-        blank=True,
-        default="PDU Networx 98 Pro"
-    )
     assets = models.ManyToManyField(
         "equipment.Asset",
         through='Powered'
@@ -40,11 +35,12 @@ class PDU(models.Model):
         unique_together = ['rack', 'position', 'version']
 
     def __str__(self):
-        return "{} PDU on {} in {}".format(
+        return "{} PDU on {}".format(
             self.position,
-            str(self.rack),
-            self.rack.datacenter
+            str(self.rack)
         )
+
+    IDENTITY_FIELDS = ['rack__' + field for field in Rack.IDENTITY_FIELDS] + ['position']
 
 
 class Powered(models.Model):
@@ -67,20 +63,14 @@ class Powered(models.Model):
     on = models.BooleanField(
         default=False
     )
-    special = models.IntegerField(
-        null=True,
-        blank=True,
-        validators=[
-            MinValueValidator(1,
-                              message="Special network port ID must be at least 1"),
-            MaxValueValidator(2,
-                              message="Special network port ID must be no greater than 2")
-        ]
-    )
+    order = models.IntegerField()
+
     version = models.ForeignKey(
         ChangePlan,
         on_delete=models.CASCADE
     )
 
     class Meta:
-        unique_together = [['plug_number', 'pdu', 'version'], ['special', 'asset', 'version']]
+        unique_together = [['plug_number', 'pdu', 'version'], ['order', 'asset', 'version']]
+
+    IDENTITY_FIELDS = ['pdu__' + field for field in PDU.IDENTITY_FIELDS] + ['plug_number']

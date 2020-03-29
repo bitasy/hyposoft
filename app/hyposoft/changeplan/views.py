@@ -4,6 +4,11 @@ from rest_framework.response import Response
 from .models import ChangePlan, AssetDiff, NetworkPortDiff, PoweredDiff
 from django.core.exceptions import ValidationError
 from .handlers import *
+from rest_framework import generics
+from equipment.models import Asset, Rack
+from power.models import Powered, PDU
+from network.models import NetworkPort
+from .serializers import ChangePlanSerializer
 
 
 class AssetChangePlanDiff(views.APIView):
@@ -96,3 +101,38 @@ class ExecuteChangePlan(views.APIView):
 
         except:
             raise ValidationError("This ChangePlan is not valid.")
+
+
+class UserChangePlansMixin():
+    def get_queryset(self):
+        return ChangePlan.objects.filter(owner=self.request.user, auto_created=False, id__gt=0)
+
+
+class ChangePlanList(UserChangePlansMixin, generics.ListAPIView):
+    serializer_class = ChangePlanSerializer
+
+
+class ChangePlanDetails(UserChangePlansMixin, generics.RetrieveAPIView):
+    serializer_class = ChangePlanSerializer
+
+
+class ChangePlanCreate(UserChangePlansMixin, generics.CreateAPIView):
+    serializer_class = ChangePlanSerializer
+
+
+class ChangePlanDestroy(UserChangePlansMixin, generics.DestroyAPIView):
+    serializer_class = ChangePlanSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        version = self.get_object()
+
+        # Order matters!
+        for model in (Powered, NetworkPort, Asset, PDU, Rack):
+            model.objects.filter(version=version).delete()
+
+        return super(ChangePlanDestroy, self).destroy(request, *args, **kwargs)
+
+
+class ChangePlanUpdate(UserChangePlansMixin, generics.UpdateAPIView):
+    serializer_class = ChangePlanSerializer
+
