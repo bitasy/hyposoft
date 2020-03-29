@@ -133,9 +133,11 @@ function App() {
         const { id, name } = cp;
         sessionStorage.setItem(CHANGE_PLAN_SESSION_KEY, id);
         sessionStorage.setItem(CHANGE_PLAN_NAME_SESSION_KEY, name);
+        setChangePlan(cp);
       } else {
         sessionStorage.removeItem(CHANGE_PLAN_SESSION_KEY);
         sessionStorage.removeItem(CHANGE_PLAN_NAME_SESSION_KEY);
+        setChangePlan(null);
       }
     },
     refreshTrigger: cpTrigger,
