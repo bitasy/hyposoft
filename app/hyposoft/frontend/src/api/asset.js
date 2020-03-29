@@ -60,8 +60,8 @@ export function getAssetPicklist(query) {
 
 export function decommissionAsset(id) {
   return withLoading(() =>
-    Axios.post(`api/equipment/DecommissionAsset/${id}`, {
-      headers: makeHeaders(),
+    Axios.post(`api/equipment/DecommissionAsset/${id}`, null,
+        {      headers: makeHeaders(),
     }).then(getData),
   );
 }

@@ -190,24 +190,20 @@ function AssetForm({ id }) {
 
                 <SubmitButton ghost type="primary" block>
                   {id ? "Update" : "Create"}
+                  <VSpace height="16px" />
                 </SubmitButton>
-
-
-                {id && (
-                    <>
-                      <VSpace height="16px" />
-                <Button ghost type="primary" onClick={handleDecommission} block>
-                  Decommission
-                </Button>
-                    </>
-                )}
-
 
                 {id && (
                   <>
-                    <VSpace height="16px" />
+                    <div>
+                      <VSpace height="16px" />
+                    </div>
                     <Button ghost type="danger" onClick={handleDelete} block>
                       Delete
+                    </Button>
+                    <VSpace height="16px" />
+                    <Button ghost type="primary" onClick={handleDecommission} block>
+                      Decommission
                     </Button>
                   </>
                 )}

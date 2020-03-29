@@ -209,6 +209,7 @@ class AssetDetailRetrieve(generics.RetrieveAPIView):
 
 
 class DecommissionAsset(views.APIView):
+    serializer_class = DecommissionedAssetSerializer
     @transaction.atomic()
     def post(self, request, asset_id):
         try:
@@ -221,7 +222,7 @@ class DecommissionAsset(views.APIView):
                 owner=user,
                 name='_DECOMMISSION_' + str(asset.asset_number),
                 executed=version.executed,
-                time_executed=now,
+                executed_at=now,
                 auto_created=True,
                 parent=version
             )

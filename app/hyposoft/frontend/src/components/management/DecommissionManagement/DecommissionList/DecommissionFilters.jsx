@@ -46,7 +46,7 @@ function DecommissionFilters({ initialFilterValues, onChange }) {
                                         //dateFullCellRender={}
                                         fullscreen={false}
                                         //onPanelChange={}
-                                        //onSelect={}
+                                        onSelect={}
                                     />
                                     <Input name="time_from" />
                                 </ItemWithLabel>
