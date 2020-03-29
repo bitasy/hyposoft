@@ -23,7 +23,6 @@ function partition(arr, nPerArr) {
 }
 
 //function to create one label
-//TODO: make assetID show up below next to Hyposoft, something with props?
 function CreateBarcodeLabel( {assetID} ) {
     return (
         <div>
@@ -39,36 +38,6 @@ function CreateBarcodeLabel( {assetID} ) {
         </div>
     );
 }
-
-//
-// function BarcodeView( {r} ) {
-//
-//     const BarcodeViewWithRef = React.forwardRef((props, ref) => (
-//         <BarcodeView {...props} r={ref} />
-//     ));
-//
-//     return (
-//         <div style={{ padding: 16 }}>
-//             <Typography.Title>Printable Barcode View</Typography.Title>
-//             <ReactToPrint
-//                 trigger={() => (
-//                     <Button style={{ margin: 16 }}>
-//                         <PrinterOutlined />
-//                     </Button>
-//                 )}
-//                 //content={() => componentRef.current}
-//             />
-//             <BarcodeViewWithRef ref={componentRef} />
-//             <div>
-//                 <CreateBarcodeLabel value={100000} >
-//                 </CreateBarcodeLabel>
-//
-//             </div>
-//         </div>
-//     );
-// }
-//
-// export default BarcodeView;
 
 //function to add multiple barcodes in a page to a page
 function BarcodeView({ r }) {
