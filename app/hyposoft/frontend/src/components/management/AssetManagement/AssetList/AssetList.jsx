@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination } from "antd";
+import { Table, Pagination, Button, Checkbox} from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
@@ -58,6 +58,8 @@ const initialFilterValues = {
   rack_position: [1, 42],
 };
 
+const selectedRowKeys = [];
+
 // modelID?: number
 function AssetList({ modelID }) {
   const history = useHistory();
@@ -71,6 +73,8 @@ function AssetList({ modelID }) {
   const [data, setData] = React.useState([]);
   const [ordering, setOrdering] = React.useState(undefined);
   const [direction, setDirection] = React.useState(undefined);
+
+  const [selected] = React.useState(selectedRowKeys);
 
   const realm = React.useRef(0);
 
@@ -133,6 +137,27 @@ function AssetList({ modelID }) {
     return { onClick };
   }
 
+  //TODO: a function to add selected rows to an array
+  function onSelectChange(r) {
+    const onClick = () => selectedRowKeys.concat(`${r.id}`);
+    console.log(selectedRowKeys); //testing
+    return { onClick };
+  }
+
+  //TODO: define rowSelection
+  const rowSelection = {
+    selectedRowKeys,
+    selections: [
+      Table.SELECTION_ALL,
+      Table.SELECTION_INVERT,
+    ],
+//    onChange: onSelectChange(),
+//    onSelect:
+    //onSelectAll:
+
+  }
+
+
   return (
     <>
       {modelID == null && (
@@ -142,7 +167,9 @@ function AssetList({ modelID }) {
         />
       )}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
+
       <AssetTable
+        rowSelection={rowSelection}
         rowKey={r => r.id}
         columns={assetColumns}
         dataSource={data}
