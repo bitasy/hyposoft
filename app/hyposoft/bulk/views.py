@@ -18,7 +18,7 @@ from network.resources import NetworkPortResource
 
 
 # The Model and Serializer classes are used for compatibility with the browsable API
-from hyposoft.utils import get_version
+from hyposoft.utils import get_version, versioned_queryset
 
 
 class File(models.Model):
@@ -32,7 +32,7 @@ class FileSerializer(serializers.Serializer):
 def bool(obj):
     if type(obj) == bool:
         return obj
-    return bool == "true" or bool == "True"
+    return obj == "true" or obj == "True"
 
 
 class ITModelImport(generics.CreateAPIView):
@@ -175,9 +175,11 @@ class AssetExport(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        return Asset.objects.filter(
-            commissioned=Asset.Decommissioned.COMMISSIONED,
-            version_id=get_version(self.request))
+        combined = Asset.objects.filter(commissioned=Asset.Decommissioned.COMMISSIONED)
+        version = ChangePlan.objects.get(id=get_version(self.request))
+        versioned = versioned_queryset(combined, version, Asset.IDENTITY_FIELDS)
+        return versioned
+
     serializer_class = AssetSerializer
     filterset_class = AssetFilter
 
