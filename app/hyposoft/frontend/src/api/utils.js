@@ -14,7 +14,7 @@ export function makeHeaders(overrides) {
 
   return {
     ...(dcname != null ? { "X-DATACENTER": dcname } : {}),
-    ...(dcname != null ? { "X-CHANGE-PLAN": cpid } : {}),
+    ...(cpid != null ? { "X-CHANGE-PLAN": cpid } : { "X-CHANGE-PLAN": 0 }),
   };
 }
 
