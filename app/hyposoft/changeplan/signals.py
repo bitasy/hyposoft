@@ -154,6 +154,6 @@ def powereddiff_message(sender, instance, *args, **kwargs):
         message += ('CONFLICT: ' + 'All the power port connections have already been used.' + '\n')
     if instance.changed_powered.pdu.assets.count() > 24:
         message += ('CONFLICT: ' + 'This PDU is already full.' + '\n')
-    if instance.changed_powered.pdu.rack != instance.asset.rack:
+    if instance.changed_powered.pdu.rack != instance.changed_powered.asset.rack:
         message += ('CONFLICT: ' + 'PDU must be on the same rack as the asset.' + '\n')
     instance.message = message
