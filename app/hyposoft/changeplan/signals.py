@@ -114,12 +114,12 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
         if instance.changed_networkport.connection.asset.datacenter != instance.changed_networkport.asset.datacenter:
             message += ('CONFLICT: ' + 'Connections must be in the same datacenter.' + '\n')
         if instance.changed_networkport.connection.connection is not None and instance.changed_networkport.connection.connection.id is not instance.changed_networkport.id:
-                message += ('CONFLICT: ' +
-                            '{} is already connected to {} on {}'.format(
-                                instance.changed_networkport.connection.asset,
-                                instance.changed_networkport.connection.connection.asset,
-                                instance.changed_networkport.connection.label.name
-                            ) + '\n')
+            message += ('CONFLICT: ' +
+                        '{} is already connected to {} on {}'.format(
+                            instance.changed_networkport.connection.asset,
+                            instance.changed_networkport.connection.connection.asset,
+                            instance.changed_networkport.connection.label.name
+                        ) + '\n')
 
     instance.message = message
 
