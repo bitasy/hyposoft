@@ -35,7 +35,9 @@ import ChangePlanList from "./management/ChangePlan/ChangePlanList";
 import CreateChangePlan from "./management/ChangePlan/CreateChangePlan";
 import ChangePlanDetail from "./management/ChangePlan/ChangePlanDetail";
 import useTrigger from "./utility/useTrigger";
-// import ModelImportPage from "./management/Import/ModelImportPage";
+import ModelImportPage from "./management/Import/ModelImportPage";
+import AssetImportPage from "./management/Import/AssetImportPage";
+import NetworkImportPage from "./management/Import/NetworkImportPage";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -131,9 +133,11 @@ function App() {
         const { id, name } = cp;
         sessionStorage.setItem(CHANGE_PLAN_SESSION_KEY, id);
         sessionStorage.setItem(CHANGE_PLAN_NAME_SESSION_KEY, name);
+        setChangePlan(cp);
       } else {
         sessionStorage.removeItem(CHANGE_PLAN_SESSION_KEY);
         sessionStorage.removeItem(CHANGE_PLAN_NAME_SESSION_KEY);
+        setChangePlan(null);
       }
     },
     refreshTrigger: cpTrigger,
@@ -198,9 +202,15 @@ function App() {
                       <Route exact path="/changeplan/:id">
                         <ChangePlanDetail />
                       </Route>
-                      {/* <Route exact path="/import/model">
+                      <Route exact path="/import/model">
                         <ModelImportPage />
-                      </Route> */}
+                      </Route>
+                      <Route exact path="/import/asset">
+                        <AssetImportPage />
+                      </Route>
+                      <Route exact path="/import/network">
+                        <NetworkImportPage />
+                      </Route>
                       <Route>
                         <LandingPage />
                       </Route>
