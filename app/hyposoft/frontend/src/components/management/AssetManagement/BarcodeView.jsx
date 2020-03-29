@@ -82,6 +82,8 @@ function BarcodeView({ r }) {
 
     //const barcodeSplit = partition(assetIDs, BARCODES_IN_ROW);
     const barcodeSplit = partition(testAssetIDs, BARCODES_IN_ROW);
+
+    //TODO: fix iterator for assetIDs array
     let counter = 0;
 
     return (
