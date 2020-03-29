@@ -4,6 +4,8 @@ import {
   getData,
   makeQueryString,
   withLoading,
+  processModelQuery,
+  processAssetQuery,
 } from "./utils";
 
 export function importModels(buf, force) {
@@ -13,13 +15,18 @@ export function importModels(buf, force) {
         force: force,
       })}`,
       buf,
+      {
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      },
     ).then(getData),
   );
 }
 
 export function exportModels(query) {
   return Axios.get(
-    `api/export/ITModel?${makeQueryString(query)}`,
+    `api/export/ITModel.csv?${makeQueryString(processModelQuery(query))}`,
   )
     .then(getData)
     .then(data => jfd(data, "models.csv"));
@@ -32,32 +39,42 @@ export function importAssets(buf, force) {
         force: force,
       })}`,
       buf,
+      {
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      },
     ).then(getData),
   );
 }
 
 export function exportAssets(query) {
   return Axios.get(
-    `api/export/Asset?${makeQueryString(query)}`,
+    `api/export/Asset.csv?${makeQueryString(processAssetQuery(query))}`,
   )
     .then(getData)
     .then(data => jfd(data, "assets.csv"));
 }
 
-export function importModels(buf, force) {
+export function importNetwork(buf, force) {
   return withLoading(() =>
     Axios.post(
       `api/import/Network?${makeQueryString({
         force: force,
       })}`,
       buf,
+      {
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      },
     ).then(getData),
   );
 }
 
-export function exportModels(query) {
+export function exportNetwork(query) {
   return Axios.get(
-    `api/export/Network?${makeQueryString(query)}`,
+    `api/export/Network.csv?${makeQueryString(processAssetQuery(query))}`,
   )
     .then(getData)
     .then(data => jfd(data, "networks.csv"));

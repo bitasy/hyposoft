@@ -1,10 +1,12 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination } from "antd";
+import { Table, Pagination, Button } from "antd";
 import ModelListFooter from "./ModelListFooter";
 import ModelFilters from "./ModelFilters";
 import { useHistory } from "react-router-dom";
 import { getModelList } from "../../../../api/model";
+import VSpace from "../../../utility/VSpace";
+import { exportModels } from "../../../../api/bulk";
 
 const ModelTable = styled(Table)`
   :hover {
@@ -81,17 +83,13 @@ const initialFilterValues = {
 function ModelList({ noCreate }) {
   const history = useHistory();
 
-  const [filterValues, setFilterValues] = React.useState(
-    initialFilterValues,
-  );
+  const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [total, setTotal] = React.useState(0);
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [data, setData] = React.useState([]);
   const [ordering, setOrdering] = React.useState(undefined);
-  const [direction, setDirection] = React.useState(
-    undefined,
-  );
+  const [direction, setDirection] = React.useState(undefined);
 
   const realm = React.useRef(0);
 
@@ -155,16 +153,32 @@ function ModelList({ noCreate }) {
     return { onClick };
   }
 
+  function handleExport() {
+    exportModels({
+      search: filterValues.search,
+      page,
+      page_size: pageSize,
+      height_min: filterValues.height[0],
+      height_max: filterValues.height[1],
+      network_port_min: filterValues.network_ports[0],
+      network_port_max: filterValues.network_ports[1],
+      power_port_min: filterValues.power_ports[0],
+      power_port_max: filterValues.power_ports[1],
+      ordering,
+      direction,
+    });
+  }
+
   return (
     <>
       <ModelFilters
         initialFilterValues={initialFilterValues}
         onChange={setFilterValues}
       />
-      <Pagination
-        {...paginationConfig}
-        style={{ margin: "8px 0" }}
-      />
+      <VSpace height="8px" />
+      <Button onClick={handleExport}>Export</Button>
+      <VSpace height="8px" />
+      <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <ModelTable
         rowKey={r => r.id}
         columns={modelColumns}
