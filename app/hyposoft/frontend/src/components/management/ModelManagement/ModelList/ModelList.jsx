@@ -176,7 +176,13 @@ function ModelList({ noCreate }) {
         onChange={setFilterValues}
       />
       <VSpace height="8px" />
-      <Button onClick={handleExport}>Export</Button>
+      <Button
+        onClick={() => history.push("/import/model")}
+        style={{ marginRight: 8 }}
+      >
+        Import Models
+      </Button>
+      <Button onClick={handleExport}>Export Models</Button>
       <VSpace height="8px" />
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <ModelTable

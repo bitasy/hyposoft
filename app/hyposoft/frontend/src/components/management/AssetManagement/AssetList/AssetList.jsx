@@ -154,8 +154,19 @@ function AssetList({ modelID }) {
             onChange={setFilterValues}
           />
           <VSpace height="8px" />
-          <Button onClick={handleAssetExport} style={{ marginRight: 8 }}>
-            Export Assets
+          <Button
+            onClick={() => history.push("/import/asset")}
+            style={{ marginRight: 8 }}
+          >
+            Import Assets
+          </Button>
+          <Button onClick={handleAssetExport}>Export Assets</Button>
+          <VSpace height="8px" />
+          <Button
+            onClick={() => history.push("/import/network")}
+            style={{ marginRight: 8 }}
+          >
+            Import Network
           </Button>
           <Button onClick={handleNetworkExport}>Export Network</Button>
           <VSpace height="8px" />

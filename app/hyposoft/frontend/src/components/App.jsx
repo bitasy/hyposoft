@@ -36,6 +36,8 @@ import CreateChangePlan from "./management/ChangePlan/CreateChangePlan";
 import ChangePlanDetail from "./management/ChangePlan/ChangePlanDetail";
 import useTrigger from "./utility/useTrigger";
 import ModelImportPage from "./management/Import/ModelImportPage";
+import AssetImportPage from "./management/Import/AssetImportPage";
+import NetworkImportPage from "./management/Import/NetworkImportPage";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -200,6 +202,12 @@ function App() {
                       </Route>
                       <Route exact path="/import/model">
                         <ModelImportPage />
+                      </Route>
+                      <Route exact path="/import/asset">
+                        <AssetImportPage />
+                      </Route>
+                      <Route exact path="/import/network">
+                        <NetworkImportPage />
                       </Route>
                       <Route>
                         <LandingPage />

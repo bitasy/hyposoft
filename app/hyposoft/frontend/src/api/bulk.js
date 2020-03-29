@@ -8,16 +8,16 @@ import {
   processAssetQuery,
 } from "./utils";
 
-export function importModels(buf, force) {
+export function importModels(formData, force) {
   return withLoading(() =>
     Axios.post(
       `api/import/ITModel?${makeQueryString({
         force: force,
       })}`,
-      buf,
+      formData,
       {
         headers: {
-          "Content-Type": "application/octet-stream",
+          "Content-Type": "multipart/form-data",
         },
       },
     ).then(getData),
@@ -32,16 +32,16 @@ export function exportModels(query) {
     .then(data => jfd(data, "models.csv"));
 }
 
-export function importAssets(buf, force) {
+export function importAssets(formData, force) {
   return withLoading(() =>
     Axios.post(
       `api/import/Asset?${makeQueryString({
         force: force,
       })}`,
-      buf,
+      formData,
       {
         headers: {
-          "Content-Type": "application/octet-stream",
+          "Content-Type": "multipart/form-data",
         },
       },
     ).then(getData),
@@ -56,16 +56,16 @@ export function exportAssets(query) {
     .then(data => jfd(data, "assets.csv"));
 }
 
-export function importNetwork(buf, force) {
+export function importNetwork(formData, force) {
   return withLoading(() =>
     Axios.post(
       `api/import/Network?${makeQueryString({
         force: force,
       })}`,
-      buf,
+      formData,
       {
         headers: {
-          "Content-Type": "application/octet-stream",
+          "Content-Type": "multipart/form-data",
         },
       },
     ).then(getData),
