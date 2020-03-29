@@ -13,7 +13,13 @@ from import_export.widgets import ForeignKeyWidget
 import re
 
 
-class ITModelResource(resources.ModelResource):
+class VersionedResource(resources.ModelResource):
+    def __init__(self, version):
+        super(VersionedResource, self).__init__()
+        self.version = version
+
+
+class ITModelResource(VersionedResource):
 
     network_port_name_1 = fields.Field()
     network_port_name_2 = fields.Field()
@@ -74,13 +80,13 @@ class ITModelResource(resources.ModelResource):
     def after_import_row(self, row, row_result, **kwargs):
         my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
         my_network_ports = int(row['network_ports'])
-        current = [label['name'] for label in ITModel.objects.first().networkportlabel_set.order_by('order').values()]
+        current = [label['name'] for label in my_model.networkportlabel_set.order_by('order').values()]
         if len(current) > my_network_ports >= 4:
             raise ValidationError(
                 'Cannot decrease amount of network ports.'
             )
 
-        my_model.networkportlabel_set.delete()
+        my_model.networkportlabel_set.all().delete()
 
         special = []
         for i in range(1, min(5, my_network_ports + 1)):
@@ -89,7 +95,7 @@ class ITModelResource(resources.ModelResource):
         create_itmodel_extra(my_model, special + current)
 
 
-class AssetResource(resources.ModelResource):
+class AssetResource(VersionedResource):
 
     class RackForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
@@ -173,13 +179,15 @@ class AssetResource(resources.ModelResource):
         clean_model_instances = True
 
     def before_import_row(self, row, **kwargs):
-        if row['asset_number'] == '':
+        if row['asset_number'] == '' and self.version == 0:
             try:
                 exists = Asset.objects.get(hostname=row['hostname'])
                 row['asset_number'] = exists.asset_number
             except:
                 max_an = Asset.objects.all().aggregate(Max('asset_number'))
                 row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
+        elif row['asset_number'] == '':
+            row['asset_number'] = None
 
     def after_import_row(self, row, row_result, **kwargs):
         my_asset = Asset.objects.get(asset_number=row['asset_number']) #todo handle change plan?

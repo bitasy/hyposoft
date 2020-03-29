@@ -1,11 +1,13 @@
 from django.core.exceptions import ValidationError
-from import_export import resources, fields
+from import_export import fields
 from equipment.models import Asset
 from network.models import NetworkPortLabel, NetworkPort
 from import_export.widgets import ForeignKeyWidget
 
+from equipment.resources import VersionedResource
 
-class NetworkPortResource(resources.ModelResource):
+
+class NetworkPortResource(VersionedResource):
 
     class SrcAssetForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
