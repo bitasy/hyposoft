@@ -8,7 +8,7 @@ from equipment.models import Rack
 class PowerPortList(views.APIView):
     def get(self, request, **kwargs):
         data = []
-        rack = Rack.objects.get(id=request.query_params['rack'])
+        rack = Rack.objects.get(id=request.query_params['rack_id'])
         for pdu in rack.pdu_set.all():
             for i in range(1, 25):
                 asset = pdu.powered_set.filter(plug_number=i).first()

@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from network.handlers import net_graph
-from hyposoft.utils import get_version
+from hyposoft.utils import get_version, versioned_queryset, versioned_object
 from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPort, NetworkPortLabel
@@ -141,8 +141,9 @@ class AssetEntrySerializer(serializers.ModelSerializer):
             if pdu.networked:
                 networked = True
                 break
-        permission = self.context['request'].user == instance.owner
-        data['power_action_visible'] = permission and networked and instance.commissioned is not None
+        permission = self.context['request'].user == instance.owner #todo implement this correctly
+        data['power_action_visible'] = \
+            permission and networked and instance.commissioned is not None and instance.version.id == 0
 
         return data
 
@@ -214,19 +215,26 @@ class AssetSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super(AssetSerializer, self).to_representation(instance)
         connections = Powered.objects.filter(asset=instance)
+        ports = NetworkPort.objects.filter(asset=instance)
+        if instance.version.id != 0:
+            live = versioned_object(instance, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
+            if live:
+                connections = connections.union(Powered.objects.filter(asset=live))
+                ports = ports.union(NetworkPort.objects.filter(asset=live))
+            connections = versioned_queryset(connections, instance.version, Powered.IDENTITY_FIELDS)
+            ports = versioned_queryset(ports, instance.version, NetworkPort.IDENTITY_FIELDS)
         data['power_connections'] = [
             {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
             connections.values('pdu', 'plug_number')]
-        ports = NetworkPort.objects.filter(asset=instance)
         data['network_ports'] = [
             dict(**{'label': port.pop('label__name')}, **port)
-            for port in ports.values('label__name', 'mac_address', 'connection')
+            for port in ports.values('id', 'label__name', 'mac_address', 'connection')
         ]
         data['decommissioned'] = not instance.commissioned
         update_asset_power(instance)
         networked = instance.pdu_set.filter(networked=True)
         data['network_graph'] = net_graph(instance.id)
-        if networked.exists():
+        if networked.exists() and instance.version.id == 0:
             for pdu in networked:
                 if pdu.powered_set.filter(asset=instance, on=True).exists():
                     data['power_state'] = "On"
@@ -237,7 +245,7 @@ class AssetSerializer(serializers.ModelSerializer):
         return data
 
     def validate_asset_number(self, value):
-        if value is None:
+        if value is None and get_version(self.context['request']) == 0:
             max_an = Asset.objects.all().aggregate(Max('asset_number'))
             asset_number = (max_an['asset_number__max'] or 100000) + 1
             return asset_number
@@ -255,22 +263,11 @@ class AssetDetailSerializer(AssetSerializer):
 
     def to_representation(self, instance):
         data = super(AssetDetailSerializer, self).to_representation(instance)
-        connections = Powered.objects.filter(asset=instance)
-        data['power_connections'] = [
-            {'pdu_id': conn['pdu'],
-             'plug': conn['plug_number'],
-             'label': conn['pdu__position'] + str(conn['plug_number'])}
-            for conn in connections.values('pdu', 'pdu__position', 'plug_number')]
-        ports = NetworkPort.objects.filter(asset=instance)
-        data['network_ports'] = [
-            dict(
-                id=port['id'],
-                label=port['label__name'],
-                mac_address=port['mac_address'],
-                connection=port['connection'],
-                connection_str=str(instance) + " — " + port['label__name']
-            ) for port in ports.values('id', 'mac_address', 'connection', 'label__name')
-        ]
+        for i, connection in enumerate(data['power_connections']):
+            pdu = PDU.objects.get(id=connection['pdu_id'])
+            data['power_connections'][i]['label'] = pdu.position + str(connection['plug'])
+        for i, port in enumerate(data['network_ports']):
+            data['network_ports'][i]['connection_str'] = str(instance) + " — " + port['label']
         data['network_graph'] = net_graph(instance.id)
         return data
 

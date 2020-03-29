@@ -14,8 +14,9 @@ class ChangePlan(models.Model):
     executed = models.BooleanField(
         default=False
     )
-    time_executed = models.DateTimeField(
-        null=True
+    executed_at = models.DateTimeField(
+        null=True,
+        blank=True
     )
     auto_created = models.BooleanField(
         # This field is used to track changesets that are

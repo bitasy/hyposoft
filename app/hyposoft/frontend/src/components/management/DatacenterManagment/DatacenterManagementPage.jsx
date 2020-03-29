@@ -185,11 +185,13 @@ function DatacenterManagementPage() {
 
   const [datacenters, setDatacenters] = React.useState([]);
   const [trigger, fireTrigger] = useTrigger();
+  const { datacenter, setDCByID, refresh } = useContext(DCContext);
+
   React.useEffect(() => {
     getDatacenters().then(setDatacenters);
+    refresh();
   }, [trigger]);
 
-  const { datacenter, setDCByID } = useContext(DCContext);
   const dcName = datacenter?.abbr;
 
   function handleUpdate({ id, name, abbr }) {

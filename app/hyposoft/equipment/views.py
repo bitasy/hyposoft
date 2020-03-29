@@ -3,8 +3,9 @@ from django.db.models import ProtectedError
 from django.utils import timezone
 from rest_framework import generics, views, status
 from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 
-from hyposoft.utils import generate_racks
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra
 from .serializers import *
@@ -26,6 +27,16 @@ class ITModelCreate(CreateAndLogMixin, generics.CreateAPIView):
 class AssetCreate(CreateAndLogMixin, generics.CreateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+
+    def create(self, request, *args, **kwargs):
+        version = ChangePlan.objects.get(id=get_version(request))
+        if version.id != 0:
+            rack = Rack.objects.get(id=request.data['rack'])
+            versioned_rack = versioned_object(rack, version, Rack.IDENTITY_FIELDS)
+            if not versioned_rack:
+                versioned_rack = add_rack(rack, version)
+            request.data['rack'] = versioned_rack.id
+        return super(AssetCreate, self).create(request, *args, **kwargs)
 
 
 class RackRangeCreate(views.APIView):
@@ -53,14 +64,14 @@ class RackRangeCreate(views.APIView):
                 create_rack_extra(new, version)
                 created.append(new)
             except IntegrityError:
-                warns.append(rack + " already exists.")
+                warns.append(rack + ' already exists.')
             except Exception as e:
                 err.append(str(e))
 
         return Response({
-            "created": [RackSerializer(rack).data for rack in created],
-            "warn": warns,
-            "err": err
+            'created': [RackSerializer(rack).data for rack in created],
+            'warn': warns,
+            'err': err
         })
 
 
@@ -72,6 +83,35 @@ class ITModelUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
 class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
+
+    def update(self, request, *args, **kwargs):
+        version = ChangePlan.objects.get(id=get_version(request))
+        asset = self.get_object()
+        asset_ver = asset.version
+        if version != asset_ver:
+            data = request.data
+            rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
+            if not rack:
+                rack = add_rack(asset.rack, version)
+            old_pdus = {port['id']: port['position']
+                        for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
+            new_pdus = {port['position']: port['id']
+                        for port in rack.pdu_set.order_by('position').values('id', 'position')}
+            data['rack'] = rack.id
+            for i, port in enumerate(request.data['power_connections']):
+                data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[port['id']]]
+
+            for i, port in enumerate(request.data['network_ports']):
+                if port['connection'] is not None:
+                    versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
+                    data['network_ports'][i]['connection'] = versioned_conn.id
+
+            serializer = AssetSerializer(data=data, context={'request': request, 'version': version})
+            serializer.save()
+            return Response(data=serializer.data, status=HTTP_200_OK)
+
+        else:
+            return super(AssetUpdate, self).update(request, *args, **kwargs)
 
 
 class DatacenterUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
@@ -124,7 +164,7 @@ class RackRangeDestroy(views.APIView):
                 rack.delete()
                 removed.append(rack_id)
             except Rack.DoesNotExist:
-                warns.append(rackname + " does not exist: rack skipped.")
+                warns.append(rackname + ' does not exist: rack skipped.')
             except ProtectedError as e:
                 decommission = True
                 for asset in e.args[1]:
@@ -134,17 +174,17 @@ class RackRangeDestroy(views.APIView):
                 if decommission:
                     rack.decommissioned = True
                     rack.save()
-                    warns.append("Decommissioned assets exist on " + rackname + ": rack decommissioned.")
+                    warns.append('Decommissioned assets exist on ' + rackname + ': rack decommissioned.')
                 else:
-                    err.append("Assets exist on " + rackname + ": rack skipped.")
+                    err.append('Assets exist on ' + rackname + ': rack skipped.')
             except Exception as e:
                 logging.exception(e, exc_info=True)
-                err.append("Unexpected error when deleting " + rackname + ".")
+                err.append('Unexpected error when deleting ' + rackname + '.')
 
         return Response({
-            "removed": removed,
-            "warn": warns,
-            "err": err
+            'removed': removed,
+            'warn': warns,
+            'err': err
         })
 
 
@@ -179,7 +219,7 @@ class DecommissionAsset(views.APIView):
 
             change_plan = ChangePlan.objects.create(
                 owner=user,
-                name="_DECOMMISSION_" + str(asset.asset_number),
+                name='_DECOMMISSION_' + str(asset.asset_number),
                 executed=version.executed,
                 time_executed=now,
                 auto_created=True,
@@ -189,34 +229,20 @@ class DecommissionAsset(views.APIView):
             # Freeze Asset - Copy all data to new change plan
             # Requires resetting of all foreign keys
 
-            def add_rack(rack):
-                rack.id = None
-                rack.version = change_plan
-                rack.save()
-                return rack
-
             old_rack = Rack.objects.get(id=asset.rack.id)
-            rack = add_rack(asset.rack)
-
             old_asset = Asset.objects.get(id=asset.id)
 
-            def add_asset(prev_asset, new_rack):
-                prev_asset.id = None
-                prev_asset.version = change_plan
-                prev_asset.rack = new_rack
-                prev_asset.save()
-                return prev_asset
-
-            asset = add_asset(asset, rack)
+            asset = add_asset(asset, change_plan)
+            rack = asset.rack
             asset.commissioned = None
             asset.decommissioned_by = user
             asset.decommissioned_timestamp = now
             asset.save()
 
             for asset in old_rack.asset_set.exclude(asset_number=old_asset.asset_number):
-                add_asset(asset, rack)
+                add_asset(asset, change_plan)
 
-            for pdu in old_rack.pdu_set.all():
+            for pdu in old_rack.pdu_set.filter(version=version):
                 old_pdu = PDU.objects.get(id=pdu.id)
                 pdu.id = None
                 pdu.rack = rack
@@ -224,7 +250,7 @@ class DecommissionAsset(views.APIView):
                 pdu.version = change_plan
                 pdu.save()
 
-                for power in old_pdu.powered_set.all():
+                for power in old_pdu.powered_set.filter(version=version):
                     power.id = None
                     power.pdu = pdu
                     power.asset = Asset.objects.get(asset_number=power.asset.asset_number, version=change_plan)
@@ -273,13 +299,13 @@ class DecommissionAsset(views.APIView):
 
             log_decommission(self, old_asset)
 
-            response = AssetDetailSerializer(asset, context={"request": request, "version": 0})
+            response = AssetDetailSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)
         except Asset.DoesNotExist:
             raise serializers.ValidationError(
-                "Asset does not exist."
+                'Asset does not exist.'
             )
         except ChangePlan.DoesNotExist:
             raise serializers.ValidationError(
-                "Change Plan does not exist."
+                'Change Plan does not exist.'
             )

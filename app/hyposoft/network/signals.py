@@ -16,14 +16,18 @@ def check_connection(sender, instance, *args, **kwargs):
             raise serializers.ValidationError(
                 "Connections must be in the same datacenter.")
 
-        if instance.connection.connection is not None and instance.connection.connection.id is not instance.id:
-            raise serializers.ValidationError(
-                "{} is already connected to {} on {}".format(
-                    instance.connection.asset,
-                    instance.connection.connection.asset,
-                    instance.connection.label.name
+        try:
+            other = instance.connection.connection
+            if other and other.id is not instance.id:
+                raise serializers.ValidationError(
+                    "{} is already connected to {} on {}".format(
+                        instance.connection.asset,
+                        instance.connection.connection.asset,
+                        instance.connection.label.name
+                    )
                 )
-            )
+        except NetworkPort.DoesNotExist:
+            pass
 
     old = NetworkPort.objects.filter(id=instance.id).first()
     if old and old.connection is not None:
@@ -33,7 +37,12 @@ def check_connection(sender, instance, *args, **kwargs):
 @receiver(post_save, sender=NetworkPort)
 def set_connection(sender, instance, *args, **kwargs):
     if instance.connection:
-        if instance.connection.connection is None or instance.connection.connection.id is not instance.id:
+        try:
+            other = instance.connection.connection
+            if not other or other.id is not instance.id:
+                instance.connection.connection = instance
+                instance.connection.save()
+        except NetworkPort.DoesNotExist:
             instance.connection.connection = instance
             instance.connection.save()
 
