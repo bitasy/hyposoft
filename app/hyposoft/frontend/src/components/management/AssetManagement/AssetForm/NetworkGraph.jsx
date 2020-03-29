@@ -25,14 +25,12 @@ const options = {
   },
 };
 
-const MAIN_COLOR = "#e04141";
-const OTHER_COLOR = "#7be041";
-
 const events = {
   select: ({ nodes }) => {
     const node = nodes[0];
     if (node) {
       window.location.href = `/#/assets/${node}`;
+      window.location.reload();
     }
   },
 };

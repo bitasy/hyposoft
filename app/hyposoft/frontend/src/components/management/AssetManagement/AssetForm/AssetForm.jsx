@@ -14,7 +14,6 @@ import { getDatacenters } from "../../../../api/datacenter";
 import { getUserList } from "../../../../api/auth";
 import { getRackList } from "../../../../api/rack";
 import {
-  networkPortList,
   getAsset,
   createAsset,
   updateAsset,
@@ -28,11 +27,15 @@ import RackSelect from "./RackSelect";
 import NetworkGraph from "./NetworkGraph";
 import NetworkPortSelect from "./NetworkPortSelect";
 import { powerPortList } from "../../../../api/power";
+import { useHistory, useLocation } from "react-router-dom";
 import FormDebugger from "../../../utility/formik/FormDebugger";
-import { useHistory } from "react-router-dom";
+import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 
 function AssetForm({ id }) {
   const history = useHistory();
+  const query = Object.fromEntries(
+    new URLSearchParams(useLocation().search).entries(),
+  );
 
   const { user } = React.useContext(AuthContext);
   const isAdmin = user?.is_staff;
@@ -43,7 +46,6 @@ function AssetForm({ id }) {
   const [dcList, setDCList] = useState([]);
   const [rackList, setRackList] = useState([]);
   const [powerPorts, setPowerPorts] = useState([]);
-  const [networkPorts, setNetworkPorts] = useState([]);
   const [users, setUsers] = useState([]);
 
   React.useEffect(() => {
@@ -77,10 +79,7 @@ function AssetForm({ id }) {
   function handleDCSelect(id) {
     const dcName = dcList.find(dc => dc.id == id)?.abbr;
     if (dcName) {
-      return Promise.all([
-        getRackList(dcName).then(setRackList),
-        networkPortList(dcName, { asset_id: asset?.id }).then(setNetworkPorts),
-      ]);
+      return getRackList(dcName).then(setRackList);
     } else {
       return Promise.resolve();
     }
@@ -97,8 +96,9 @@ function AssetForm({ id }) {
     history.push("/assets");
   }
 
-  function handleUpdate(fields) {
-    updateAsset(id, fields);
+  async function handleUpdate(fields) {
+    await updateAsset(id, fields);
+    window.location.reload();
   }
 
   async function handleDelete() {
@@ -109,11 +109,19 @@ function AssetForm({ id }) {
   return asset ? (
     <DisableContext.Provider value={!isAdmin}>
       <div>
+        {asset.power_state != null && (
+          <div>
+            <NetworkPowerActionButtons assetID={id} displayState />
+            <VSpace height="16px" />
+          </div>
+        )}
         <Row>
           <Col md={8}>
             <Formik
               validationSchema={schema}
               initialValues={asset}
+              initialErrors={query}
+              initialTouched={query}
               onSubmit={id ? handleUpdate : handleCreate}
             >
               <Form>
@@ -157,12 +165,8 @@ function AssetForm({ id }) {
                   <PowerPortSelect powerPorts={powerPorts} />
                 </ItemWithLabel>
 
-                <ItemWithLabel name="network_ports" label="Network ports">
-                  <NetworkPortSelect
-                    selectedModel={selectedModel}
-                    networkPorts={networkPorts}
-                    asset={asset}
-                  />
+                <ItemWithLabel name="network_ports" label="Network ports" flip>
+                  <NetworkPortSelect selectedModel={selectedModel} />
                 </ItemWithLabel>
 
                 <ItemWithLabel name="owner" label="Owner">
@@ -190,7 +194,6 @@ function AssetForm({ id }) {
                     </Button>
                   </>
                 )}
-                <FormDebugger />
               </Form>
             </Formik>
           </Col>

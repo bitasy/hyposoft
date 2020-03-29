@@ -29,12 +29,20 @@ export const CHANGE_PLAN_NAME_SESSION_KEY = "CHANGE_PLAN_NAME";
 
 import { getCurrentUser } from "../api/auth";
 import { getDatacenters } from "../api/datacenter";
+import Testing from "./utility/Testing";
+import WorkOrderPage from "./management/ChangePlan/WorkOrderPage";
+import ChangePlanList from "./management/ChangePlan/ChangePlanList";
+import CreateChangePlan from "./management/ChangePlan/CreateChangePlan";
+import ChangePlanDetail from "./management/ChangePlan/ChangePlanDetail";
+import useTrigger from "./utility/useTrigger";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
   const [currentUser, setCurrentUser] = React.useState(null);
   const [datacenter, setDatacenter] = React.useState(null);
+  const [dcTrigger, fireDCTrigger] = useTrigger();
   const [changePlan, setChangePlan] = React.useState(null);
+  const [cpTrigger, fireCPTrigger] = useTrigger();
 
   React.useEffect(() => {
     (async () => {
@@ -64,7 +72,7 @@ function App() {
     const name = sessionStorage.getItem(CHANGE_PLAN_NAME_SESSION_KEY);
     const cp = id && name ? { id, name } : null;
     setChangePlan(cp);
-  });
+  }, []);
 
   if (loading) {
     return <div />;
@@ -111,6 +119,8 @@ function App() {
       sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
       setDatacenter(null);
     },
+    refreshTrigger: dcTrigger,
+    refresh: fireDCTrigger,
   };
 
   const cpContextValue = {
@@ -125,6 +135,8 @@ function App() {
         sessionStorage.removeItem(CHANGE_PLAN_NAME_SESSION_KEY);
       }
     },
+    refreshTrigger: cpTrigger,
+    refresh: fireCPTrigger,
   };
 
   return (
@@ -134,8 +146,14 @@ function App() {
           {currentUser ? (
             <Router>
               <Switch>
+                <Route exact path="/testing">
+                  <Testing />
+                </Route>
                 <Route exact path="/racks/print_view">
                   <RackView />
+                </Route>
+                <Route exact path="/changeplan/workorder">
+                  <WorkOrderPage />
                 </Route>
                 <Route>
                   <ManagementPageFrame>
@@ -169,6 +187,15 @@ function App() {
                       </Route>
                       <Route exact path="/logs">
                         <LogManagementPage />
+                      </Route>
+                      <Route exact path="/changeplan">
+                        <ChangePlanList />
+                      </Route>
+                      <Route exact path="/changeplan/create">
+                        <CreateChangePlan />
+                      </Route>
+                      <Route exact path="/changeplan/:id">
+                        <ChangePlanDetail />
                       </Route>
                       <Route>
                         <LandingPage />

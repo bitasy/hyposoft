@@ -94,8 +94,9 @@ export function deleteAsset(id) {
   );
 }
 
-export function networkPortList(dcName, query) {
-  return Axios.get(`api/network/NetworkPortList?${makeQueryString(query)}`, {
-    headers: makeHeaders({ dcName }),
-  }).then(getData);
+export function networkPortList(assetID) {
+  return Axios.get(
+    `api/network/NetworkPortList?${makeQueryString({ asset_id: assetID })}`,
+    { headers: makeHeaders() },
+  ).then(getData);
 }

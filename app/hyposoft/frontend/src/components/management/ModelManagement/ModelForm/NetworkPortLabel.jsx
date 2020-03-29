@@ -43,6 +43,7 @@ function NetworkPortLabelFormItem({ name }) {
             name={innerName}
             key={idx}
             label={`Network port label #${idx}`}
+            slim
           >
             <Input name={innerName} />
           </ItemWithLabel>

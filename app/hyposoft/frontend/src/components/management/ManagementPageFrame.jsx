@@ -12,26 +12,49 @@ import {
   BarsOutlined,
   UserOutlined,
   InboxOutlined,
+  PullRequestOutlined,
 } from "@ant-design/icons";
-import { AuthContext, DCContext } from "../../contexts/contexts";
+import {
+  AuthContext,
+  DCContext,
+  ChangePlanContext,
+} from "../../contexts/contexts";
 import HGreed from "../utility/HGreed";
 import { getDatacenters } from "../../api/datacenter";
+import { getChangePlanList } from "../../api/changeplan";
 import { logout } from "../../api/auth";
 
 const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const { user } = useContext(AuthContext);
-  const { datacenter, setDCByID } = useContext(DCContext);
+  const {
+    datacenter,
+    setDCByID,
+    refreshTrigger: dcRefreshTrigger,
+  } = useContext(DCContext);
+  const {
+    changePlan,
+    setChangePlan,
+    refreshTrigger: cpRefreshTrigger,
+  } = useContext(ChangePlanContext);
 
+  const [changePlans, setChangePlans] = useState([]);
   const [datacenters, setDatacenters] = useState([]);
 
   React.useEffect(() => {
-    (async () => {
-      const dcs = await getDatacenters();
-      setDatacenters(dcs);
-    })();
-  }, []);
+    getDatacenters().then(setDatacenters);
+  }, [dcRefreshTrigger]);
+
+  React.useEffect(() => {
+    getChangePlanList().then(cps => {
+      setChangePlans(
+        cps.map(({ id, name }) => {
+          return { id, name };
+        }),
+      );
+    });
+  }, [cpRefreshTrigger]);
 
   const isAdmin = user.is_staff;
   const selectedDCID = datacenter?.id ?? -1;
@@ -60,13 +83,25 @@ function ManagementPageFrame({ children }) {
           <HGreed />
           <Col style={{ paddingRight: 24 }}>
             <Select
+              value={JSON.stringify(changePlan ?? null)}
+              onChange={v => {
+                setChangePlan(JSON.parse(v));
+              }}
+              style={{ width: 250, marginRight: 8 }}
+            >
+              <Select.Option value="null">LIVE DATA</Select.Option>
+              {changePlans.map((cp, idx) => (
+                <Select.Option key={idx} value={JSON.stringify(cp)}>
+                  {cp.name}
+                </Select.Option>
+              ))}
+            </Select>
+            <Select
               value={selectedDCID}
               onChange={setDCByID}
               style={{ width: 250, marginRight: 8 }}
             >
-              <Select.Option value={-1} title="Global">
-                Global
-              </Select.Option>
+              <Select.Option value={-1}>Global</Select.Option>
               {datacenters.map((ds, idx) => (
                 <Select.Option
                   key={idx}
@@ -155,6 +190,11 @@ function Sidebar() {
       <Menu.Item key="/logs">
         <BarsOutlined />
         <span>Logs</span>
+      </Menu.Item>
+
+      <Menu.Item key="/changeplan">
+        <PullRequestOutlined />
+        <span>Change Plans</span>
       </Menu.Item>
 
       {isAdmin ? (

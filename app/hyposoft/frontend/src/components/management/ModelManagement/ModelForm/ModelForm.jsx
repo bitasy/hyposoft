@@ -127,6 +127,10 @@ function ModelForm({ id }) {
           </ItemWithLabel>
 
           <ItemWithLabel name="memory" label="Memory">
+            <InputNumber name="memory" />
+          </ItemWithLabel>
+
+          <ItemWithLabel name="storage" label="Storage">
             <Input name="storage" />
           </ItemWithLabel>
 
