@@ -54,9 +54,6 @@ def assetdiff_message(sender, instance, *args, **kwargs):
                     str(instance.changed_asset.itmodel.vendor) + '\n')
         message += ('OWNER: ' + str(instance.changed_asset.user.username) + '\n')
         message += ('COMMENT: ' + str(instance.changed_asset.comment) + '\n')
-        message += ('COMMISSIONED: ' + str(instance.changed_asset.commissioned) + '\n')
-        message += ('DECOMMISSIONED TIMESTAMP: ' + str(instance.changed_asset.decommissioned_timestamp) + '\n')
-        message += ('DECOMMISSIONED BY: ' + str(instance.changed_asset.decommissioned_by.username) + '\n')
 
     blocked = Asset.objects.filter(
         rack=instance.changed_asset.rack,
