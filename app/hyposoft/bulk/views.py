@@ -113,8 +113,8 @@ class AssetImport(generics.CreateAPIView):
                 if len(errors) > 0:
                     return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
-                create_asset_diffs(changeplan)
-                create_powered_diffs(changeplan)
+                create_asset_diffs(changeplan,  get_version(request))
+                create_powered_diffs(changeplan,  get_version(request))
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()
@@ -166,7 +166,7 @@ class NetworkImport(generics.CreateAPIView):
                 if len(errors) > 0:
                     return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
-                create_networkport_diffs(changeplan)
+                create_networkport_diffs(changeplan,  get_version(request))
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()

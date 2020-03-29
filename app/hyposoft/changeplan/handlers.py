@@ -4,13 +4,13 @@ from power.models import Powered
 from .models import AssetDiff, NetworkPortDiff, PoweredDiff
 
 
-def create_asset_diffs(changeplan):
+def create_asset_diffs(changeplan, target):
     changed_assets = Asset.objects.filter(version=changeplan)
     for changed_asset in changed_assets:
         try:
             live_asset = Asset.objects.get(
                 asset_number=changed_asset.asset_number,
-                version_id=0
+                version=target
             )
             AssetDiff.objects.create(
                 changeplan=changeplan,
@@ -24,14 +24,14 @@ def create_asset_diffs(changeplan):
             )
 
 
-def create_networkport_diffs(changeplan):
+def create_networkport_diffs(changeplan, target):
     changed_networkports = NetworkPort.objects.filter(version=changeplan)
     for changed_networkport in changed_networkports:
         try:
             live_networkport = NetworkPort.objects.get(
                 asset=changed_networkport.asset,
                 label=changed_networkport.label,
-                version_id=0
+                version=target
             )
             NetworkPortDiff.objects.create(
                 changeplan=changeplan,
@@ -45,7 +45,7 @@ def create_networkport_diffs(changeplan):
             )
 
 
-def create_powered_diffs(changeplan):
+def create_powered_diffs(changeplan, target):
     changed_powereds = Powered.objects.filter(version=changeplan)
     for changed_powered in changed_powereds:
         try:
@@ -53,7 +53,7 @@ def create_powered_diffs(changeplan):
                 plug_number=changed_powered.plug_number,
                 pdu=changed_powered.pdu,
                 asset=changed_powered.asset,
-                version_id=0
+                version=target
             )
             PoweredDiff.objects.create(
                 changeplan=changeplan,

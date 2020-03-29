@@ -12,10 +12,11 @@ from .serializers import ChangePlanSerializer
 
 
 class AssetChangePlanDiff(views.APIView):
-    def get(self, request, name):
+    def get(self, request, name, target):
         changeplan = ChangePlan.objects.get(name=name)
+        live = ChangePlan.objects.get(name=target)
         if changeplan:
-            create_asset_diffs(changeplan)
+            create_asset_diffs(changeplan, live)
             asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
             diffs = [
                 {
@@ -33,10 +34,11 @@ class AssetChangePlanDiff(views.APIView):
 
 
 class NetworkPortChangePlanDiff(views.APIView):
-    def get(self, request, name):
+    def get(self, request, name, target):
         changeplan = ChangePlan.objects.get(name=name)
+        live = ChangePlan.objects.get(name=target)
         if changeplan:
-            create_networkport_diffs(changeplan)
+            create_networkport_diffs(changeplan, live)
             networkport_diffs = NetworkPortDiff.objects.filter(changeplan=changeplan)
             diffs = [
                 {
@@ -54,10 +56,11 @@ class NetworkPortChangePlanDiff(views.APIView):
 
 
 class PoweredChangePlanDiff(views.APIView):
-    def get(self, request, name):
+    def get(self, request, name, target):
         changeplan = ChangePlan.objects.get(name=name)
+        live = ChangePlan.objects.get(name=target)
         if changeplan:
-            create_powered_diffs(changeplan)
+            create_powered_diffs(changeplan, live)
             powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
             diffs = [
                 {
