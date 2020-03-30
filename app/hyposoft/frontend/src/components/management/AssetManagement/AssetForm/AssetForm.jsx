@@ -18,6 +18,7 @@ import {
   createAsset,
   updateAsset,
   deleteAsset,
+  decommissionAsset,
 } from "../../../../api/asset";
 import PowerPortSelect from "./PowerPortSelect";
 import { schema } from "./AssetSchema";
@@ -106,6 +107,11 @@ function AssetForm({ id }) {
     history.push("/assets");
   }
 
+  async function handleDecommission() {
+      await decommissionAsset(id);
+      history.push("/assets");
+  }
+
   return asset ? (
     <DisableContext.Provider value={!isAdmin}>
       <div>
@@ -184,6 +190,7 @@ function AssetForm({ id }) {
 
                 <SubmitButton ghost type="primary" block>
                   {id ? "Update" : "Create"}
+                  <VSpace height="16px" />
                 </SubmitButton>
 
                 {id && (
@@ -191,6 +198,15 @@ function AssetForm({ id }) {
                     <VSpace height="16px" />
                     <Button ghost type="danger" onClick={handleDelete} block>
                       Delete
+                    </Button>
+                    <VSpace height="16px" />
+                    <Button ghost type="primary" onClick={() => {
+                      if (confirm("You sure?")) {
+                        handleDecommission();
+                      }
+                    }} block>
+
+                      Decommission
                     </Button>
                   </>
                 )}

@@ -8,6 +8,7 @@ import { Button } from "antd";
 function AssetListFooter({ selectedAssets }) {
   const history = useHistory();
   const { user } = useContext(AuthContext);
+  console.log(user); //testing
 
   //TODO: fix permissions
   const createDisabled = !user?.is_staff;
@@ -27,7 +28,7 @@ function AssetListFooter({ selectedAssets }) {
     <div>
       <CreateTooltip
         isVisible={createDisabled}
-        tooltipText={"Only users with admin privileges can create a new item"}
+        tooltipText={"Must have asset management privileges"}
       >
         <Button onClick={onCreate} disabled={createDisabled}>
           <PlusOutlined />
