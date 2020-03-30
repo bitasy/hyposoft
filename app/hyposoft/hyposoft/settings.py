@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'hypo_auth',
     'network',
     'power',
+    'multiselectfield',
 ]
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True

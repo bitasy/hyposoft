@@ -49,7 +49,6 @@ class LogoutView(views.APIView):
             return JsonResponse({})
         
 
-
 class ShibbolethView(TemplateView):
     authentication_classes = []
     permission_classes = []
