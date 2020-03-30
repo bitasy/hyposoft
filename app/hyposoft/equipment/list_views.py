@@ -109,7 +109,8 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
 
 class AssetPickList(generics.ListAPIView):
     def get_queryset(self):
-        queryset = versioned_queryset(Asset.objects.all(), get_version(self.request), Asset.IDENTITY_FIELDS)
+        version = ChangePlan.objects.get(id=get_version(self.request))
+        queryset = versioned_queryset(Asset.objects.all(), version, Asset.IDENTITY_FIELDS)
         datacenter_id = self.request.query_params.get('datacenter_id', None)
         if datacenter_id is not None:
             queryset = queryset.filter(datacenter_id=datacenter_id)
