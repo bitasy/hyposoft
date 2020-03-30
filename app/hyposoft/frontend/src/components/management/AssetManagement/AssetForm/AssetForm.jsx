@@ -108,8 +108,8 @@ function AssetForm({ id }) {
   }
 
   async function handleDecommission() {
-    await decommissionAsset(id);
-    history.push("/assets");
+      await decommissionAsset(id);
+      history.push("/assets");
   }
 
   return asset ? (
@@ -200,7 +200,12 @@ function AssetForm({ id }) {
                       Delete
                     </Button>
                     <VSpace height="16px" />
-                    <Button ghost type="primary" onClick={handleDecommission} block>
+                    <Button ghost type="primary" onClick={() => {
+                      if (confirm("You sure?")) {
+                        handleDecommission();
+                      }
+                    }} block>
+
                       Decommission
                     </Button>
                   </>
