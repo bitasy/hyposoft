@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination, Button, Row, Col } from "antd";
+import { Table, Pagination, Button, Row, Col, Checkbox } from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
@@ -12,7 +12,6 @@ import VSpace from "../../../utility/VSpace";
 
 const AssetTable = styled(Table)`
   :hover {
-    cursor: pointer;
   }
 `;
 
@@ -47,7 +46,12 @@ export const assetColumns = [
     sorter: false,
     render: r => {
       return (
-        r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />
+        <div>
+          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
+            Details
+          </a>
+          {r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />}
+        </div>
       );
     },
   },
@@ -68,11 +72,12 @@ function AssetList({ modelID }) {
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize, setPageSize] = React.useState(100000);
   const [total, setTotal] = React.useState(0);
   const [data, setData] = React.useState([]);
   const [ordering, setOrdering] = React.useState(undefined);
   const [direction, setDirection] = React.useState(undefined);
+  const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of selected assets
 
   const realm = React.useRef(0);
 
@@ -105,6 +110,7 @@ function AssetList({ modelID }) {
     setPage(1);
   }, [filterValues, ordering, direction]);
 
+  //effectively no more pagination
   const paginationConfig = {
     position: "top",
     total,
@@ -132,10 +138,12 @@ function AssetList({ modelID }) {
     }
   }
 
-  function onRow(r) {
-    const onClick = () => history.push(`/assets/${r.id}`);
-    return { onClick };
-  }
+  //TODO: test rowSelection
+  const rowSelection = {
+    selectedAssets,
+    selections: [Table.SELECTION_ALL, Table.SELECTION_INVERT],
+    onChange: setSelectedAssets,
+  };
 
   function handleAssetExport() {
     exportAssets(assetQuery);
@@ -173,14 +181,17 @@ function AssetList({ modelID }) {
         </div>
       )}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
+
       <AssetTable
+        rowSelection={rowSelection}
         rowKey={r => r.id}
         columns={assetColumns}
         dataSource={data}
-        onRow={onRow}
         onChange={onChange}
         pagination={false}
-        footer={() => (modelID ? null : AssetListFooter())}
+        footer={() =>
+          modelID ? null : <AssetListFooter selectedAssets={selectedAssets} />
+        }
       />
     </>
   );
