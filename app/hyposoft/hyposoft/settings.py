@@ -57,9 +57,9 @@ INSTALLED_APPS = [
     'changeplan',
     'system_log',
     'bulk',
-    'hypo_auth',
     'network',
     'power',
+    'hypo_auth',
     'multiselectfield',
 ]
 
