@@ -2,7 +2,7 @@ from django.urls import path
 
 from .views import *
 from .list_views import *
-from report_views import Report
+from .report_views import Report
 
 urlpatterns = [
     path('ITModelCreate', ITModelCreate.as_view()),
