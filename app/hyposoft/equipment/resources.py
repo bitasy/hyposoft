@@ -2,10 +2,11 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db.models import Max
 from import_export import resources, fields
+from import_export.resources import ModelResource
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
-from hyposoft.utils import versioned_object
+from hyposoft.utils import versioned_object, add_asset
 from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
@@ -17,12 +18,36 @@ import re
 class VersionedResource(resources.ModelResource):
     def __init__(self, version, owner, force=False):
         super(VersionedResource, self).__init__()
-        self.version = version
+        self.version = ChangePlan.objects.get(id=version)
         self.owner = owner
         self.force = force
 
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        if not self.force:
+            self.version = self.get_new_version()
 
-class ITModelResource(VersionedResource):
+    def get_new_version(self):
+        if self.force:
+            new_version = ChangePlan.objects.get(id=self.version.id)
+        else:
+            parent = ChangePlan.objects.get(id=self.version.id)
+            try:
+                new_version = ChangePlan.objects.get(
+                    owner=self.owner,
+                    name="_BULK_IMPORT_" + str(id(self))
+                )
+            except ChangePlan.DoesNotExist:
+                new_version = ChangePlan.objects.create(
+                    owner=self.owner,
+                    name="_BULK_IMPORT_" + str(id(self)),
+                    executed=False,
+                    auto_created=True,
+                    parent=parent
+                )
+        return new_version
+
+
+class ITModelResource(ModelResource):
     network_port_name_1 = fields.Field()
     network_port_name_2 = fields.Field()
     network_port_name_3 = fields.Field()
@@ -160,7 +185,7 @@ class AssetResource(VersionedResource):
         try:
             if asset.itmodel.power_ports >= 1:
                 my_powered = Powered.objects.filter(asset=asset, order=1).first()
-                if self.version != 0 and my_powered is None:
+                if self.version.id != 0 and my_powered is None:
                     my_powered = Powered.objects.filter(
                         asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
                         order=1
@@ -176,7 +201,7 @@ class AssetResource(VersionedResource):
         try:
             if asset.itmodel.power_ports >= 2:
                 my_powered = Powered.objects.filter(asset=asset, order=2).first()
-                if self.version != 0 and my_powered is None:
+                if self.version.id != 0 and my_powered is None:
                     my_powered = Powered.objects.filter(
                         asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
                         order=2
@@ -199,7 +224,7 @@ class AssetResource(VersionedResource):
         clean_model_instances = True
 
     def before_import_row(self, row, **kwargs):
-        if row['asset_number'] == '' and self.version == 0:
+        if row['asset_number'] == '' and self.version.id == 0:
             try:
                 exists = Asset.objects.get(hostname=row['hostname'])
                 row['asset_number'] = exists.asset_number
@@ -209,7 +234,7 @@ class AssetResource(VersionedResource):
         elif row['asset_number'] == '':
             row['asset_number'] = None
 
-        row['version'] = self.version
+        row['version'] = self.version.id
 
     def after_import_row(self, row, row_result, **kwargs):
         try:
@@ -217,7 +242,9 @@ class AssetResource(VersionedResource):
         except:
             return  # skip
         my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter, version=self.version)
+
+        my_asset = add_asset(my_asset, self.version)
+        my_rack = my_asset.rack
 
         special = []
         for i in range(1, min(3, my_asset.itmodel.power_ports + 1)):
@@ -246,30 +273,18 @@ class AssetResource(VersionedResource):
 
         my_asset.powered_set.all().delete()
 
-        if self.force:
-            new_version = ChangePlan.objects.get(id=self.version)
+        if row_result.import_type == "new":
+            ports = [{"label": port, "mac_address": None, "connection": None}
+                     for port in
+                     NetworkPortLabel.objects.filter(itmodel=my_asset.itmodel).values_list('name', flat=True)]
         else:
-            parent = ChangePlan.objects.get(id=self.version)
-            try:
-                new_version = ChangePlan.objects.get(
-                    owner=self.owner,
-                    name="_BULK_IMPORT_" + str(id(self))
-                )
-            except ChangePlan.DoesNotExist:
-                new_version = ChangePlan.objects.create(
-                    owner=self.owner,
-                    name="_BULK_IMPORT_" + str(id(self)),
-                    executed=False,
-                    auto_created=True,
-                    parent=parent
-                )
-
-        my_asset.version = new_version
+            ports = None
+        my_asset.version = self.version
         create_asset_extra(
             my_asset,
-            new_version,
+            self.version,
             special + current,
-            None
+            ports
         )
 
     def after_export(self, queryset, data, *args, **kwargs):

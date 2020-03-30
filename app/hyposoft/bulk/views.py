@@ -51,8 +51,7 @@ class ITModelImport(generics.CreateAPIView):
                                        'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
                 raise serializers.ValidationError("Improperly formatted CSV")
 
-            result = ITModelResource(
-                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+            result = ITModelResource().import_data(dataset, dry_run=not force)
 
             errors = [
                 {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
@@ -65,7 +64,7 @@ class ITModelImport(generics.CreateAPIView):
                 response = {
                     "status": "diff" if not force else "success",
                     "diff": {"headers": result.diff_headers, "data": [row.diff for row in result.rows]}}
-            return Response({response}, HTTP_200_OK)
+            return Response(response, HTTP_200_OK)
 
 
 class AssetImport(generics.CreateAPIView):
@@ -97,12 +96,6 @@ class AssetImport(generics.CreateAPIView):
                 resource = AssetResource(get_version(request), request.user, False)
                 result = resource.import_data(dataset)
 
-                try:
-                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
-                except ChangePlan.DoesNotExist:
-                    # No changes, all objects skipped
-                    return Response({}, status=HTTP_200_OK)
-
                 errors = [
                     {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
                     for row in result.rows if len(row.errors) > 0
@@ -111,6 +104,12 @@ class AssetImport(generics.CreateAPIView):
                 if len(errors) > 0:
                     return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    # No changes, all objects skipped
+                    return Response({}, status=HTTP_200_OK)
+
                 #todo calculate diff
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
@@ -118,6 +117,7 @@ class AssetImport(generics.CreateAPIView):
                 changeplan.delete()
 
                 #todo return response diff
+                return Response("Happy Asset", status=HTTP_200_OK)
             else:
                 return Response({}, status=HTTP_200_OK)
 
@@ -148,11 +148,7 @@ class NetworkImport(generics.CreateAPIView):
                 resource = NetworkPortResource(get_version(request), request.user, False)
                 result = resource.import_data(dataset)
 
-                try:
-                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
-                except ChangePlan.DoesNotExist:
-                    # No changes, all objects skipped
-                    return Response({}, status=HTTP_200_OK)
+
 
                 errors = [
                     {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
@@ -164,9 +160,17 @@ class NetworkImport(generics.CreateAPIView):
 
                 #todo calculate diff
 
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    # No changes, all objects skipped
+                    return Response({}, status=HTTP_200_OK)
+
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()
                 changeplan.delete()
+
+                return Response("happy", status=HTTP_200_OK)
             else:
                 return Response({}, status=HTTP_200_OK)
 
@@ -197,8 +201,7 @@ class ITModelExport(generics.ListAPIView):
     filterset_class = ITModelFilter
 
     def get(self, request, *args, **kwargs):
-        data = ITModelResource(get_version(request), request.user)\
-            .export(queryset=self.filter_queryset(self.get_queryset()))
+        data = ITModelResource().export(queryset=self.filter_queryset(self.get_queryset()))
         return Response(data, HTTP_200_OK)
 
 

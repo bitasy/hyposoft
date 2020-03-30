@@ -4,7 +4,7 @@
 # Essentially, after Z is AA and after AA is AB etc.
 from django.db.models import Q
 
-from equipment.models import Rack
+from equipment.models import Rack, Asset
 from network.models import NetworkPort
 
 
@@ -95,7 +95,12 @@ def add_rack(rack, change_plan):
     return rack
 
 
-def add_asset(asset, change_plan):
+def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
+    if asset.version == change_plan:
+        return asset
+    newer_asset = versioned_object(asset, change_plan, identity_fields)
+    if newer_asset:
+        return newer_asset
     rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
     if rack is None:
         rack = add_rack(asset.rack, change_plan)
@@ -108,11 +113,11 @@ def add_asset(asset, change_plan):
 
 
 def add_network_conn(connection, version):
-    versioned_conn = versioned_object(connection, version, NetworkPort.IDENTITY_FIELDS)
+    versioned_conn = versioned_object(connection, version, ['asset__hostname', 'label'])
     if versioned_conn is None:
         # Add connected asset to change plan
         conn_asset = connection.asset
-        new_asset = add_asset(conn_asset, version)
+        new_asset = add_asset(conn_asset, version, identity_fields=['hostname'])
         connection.id = None
         connection.asset = new_asset
         connection.connection = None
