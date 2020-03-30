@@ -6,7 +6,7 @@ from import_export.resources import ModelResource
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
-from hyposoft.utils import versioned_object, add_asset
+from hyposoft.utils import versioned_object, add_asset, add_rack
 from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
@@ -25,6 +25,8 @@ class VersionedResource(resources.ModelResource):
     def before_save_instance(self, instance, using_transactions, dry_run):
         if not self.force:
             self.version = self.get_new_version()
+
+        instance.version = self.version
 
     def get_new_version(self):
         if self.force:
@@ -127,11 +129,9 @@ class AssetResource(VersionedResource):
         def clean(self, value, row):
             my_rack = row['rack']
             my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-            return self.model.objects.get(
-                rack=my_rack,
-                datacenter=my_datacenter,
-                version_id=row['version']
-            )
+            rack = Rack.objects.filter(rack=my_rack, datacenter=my_datacenter)\
+                .order_by("-version__id").first()
+            return add_rack(rack, ChangePlan.objects.get(id=row['version']))
 
     class ITModelForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
@@ -139,6 +139,14 @@ class AssetResource(VersionedResource):
                 vendor__iexact=row['vendor'],
                 model_number__iexact=row['model_number']
             )
+
+    class VersionWidget(ForeignKeyWidget):
+        def clean(self, value, row=None, *args, **kwargs):
+            if value is not None:
+                return self.get_queryset(value, row, *args, **kwargs).get(**{self.field: value})
+            else:
+                return None
+
 
     datacenter = fields.Field(
         column_name='datacenter',
@@ -167,6 +175,10 @@ class AssetResource(VersionedResource):
     )
     power_port_connection_1 = fields.Field(attribute="power_port_connection_1")
     power_port_connection_2 = fields.Field(attribute="power_port_connection_2")
+    version = fields.Field(
+        attribute='version',
+        widget=VersionWidget(ChangePlan, 'id')
+    )
 
     def skip_row(self, instance, original):
         port1 = getattr(instance, "power_port_connection_1")

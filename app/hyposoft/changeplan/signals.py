@@ -36,8 +36,10 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             message += ('NEW ITMODEL: ' + str(instance.changed_asset.itmodel.model_number) + 'by' +
                         str(instance.changed_asset.itmodel.vendor) + '\n')
         if instance.changed_asset.owner != instance.live_asset.owner:
-            message += ('OLD OWNER: ' + str(instance.live_asset.user.username) + '\n')
-            message += ('NEW OWNER: ' + str(instance.changed_asset.user.username) + '\n')
+            message += ('OLD OWNER: ' + str(instance.live_asset.owner.username) + '\n') \
+                if instance.live_asset.owner else ''
+            message += ('NEW OWNER: ' + str(instance.changed_asset.owner.username) + '\n')\
+                if instance.changed_asset.owner else ''
         if instance.changed_asset.comment != instance.live_asset.comment:
             message += ('OLD COMMENT: ' + str(instance.live_asset.comment) + '\n')
             message += ('NEW COMMENT: ' + str(instance.changed_asset.comment) + '\n')
@@ -52,7 +54,8 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         message += ('RACK POSITION: ' + str(instance.changed_asset.rack_position) + '\n')
         message += ('ITMODEL: ' + str(instance.changed_asset.itmodel.model_number) + 'by' +
                     str(instance.changed_asset.itmodel.vendor) + '\n')
-        message += ('OWNER: ' + str(instance.changed_asset.user.username) + '\n')
+        message += ('OWNER: ' + str(instance.changed_asset.owner.username) + '\n')\
+            if instance.changed_asset.owner else ''
         message += ('COMMENT: ' + str(instance.changed_asset.comment) + '\n')
 
     blocked = Asset.objects.filter(
@@ -110,7 +113,7 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             message += ('CONFLICT: ' + 'Connections must be between different assets.' + '\n')
         if instance.changed_networkport.connection.asset.datacenter != instance.changed_networkport.asset.datacenter:
             message += ('CONFLICT: ' + 'Connections must be in the same datacenter.' + '\n')
-        if instance.changed_networkport.connection.connection is not None and instance.changed_networkport.connection.connection.id is not instance.changed_networkport.id:
+        if instance.changed_networkport.connection.connection is not None and instance.changed_networkport.connection.connection.id != instance.changed_networkport.id:
             message += ('CONFLICT: ' +
                         '{} is already connected to {} on {}'.format(
                             instance.changed_networkport.connection.asset,

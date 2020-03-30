@@ -102,10 +102,10 @@ WSGI_APPLICATION = 'hyposoft.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'carter',
-        'USER': 'postgres',
-        'PASSWORD': 'hyposoft',
-        'HOST': 'database-1.clf9gopmww58.us-east-1.rds.amazonaws.com',
+        'NAME': os.getenv('DB_NAME', 'dev'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASS'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': '5432',
     }
 }

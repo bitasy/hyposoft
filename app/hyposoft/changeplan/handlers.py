@@ -68,20 +68,9 @@ def create_powered_diffs(changeplan, target):
 
 
 def create_live_asset(changed_asset):
-    Asset.objects.create(
-        asset_number=changed_asset.asset_number,
-        hostname=changed_asset.hostname,
-        datacenter=changed_asset.datacenter,
-        rack=changed_asset.rack,
-        rack_position=changed_asset.rack_position,
-        itmodel=changed_asset.itmodel,
-        owner=changed_asset.owner,
-        comment=changed_asset.comment,
-        version_id=0,
-        commissioned=changed_asset.commissioned,
-        decommissioned_timestamp=changed_asset.decommissioned_timestamp,
-        decommissioned_by=changed_asset.decommissioned_by
-    )
+    changed_asset.id = None
+    changed_asset.version_id = 0
+    changed_asset.save()
 
 
 def execute_assets(changeplan):
@@ -125,13 +114,9 @@ def execute_decommissioned_assets(changeplan):
 
 
 def create_live_networkport(changed_networkport):
-    NetworkPort.objects.create(
-        asset=changed_networkport.asset,
-        label=changed_networkport.label,
-        mac_address=changed_networkport.mac_address,
-        connection=changed_networkport.connection,
-        version_id=0
-    )
+    changed_networkport.id = None
+    changed_networkport.version_id = 0
+    changed_networkport.save()
 
 
 def execute_networkports(changeplan):
@@ -170,14 +155,9 @@ def execute_decommissioned_networkports(changeplan):
 
 
 def create_live_powered(changed_powered):
-    Powered.objects.create(
-        plug_number=changed_powered.plug_number,
-        pdu=changed_powered.pdu,
-        asset=changed_powered.asset,
-        on=changed_powered.on,
-        special=changed_powered.special,
-        version_id=0
-    )
+    changed_powered.id = None
+    changed_powered.version = 0
+    changed_powered.save()
 
 
 def execute_powereds(changeplan):

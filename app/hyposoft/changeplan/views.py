@@ -12,69 +12,60 @@ from .serializers import ChangePlanSerializer
 
 
 class AssetChangePlanDiff(views.APIView):
-    def get(self, request, name, target):
-        changeplan = ChangePlan.objects.get(name=name)
-        live = ChangePlan.objects.get(name=target)
+    def get(self, changeplan, target):
+        live = ChangePlan.objects.get(id=target)
         if changeplan:
             create_asset_diffs(changeplan, live)
             asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
             diffs = [
                 {
                     "changeplan": asset_diff.changeplan.name,
-                    "live_asset": asset_diff.live_asset,
-                    "changed_asset": asset_diff.changed_asset,
                     "message": asset_diff.message
                 }
                 for asset_diff
                 in asset_diffs
             ]
-            return Response(diffs)
+            return diffs
         else:
-            return Response([])
+            return []
 
 
 class NetworkPortChangePlanDiff(views.APIView):
-    def get(self, request, name, target):
-        changeplan = ChangePlan.objects.get(name=name)
-        live = ChangePlan.objects.get(name=target)
+    def get(self, changeplan, target):
+        live = ChangePlan.objects.get(id=target)
         if changeplan:
             create_networkport_diffs(changeplan, live)
             networkport_diffs = NetworkPortDiff.objects.filter(changeplan=changeplan)
             diffs = [
                 {
                     "changeplan": networkport_diff.changeplan.name,
-                    "live_networkport": networkport_diff.live_networkport,
-                    "changed_networkport": networkport_diff.changed_networkport,
                     "message": networkport_diff.message
                 }
                 for networkport_diff
                 in networkport_diffs
             ]
-            return Response(diffs)
+            return diffs
         else:
-            return Response([])
+            return []
 
 
 class PoweredChangePlanDiff(views.APIView):
-    def get(self, request, name, target):
-        changeplan = ChangePlan.objects.get(name=name)
-        live = ChangePlan.objects.get(name=target)
+    def get(self, changeplan, target):
+        live = ChangePlan.objects.get(id=target)
         if changeplan:
             create_powered_diffs(changeplan, live)
             powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
             diffs = [
                 {
                     "changeplan": powered_diff.changeplan.name,
-                    "live_powered": powered_diff.live_networkport,
-                    "changed_powered": powered_diff.changed_networkport,
                     "message": powered_diff.message
                 }
                 for powered_diff
                 in powered_diffs
             ]
-            return Response(diffs)
+            return diffs
         else:
-            return Response([])
+            return []
 
 
 class ExecuteChangePlan(views.APIView):

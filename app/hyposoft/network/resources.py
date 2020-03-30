@@ -23,6 +23,13 @@ class NetworkPortResource(VersionedResource):
                 itmodel__model_number__iexact=my_asset.itmodel.model_number
             )
 
+    class VersionWidget(ForeignKeyWidget):
+        def clean(self, value, row=None, *args, **kwargs):
+            if value is not None:
+                return self.get_queryset(value, row, *args, **kwargs).get(**{self.field: value})
+            else:
+                return None
+
     src_hostname = fields.Field(
         column_name='src_hostname',
         attribute='asset',
@@ -39,6 +46,10 @@ class NetworkPortResource(VersionedResource):
     )
     dest_hostname = fields.Field(attribute="dest_hostname")
     dest_port = fields.Field(attribute="dest_port")
+    version = fields.Field(
+        attribute='version',
+        widget=VersionWidget(ChangePlan, 'id')
+    )
 
     def dehydrate_dest_hostname(self, networkport):
         try:
