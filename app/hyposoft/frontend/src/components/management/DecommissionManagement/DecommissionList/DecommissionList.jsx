@@ -45,16 +45,6 @@ export const decommissionColumns = [
     sorter: true,
     sortDirections: ["ascend", "descend"],
   },
-  {
-    title: "Power",
-    key: "actions",
-    sorter: false,
-    render: r => {
-      return (
-        r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />
-      );
-    },
-  },
 ];
 
 const initialFilterValues = {
@@ -91,8 +81,9 @@ function DecommissionList({ modelID }) {
       time_from: filterValues.time_from,
       time_to: filterValues.time_to,
       owner: filterValues.decommissioned_by,
+      decommissioned_timestamp: filterValues.decommissioned_timestamp,
       ordering,
-      direction,
+      direction,t
     }).then(r => {
       if (t === realm.current) {
         setData(r.results);
