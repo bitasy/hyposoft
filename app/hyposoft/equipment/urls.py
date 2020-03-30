@@ -1,6 +1,8 @@
 from django.urls import path
+
 from .views import *
 from .list_views import *
+from report_views import Report
 
 urlpatterns = [
     path('ITModelCreate', ITModelCreate.as_view()),
@@ -32,6 +34,8 @@ urlpatterns = [
     path('DatacenterList', DatacenterList.as_view()),
 
     path('rack_view', RackView.as_view()),
+    path('report', Report.as_view()),
 
-    path('DecommissionAsset/<int:asset_id>', DecommissionAsset.as_view())
+    path('DecommissionAsset/<int:asset_id>', DecommissionAsset.as_view()),
+
 ]

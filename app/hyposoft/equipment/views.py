@@ -206,6 +206,9 @@ class AssetDetailRetrieve(generics.RetrieveAPIView):
     serializer_class = AssetDetailSerializer
 
 
+
+
+
 class RackView(views.APIView):
     def post(self, request):
         rack_ids = request.data['rack_ids']
