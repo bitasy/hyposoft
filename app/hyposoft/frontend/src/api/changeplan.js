@@ -1,42 +1,42 @@
 import Axios from "axios";
-import { getData } from "./utils";
+import { getData, withLoading } from "./utils";
 
 export function getChangePlanList() {
-  return Axios.get("prefix/ChangePlanList").then(getData);
+  return Axios.get("api/changeplan/ChangePlanList").then(getData);
 }
 
 export function getChangePlanDetail(id) {
-  return Axios.get(`prefix/ChangePlanDetails/${id}`).then(
-    getData,
-  );
+  return Axios.get(`api/changeplan/ChangePlanDetails/${id}`).then(getData);
 }
 
 export function getChangePlanActions(id) {
-  return Axios.get(`prefix/ChangePlanActions/${id}`).then(
-    getData,
-  );
+  return Axios.get(`api/changeplan/ChangePlanActions/${id}`).then(getData);
 }
 
 export function createChangePlan(name) {
-  return Axios.post(`prefix/ChangePlanCreate`, {
-    name,
-  }).then(getData);
+  return withLoading(() =>
+    Axios.post(`api/changeplan/ChangePlanCreate`, {
+      name,
+    }).then(getData),
+  );
 }
 
 export function executeChangePlan(id) {
-  return Axios.post(`prefix/ChangePlanExecute/${id}`).then(
-    getData,
+  return withLoading(() =>
+    Axios.post(`api/changeplan/ChangePlanExecute/${id}`).then(getData),
   );
 }
 
 export function updateChangePlan(id, name) {
-  return Axios.patch(`prefix/ChangePlanUpdate/${id}`, {
-    name,
-  }).then(getData);
+  return withLoading(() =>
+    Axios.patch(`api/changeplan/ChangePlanUpdate/${id}`, {
+      name,
+    }).then(getData),
+  );
 }
 
 export function deleteChangePlan(id) {
-  return Axios.delete(
-    `prefix/ChangePlanDestroy/${id}`,
-  ).then(getData);
+  return withLoading(() =>
+    Axios.delete(`api/changeplan/ChangePlanDestroy/${id}`).then(getData),
+  );
 }

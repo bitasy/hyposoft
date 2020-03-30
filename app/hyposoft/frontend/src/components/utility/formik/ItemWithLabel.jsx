@@ -2,34 +2,33 @@ import React from "react";
 import { Field } from "formik";
 import styled from "styled-components";
 
-const LabelSpan = styled("span")`
+const BlockSpan = styled("span")`
   display: block;
 `;
 
-const ErrorSpan = styled("span")`
-  display: block;
-  color: red;
-`;
-
-function ItemWithLabel({ name, label, children }) {
+function ItemWithLabel({ name, label, children, flip, slim }) {
   return (
-    <div style={{ textAlign: "left" }}>
-      <LabelSpan>{label}</LabelSpan>
-      {children}
+    <div style={{ textAlign: "left", padding: "8px 0", color: "black" }}>
+      <BlockSpan style={{ fontWeight: slim ? "normal" : "bold" }}>
+        {label}
+      </BlockSpan>
+      {!flip && children}
       <Field name={name}>
-        {({ meta: { error, touched } }) => {
-          const displayError =
-            typeof error === "string" && touched;
+        {({ meta: { initialError, error, touched } }) => {
+          const e = initialError ?? error;
+          const displayError = typeof e === "string" && touched;
           const style = {
             visibility: displayError ? "visible" : "hidden",
+            color: initialError ? "orange" : "red",
           };
           return (
-            <ErrorSpan style={style}>
-              {displayError ? error : "hidden text"}
-            </ErrorSpan>
+            <BlockSpan style={style}>
+              {displayError ? e : "hidden text"}
+            </BlockSpan>
           );
         }}
       </Field>
+      {flip && children}
     </div>
   );
 }

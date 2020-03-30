@@ -126,6 +126,7 @@ class AssetEntrySerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'model',
+            'asset_number',
             'hostname',
             'owner',
             'location'

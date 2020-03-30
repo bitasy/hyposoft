@@ -2,6 +2,11 @@ import { message } from "antd";
 import { displayError } from "../global/message";
 import { DATACENTER_ABBR_SESSION_KEY } from "../components/App";
 import { CHANGE_PLAN_SESSION_KEY } from "../components/App";
+import {
+  indexToCol,
+  indexToRow,
+  toIndex,
+} from "../components/management/RackManagement/GridUtils";
 
 export const GLOBAL_ABBR = "global";
 
@@ -14,7 +19,7 @@ export function makeHeaders(overrides) {
 
   return {
     ...(dcname != null ? { "X-DATACENTER": dcname } : {}),
-    ...(dcname != null ? { "X-CHANGE-PLAN": cpid } : {}),
+    ...(cpid != null ? { "X-CHANGE-PLAN": cpid } : { "X-CHANGE-PLAN": 0 }),
   };
 }
 
@@ -41,4 +46,44 @@ export function makeQueryString(query) {
     .filter(([, v]) => v != null)
     .map(([k, v]) => `${k}=${v}`)
     .join("&");
+}
+
+export function processAssetQuery(query) {
+  const directionPrefix = `${query.direction === "descending" ? "-" : ""}`;
+
+  const whatCanIDoIfDjangoForcesMeToLOL = {
+    model: ["itmodel__vendor", "itmodel__model_number"],
+    hostname: ["hostname"],
+    location: ["datacenter__abbr", "rack__rack", "rack_position"],
+    owner: ["owner"],
+  };
+
+  const ordering = whatCanIDoIfDjangoForcesMeToLOL[query.ordering];
+
+  const [r1, c1] = query.rack_from
+    ? toIndex(query.rack_from)
+    : [undefined, undefined];
+  const [r2, c2] = query.rack_to
+    ? toIndex(query.rack_to)
+    : [undefined, undefined];
+
+  return {
+    ...query,
+    r1: r1 && indexToRow(r1),
+    r2: r2 && indexToRow(r2),
+    c1: c1 && indexToCol(c1),
+    c2: c2 && indexToCol(c2),
+    ordering: ordering
+      ? ordering.map(o => directionPrefix + o).join(",")
+      : undefined,
+  };
+}
+
+export function processModelQuery(query) {
+  return {
+    ...query,
+    ordering: query.ordering
+      ? `${query.direction === "descending" ? "-" : ""}${query.ordering}`
+      : undefined,
+  };
 }

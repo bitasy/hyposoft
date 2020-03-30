@@ -1,5 +1,10 @@
 import Axios from "axios";
-import { getData, makeQueryString, withLoading } from "./utils";
+import {
+  getData,
+  makeQueryString,
+  withLoading,
+  processModelQuery,
+} from "./utils";
 
 export function createModel(fields) {
   return withLoading(() =>
@@ -8,16 +13,9 @@ export function createModel(fields) {
 }
 
 export function getModelList(query) {
-  const q = {
-    ...query,
-    ordering: query.ordering
-      ? `${query.direction === "descending" ? "-" : ""}${query.ordering}`
-      : undefined,
-  };
-
-  return Axios.get(`api/equipment/ITModelList?${makeQueryString(q)}`).then(
-    getData,
-  );
+  return Axios.get(
+    `api/equipment/ITModelList?${makeQueryString(processModelQuery(query))}`,
+  ).then(getData);
 }
 
 export function getModelPicklist() {

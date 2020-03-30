@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from equipment.models import Datacenter
 from multiselectfield import MultiSelectField
 
+DATACENTER_CHOICES = [
+    ('GLOBAL', 'Global'),
+    *[(dc.abbr, dc.name) for dc in Datacenter.objects.all()]
+]
 
 class Permission(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -26,13 +30,6 @@ class Permission(models.Model):
         verbose_name='Admin Permission',
         default=False
     )
-    DATACENTER_CHOICES = [
-        ('GLOBAL', 'Global'),
-    ]
-    datacenters = Datacenter.objects.all()
-    for datacenter in datacenters:
-        choice = (datacenter.abbr, datacenter.name)
-        DATACENTER_CHOICES.append(choice)
     datacenter_perm = MultiSelectField(
         blank=True,
         verbose_name='Datacenter Permission',
