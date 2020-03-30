@@ -17,7 +17,7 @@ const DecommissionTable = styled(Table)`
 export const decommissionColumns = [
   {
     title: "Model",
-    dataIndex: "model",
+    dataIndex: "itmodel",
     sorter: true,
     sortDirections: ["ascend", "descend"],
   },
@@ -34,14 +34,14 @@ export const decommissionColumns = [
     sortDirections: ["ascend", "descend"],
   },
   {
-    title: "Owner",
-    dataIndex: "owner",
+    title: "Decommission Owner",
+    dataIndex: "decommissioned_by",
     sorter: true,
     sortDirections: ["ascend", "descend"],
   },
   {
     title: "Timestamp",
-    key: "timestamp",
+    key: "decommissioned_timestamp",
     sorter: true,
     sortDirections: ["ascend", "descend"],
   },
@@ -90,7 +90,7 @@ function DecommissionList({ modelID }) {
       itmodel: modelID,
       time_from: filterValues.time_from,
       time_to: filterValues.time_to,
-      owner: filterValues.owner,
+      owner: filterValues.decommissioned_by,
       ordering,
       direction,
     }).then(r => {
