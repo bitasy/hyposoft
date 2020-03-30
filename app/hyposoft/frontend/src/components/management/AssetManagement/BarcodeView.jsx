@@ -1,7 +1,7 @@
 import React from "react";
 import Barcode from "react-barcode";
 import { useLocation, useHistory } from "react-router-dom";
-import { Row, Col, Button, Icon, Typography } from "antd";
+import { Row, Col, Button, Typography } from "antd";
 import ReactToPrint from "react-to-print";
 import { PrinterOutlined } from "@ant-design/icons";
 
@@ -41,13 +41,14 @@ function CreateBarcodeLabel( {assetNumber} ) {
 
 //function to add multiple barcodes to a page
 function BarcodeView({ r }) {
-    const numbersStr = new URLSearchParams(useLocation().search).get("asset_numbers");
+    const numbersStr = new URLSearchParams(useLocation().search).get("asset_number");
+    console.log("numbersStr", numbersStr);
 
     const history = useHistory();
 
     const assetNumbers = numbersStr.split(",").map(s => parseInt(s));
     //const testAssetNumbers = ["100000", "100001", "100002", "100003", "100004"]; //working
-    console.log(assetNumbers);
+    console.log("assetNumbers", assetNumbers);
 
     const barcodeSplit = partition(assetNumbers, BARCODES_IN_ROW);
     //const barcodeSplit = partition(testAssetNumbers, BARCODES_IN_ROW);

@@ -74,7 +74,7 @@ function AssetList({ modelID }) {
   const [data, setData] = React.useState([]);
   const [ordering, setOrdering] = React.useState(undefined);
   const [direction, setDirection] = React.useState(undefined);
-  const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of ids of selected assets
+  const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of selected assets
 
   const realm = React.useRef(0);
 
@@ -102,6 +102,8 @@ function AssetList({ modelID }) {
       }
     });
   }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
+
+  console.log("data/selectedAssets", data);
 
   React.useEffect(() => {
     setPage(1);
@@ -141,10 +143,10 @@ function AssetList({ modelID }) {
   //   return { onClick };
   // }
 
-  function onCell(r) {
-    const onClick = () => history.push(`/assets/${r.id}`);
-    return { onClick };
-  }
+  // function onCell(r) {
+  //   const onClick = () => history.push(`/assets/${r.id}`);
+  //   return { onClick };
+  // }
 
   // //TODO: function to add selected rows to an array
   // function onSelectChange(r) {
@@ -159,7 +161,7 @@ function AssetList({ modelID }) {
     console.log('selectedAssets changed: ', selectedAssets);
   };
 
-  //TODO: define rowSelection
+  //TODO: test rowSelection
   const rowSelection = {
     selectedAssets,
     selections: [
@@ -167,7 +169,7 @@ function AssetList({ modelID }) {
       Table.SELECTION_INVERT,
     ],
     onChange: onSelectChange(),
-    onSelect: setSelectedAsset
+    onSelect: setSelectedAssets
   }
 
   function handleAssetExport() {
