@@ -46,27 +46,27 @@ class ITModelImport(generics.CreateAPIView):
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
-        with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
-            dataset = Dataset().load(text, format="csv")
-            if not dataset.headers == ['vendor', 'model_number', 'height', 'display_color', 'network_ports',
-                                       'power_ports', 'cpu', 'memory', 'storage', 'comment', 'network_port_name_1',
-                                       'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
-                raise serializers.ValidationError("Improperly formatted CSV")
+        dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
+        if not dataset.headers == ['vendor', 'model_number', 'height', 'display_color', 'network_ports',
+                                   'power_ports', 'cpu', 'memory', 'storage', 'comment', 'network_port_name_1',
+                                   'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
+            raise serializers.ValidationError("Improperly formatted CSV")
 
-            result = ITModelResource().import_data(dataset, dry_run=not force)
+        print(dataset)
+        result = ITModelResource().import_data(dataset, dry_run=not force)
 
-            errors = [
-                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-                for row in result.rows if len(row.errors) > 0
-            ]
+        errors = [
+            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+            for row in result.rows if len(row.errors) > 0
+        ]
 
-            if len(errors) > 0:
-                response = {"status": "error", "errors": errors}
-            else:
-                response = {
-                    "status": "diff" if not force else "success",
-                    "diff": {"headers": result.diff_headers, "data": [row.diff for row in result.rows]}}
-            return Response(response, HTTP_200_OK)
+        if len(errors) > 0:
+            response = {"status": "error", "errors": errors}
+        else:
+            response = {
+                "status": "diff" if not force else "success",
+                "diff": {"headers": result.diff_headers, "data": [row.diff for row in result.rows]}}
+        return Response(response, HTTP_200_OK)
 
 
 class AssetImport(generics.CreateAPIView):
@@ -77,15 +77,25 @@ class AssetImport(generics.CreateAPIView):
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
-        with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
-            dataset = Dataset().load(text, format="csv")
-            if not dataset.headers == ['asset_number', 'datacenter', 'hostname', 'rack', 'rack_position',
-                                       'vendor', 'model_number', 'owner', 'comment',
-                                       'power_port_connection_1', 'power_port_connection_2']:
-                raise serializers.ValidationError("Improperly formatted CSV")
+        dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
+        if not dataset.headers == ['asset_number', 'datacenter', 'hostname', 'rack', 'rack_position',
+                                   'vendor', 'model_number', 'owner', 'comment',
+                                   'power_port_connection_1', 'power_port_connection_2']:
+            raise serializers.ValidationError("Improperly formatted CSV")
 
-            result = AssetResource(
-                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+        result = AssetResource(
+            get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+
+        errors = [
+            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+            for row in result.rows if len(row.errors) > 0
+        ]
+
+        if len(errors) > 0:
+            return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+        elif not force:
+            resource = AssetResource(get_version(request), request.user, False)
+            result = resource.import_data(dataset)
 
             errors = [
                 {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
@@ -94,37 +104,26 @@ class AssetImport(generics.CreateAPIView):
 
             if len(errors) > 0:
                 return Response({"status": "error", "errors": errors}, HTTP_200_OK)
-            elif not force:
-                resource = AssetResource(get_version(request), request.user, False)
-                result = resource.import_data(dataset)
 
-                errors = [
-                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-                    for row in result.rows if len(row.errors) > 0
-                ]
+            try:
+                changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+            except ChangePlan.DoesNotExist:
+                return Response({"status": "skip"}, status=HTTP_200_OK)
 
-                if len(errors) > 0:
-                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+            response = {
+                'status': "diff",
+                'asset': AssetChangePlanDiff.get(None, changeplan, get_version(request)),
+                'power': PoweredChangePlanDiff.get(None, changeplan, get_version(request)),
+            }
 
-                try:
-                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
-                except ChangePlan.DoesNotExist:
-                    return Response({"status": "skip"}, status=HTTP_200_OK)
+            for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                model.objects.filter(version=changeplan).delete()
+            changeplan.delete()
 
-                response = {
-                    'status': "diff",
-                    'asset': AssetChangePlanDiff.get(None, changeplan, get_version(request)),
-                    'power': PoweredChangePlanDiff.get(None, changeplan, get_version(request)),
-                }
+            return Response(response, status=HTTP_200_OK)
 
-                for model in (Powered, NetworkPort, Asset, PDU, Rack):
-                    model.objects.filter(version=changeplan).delete()
-                changeplan.delete()
-
-                return Response(response, status=HTTP_200_OK)
-
-            else:
-                return Response({}, status=HTTP_200_OK)
+        else:
+            return Response({}, status=HTTP_200_OK)
 
 
 class NetworkImport(generics.CreateAPIView):
@@ -135,12 +134,22 @@ class NetworkImport(generics.CreateAPIView):
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
-        with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
-            dataset = Dataset().load(text, format="csv")
-            if not dataset.headers == ['src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port']:
-                raise serializers.ValidationError("Improperly formatted CSV")
-            result = NetworkPortResource(
-                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+        dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
+        if not dataset.headers == ['src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port']:
+            raise serializers.ValidationError("Improperly formatted CSV")
+        result = NetworkPortResource(
+            get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+
+        errors = [
+            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+            for row in result.rows if len(row.errors) > 0
+        ]
+
+        if len(errors) > 0:
+            return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+        elif not force:
+            resource = NetworkPortResource(get_version(request), request.user, False)
+            result = resource.import_data(dataset)
 
             errors = [
                 {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
@@ -149,36 +158,25 @@ class NetworkImport(generics.CreateAPIView):
 
             if len(errors) > 0:
                 return Response({"status": "error", "errors": errors}, HTTP_200_OK)
-            elif not force:
-                resource = NetworkPortResource(get_version(request), request.user, False)
-                result = resource.import_data(dataset)
 
-                errors = [
-                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-                    for row in result.rows if len(row.errors) > 0
-                ]
+            try:
+                changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+            except ChangePlan.DoesNotExist:
+                return Response({"status": "skip"}, status=HTTP_200_OK)
 
-                if len(errors) > 0:
-                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+            response = {
+                'status': "diff",
+                'network': NetworkPortChangePlanDiff.get(None, changeplan, get_version(request)),
+            }
 
-                try:
-                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
-                except ChangePlan.DoesNotExist:
-                    return Response({"status": "skip"}, status=HTTP_200_OK)
+            for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                model.objects.filter(version=changeplan).delete()
+            changeplan.delete()
 
-                response = {
-                    'status': "diff",
-                    'network': NetworkPortChangePlanDiff.get(None, changeplan, get_version(request)),
-                }
+            return Response(response, status=HTTP_200_OK)
 
-                for model in (Powered, NetworkPort, Asset, PDU, Rack):
-                    model.objects.filter(version=changeplan).delete()
-                changeplan.delete()
-
-                return Response(response, status=HTTP_200_OK)
-
-            else:
-                return Response({}, status=HTTP_200_OK)
+        else:
+            return Response({}, status=HTTP_200_OK)
 
 
 class CSVRenderer(renderers.BaseRenderer):

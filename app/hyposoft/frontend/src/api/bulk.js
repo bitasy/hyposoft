@@ -9,19 +9,17 @@ import {
 } from "./utils";
 
 export function importModels(formData, force) {
-  return withLoading(() =>
-    Axios.post(
-      `api/import/ITModel?${makeQueryString({
-        force: force,
-      })}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+  return Axios.post(
+    `api/import/ITModel?${makeQueryString({
+      force: force,
+    })}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
-    ).then(getData),
-  );
+    },
+  ).then(getData);
 }
 
 export function exportModels(query) {
@@ -33,19 +31,17 @@ export function exportModels(query) {
 }
 
 export function importAssets(formData, force) {
-  return withLoading(() =>
-    Axios.post(
-      `api/import/Asset?${makeQueryString({
-        force: force,
-      })}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+  return Axios.post(
+    `api/import/Asset?${makeQueryString({
+      force: force,
+    })}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
-    ).then(getData),
-  );
+    },
+  ).then(getData);
 }
 
 export function exportAssets(query) {
@@ -57,19 +53,17 @@ export function exportAssets(query) {
 }
 
 export function importNetwork(formData, force) {
-  return withLoading(() =>
-    Axios.post(
-      `api/import/Network?${makeQueryString({
-        force: force,
-      })}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+  return Axios.post(
+    `api/import/Network?${makeQueryString({
+      force: force,
+    })}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
-    ).then(getData),
-  );
+    },
+  ).then(getData);
 }
 
 export function exportNetwork(query) {

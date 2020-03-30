@@ -41,7 +41,7 @@ export const assetColumns = [
     sortDirections: ["ascend", "descend"],
   },
   {
-    title: "Power",
+    title: "Actions",
     key: "actions",
     sorter: false,
     render: r => {

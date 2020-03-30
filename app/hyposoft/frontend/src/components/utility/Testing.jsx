@@ -1,5 +1,6 @@
 import React from "react";
 import Diff from "./Diff";
+import VSpace from "./VSpace";
 
 // diff: {
 //   before: string[]
@@ -34,7 +35,15 @@ function Testing() {
     },
   ];
 
-  return <Diff headers={headers} diff={diff} />;
+  const nums = [1, 6, 1235, 23];
+
+  return (
+    <div>
+      <Diff headers={headers} diff={diff} />
+      <VSpace height="16px" />
+      <pre>{nums.join("\n")}</pre>
+    </div>
+  );
 }
 
 export default Testing;
