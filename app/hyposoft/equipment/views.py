@@ -4,13 +4,11 @@ from django.utils import timezone
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
-
 from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra
 from .serializers import *
 from .models import *
-
 import logging
 
 

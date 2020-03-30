@@ -37,3 +37,69 @@ class ChangePlan(models.Model):
 
     class Meta:
         unique_together = ['owner', 'name']
+
+
+class AssetDiff(models.Model):
+    changeplan = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.PROTECT
+    )
+    live_asset = models.ForeignKey(
+        'equipment.Asset',
+        related_name='live_asset',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT
+    )
+    changed_asset = models.ForeignKey(
+        'equipment.Asset',
+        related_name='changed_asset',
+        on_delete=models.PROTECT
+    )
+    message = models.CharField(
+        max_length=1000000
+    )
+
+
+class NetworkPortDiff(models.Model):
+    changeplan = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.PROTECT
+    )
+    live_networkport = models.ForeignKey(
+        'network.NetworkPort',
+        related_name='live_networkport',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT
+    )
+    changed_networkport = models.ForeignKey(
+        'network.NetworkPort',
+        related_name='changed_networkport',
+        on_delete=models.PROTECT
+    )
+    message = models.CharField(
+        max_length=1000000
+    )
+
+
+class PoweredDiff(models.Model):
+    changeplan = models.ForeignKey(
+        ChangePlan,
+        on_delete=models.PROTECT
+    )
+    live_powered = models.ForeignKey(
+        'power.Powered',
+        related_name='live_powered',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT
+    )
+    changed_powered = models.ForeignKey(
+        'power.Powered',
+        related_name='changed_powered',
+        on_delete=models.PROTECT
+    )
+    message = models.CharField(
+        max_length=1000000
+    )

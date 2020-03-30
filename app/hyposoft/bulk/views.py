@@ -17,6 +17,8 @@ from power.models import Powered, PDU
 from network.models import NetworkPort
 from network.resources import NetworkPortResource
 
+from changeplan.handlers import create_asset_diffs, create_networkport_diffs, create_powered_diffs
+from changeplan.views import AssetChangePlanDiff, NetworkPortChangePlanDiff, PoweredChangePlanDiff
 
 # The Model and Serializer classes are used for compatibility with the browsable API
 from hyposoft.utils import get_version, versioned_queryset
@@ -110,14 +112,23 @@ class AssetImport(generics.CreateAPIView):
                     # No changes, all objects skipped
                     return Response({}, status=HTTP_200_OK)
 
-                #todo calculate diff
+                errors = [
+                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                    for row in result.rows if len(row.errors) > 0
+                ]
+
+                if len(errors) > 0:
+                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+
+                create_asset_diffs(changeplan,  get_version(request))
+                create_powered_diffs(changeplan,  get_version(request))
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()
                 changeplan.delete()
 
-                #todo return response diff
-                return Response("Happy Asset", status=HTTP_200_OK)
+                return AssetChangePlanDiff.get(changeplan), PoweredChangePlanDiff.get(changeplan)
+
             else:
                 return Response({}, status=HTTP_200_OK)
 
@@ -158,7 +169,7 @@ class NetworkImport(generics.CreateAPIView):
                 if len(errors) > 0:
                     return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
-                #todo calculate diff
+
 
                 try:
                     changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
@@ -166,11 +177,15 @@ class NetworkImport(generics.CreateAPIView):
                     # No changes, all objects skipped
                     return Response({}, status=HTTP_200_OK)
 
+                create_networkport_diffs(changeplan,  get_version(request))
+                response = NetworkPortChangePlanDiff.get(changeplan)
+
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()
                 changeplan.delete()
 
-                return Response("happy", status=HTTP_200_OK)
+                return response
+
             else:
                 return Response({}, status=HTTP_200_OK)
 
