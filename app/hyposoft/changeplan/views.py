@@ -1,14 +1,12 @@
 from django.utils.timezone import now
 from rest_framework import views
-from rest_framework.response import Response
-from .models import ChangePlan, AssetDiff, NetworkPortDiff, PoweredDiff
 from django.core.exceptions import ValidationError
-from .handlers import *
 from rest_framework import generics
-from equipment.models import Asset, Rack
-from power.models import Powered, PDU
-from network.models import NetworkPort
-from .serializers import ChangePlanSerializer
+from equipment.models import Rack
+from power.models import PDU
+from .models import ChangePlan
+from .handlers import *
+from .serializers import ChangePlanSerializer, ChangePlanDetailSerializer
 
 
 class AssetChangePlanDiff(views.APIView):
@@ -107,7 +105,7 @@ class ChangePlanList(UserChangePlansMixin, generics.ListAPIView):
 
 
 class ChangePlanDetails(UserChangePlansMixin, generics.RetrieveAPIView):
-    serializer_class = ChangePlanSerializer
+    serializer_class = ChangePlanDetailSerializer
 
 
 class ChangePlanCreate(UserChangePlansMixin, generics.CreateAPIView):
