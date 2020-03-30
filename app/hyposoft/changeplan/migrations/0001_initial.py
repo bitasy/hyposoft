@@ -25,5 +25,8 @@ class Migration(migrations.Migration):
                 ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
                 ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='changeplan.ChangePlan')),
             ],
+            options={
+                'unique_together': {('owner', 'name')},
+            },
         ),
     ]

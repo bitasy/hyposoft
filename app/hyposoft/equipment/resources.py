@@ -5,6 +5,7 @@ from import_export import resources, fields
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
+from hyposoft.utils import versioned_object
 from .models import ITModel, Asset, Rack, Datacenter
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
@@ -14,13 +15,14 @@ import re
 
 
 class VersionedResource(resources.ModelResource):
-    def __init__(self, version):
+    def __init__(self, version, owner, force=False):
         super(VersionedResource, self).__init__()
         self.version = version
+        self.owner = owner
+        self.force = force
 
 
 class ITModelResource(VersionedResource):
-
     network_port_name_1 = fields.Field()
     network_port_name_2 = fields.Field()
     network_port_name_3 = fields.Field()
@@ -96,22 +98,15 @@ class ITModelResource(VersionedResource):
 
 
 class AssetResource(VersionedResource):
-
     class RackForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             my_rack = row['rack']
             my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-            if not my_rack[-2].isdigit() and my_rack[-1].isdigit():
-                new_rack = my_rack[:-1] + '0' + my_rack[-1:]
-                return self.model.objects.get(
-                    rack=new_rack,
-                    datacenter=my_datacenter
-                )
-            else:
-                return self.model.objects.get(
-                    rack=my_rack,
-                    datacenter=my_datacenter
-                )
+            return self.model.objects.get(
+                rack=my_rack,
+                datacenter=my_datacenter,
+                version_id=row['version']
+            )
 
     class ITModelForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
@@ -145,32 +140,57 @@ class AssetResource(VersionedResource):
         attribute='owner',
         widget=ForeignKeyWidget(User, 'username')
     )
-    power_port_connection_1 = fields.Field()
-    power_port_connection_2 = fields.Field()
+    power_port_connection_1 = fields.Field(attribute="power_port_connection_1")
+    power_port_connection_2 = fields.Field(attribute="power_port_connection_2")
 
-    def dehydrate_power_port_connection_1 (self, asset):
+    def skip_row(self, instance, original):
+        port1 = getattr(instance, "power_port_connection_1")
+        port2 = getattr(instance, "power_port_connection_2")
+        new = [port for port in (port1, port2) if len(port) > 0]
+        curr = [port[0] + str(port[1]) for port in instance.powered_set.values_list("pdu__position", "plug_number")]
+
+        if sorted(new) != sorted(curr):
+            return False
+
+        delattr(instance, "power_port_connection_1")
+        delattr(instance, "power_port_connection_2")
+        return super(AssetResource, self).skip_row(instance, original)
+
+    def dehydrate_power_port_connection_1(self, asset):
         try:
             if asset.itmodel.power_ports >= 1:
-                my_powered = Powered.objects.get(asset=asset, order=1)
-                return str(my_powered.pdu.position) + str(my_powered.plug_number)
-            else:
-                return ''
+                my_powered = Powered.objects.filter(asset=asset, order=1).first()
+                if self.version != 0 and my_powered is None:
+                    my_powered = Powered.objects.filter(
+                        asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
+                        order=1
+                    ).first()
+                if my_powered:
+                    return str(my_powered.pdu.position) + str(my_powered.plug_number)
+                else:
+                    return ''
         except:
             return ''
 
     def dehydrate_power_port_connection_2(self, asset):
         try:
             if asset.itmodel.power_ports >= 2:
-                my_powered = Powered.objects.get(asset=asset, order=2)
-                return str(my_powered.pdu.position) + str(my_powered.plug_number)
-            else:
-                return ''
+                my_powered = Powered.objects.filter(asset=asset, order=2).first()
+                if self.version != 0 and my_powered is None:
+                    my_powered = Powered.objects.filter(
+                        asset=versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS),
+                        order=2
+                    ).first()
+                if my_powered:
+                    return str(my_powered.pdu.position) + str(my_powered.plug_number)
+                else:
+                    return ''
         except:
             return ''
 
     class Meta:
         model = Asset
-        exclude = ('id', 'itmodel', 'commissioned', 'decommissioned_by', 'decommissioned_timestamp', 'version')
+        exclude = ('id', 'itmodel', 'commissioned', 'decommissioned_by', 'decommissioned_timestamp')
         import_id_fields = ('hostname', 'vendor', 'model_number')
         export_order = ('asset_number', 'datacenter', 'hostname', 'rack', 'rack_position', 'vendor', 'model_number',
                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2')
@@ -189,28 +209,68 @@ class AssetResource(VersionedResource):
         elif row['asset_number'] == '':
             row['asset_number'] = None
 
+        row['version'] = self.version
+
     def after_import_row(self, row, row_result, **kwargs):
-        my_asset = Asset.objects.get(asset_number=row['asset_number']) #todo handle change plan?
+        try:
+            my_asset = Asset.objects.get(id=row_result.object_id)
+        except:
+            return  # skip
         my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter) #todo find a version number for here
-
-        current = [{'pdu_id': port['pdu'], 'plug': port['plug_number']}
-                   for port in my_asset.powered_set.values('pdu', 'plug_number')]
-
-        my_asset.powered_set.delete()
+        my_rack = Rack.objects.get(rack=row['rack'], datacenter=my_datacenter, version=self.version)
 
         special = []
         for i in range(1, min(3, my_asset.itmodel.power_ports + 1)):
             pc = row['power_port_connection_' + str(i)]
-            split = re.search(r"\d", pc).start()
-            position = pc[:split]
-            plug = int(pc[split:])
-            special.append({'pdu_id': PDU.objects.get(rack=my_rack, position=position), 'plug': plug})
+            if len(pc) > 0:
+                try:
+                    split = re.search(r"\d", pc).start()
+                    position = pc[:split]
+                    plug = int(pc[split:])
+                    special.append({'pdu_id': PDU.objects.get(rack=my_rack, position=position), 'plug': plug})
+                except AttributeError:
+                    raise ValidationError('power_port_connection_' + str(i) + "formatted incorrectly")
+                except PDU.DoesNotExist:
+                    raise ValidationError(pc + " does not exit on the specified rack")
+        current = []
+        if len(special) >= 2:
+            special_simple = [port['pdu_id'].position + str(port['plug']) for port in special]
 
+            current = [{'pdu_id': port['pdu'], 'plug': port['plug_number']}
+                       for port in my_asset.powered_set.order_by('order').values('pdu', 'plug_number')]
+
+            for port in current:
+                simple = port['pdu_id'].position + str(port['plug'])
+                if simple in special_simple:
+                    current.remove(simple)
+
+        my_asset.powered_set.all().delete()
+
+        if self.force:
+            new_version = ChangePlan.objects.get(id=self.version)
+        else:
+            parent = ChangePlan.objects.get(id=self.version)
+            try:
+                new_version = ChangePlan.objects.get(
+                    owner=self.owner,
+                    name="_BULK_IMPORT_" + str(id(self))
+                )
+            except ChangePlan.DoesNotExist:
+                new_version = ChangePlan.objects.create(
+                    owner=self.owner,
+                    name="_BULK_IMPORT_" + str(id(self)),
+                    executed=False,
+                    auto_created=True,
+                    parent=parent
+                )
+
+        my_asset.version = new_version
         create_asset_extra(
             my_asset,
-            ChangePlan.objects.get(0), # todo handle creating new change plan for bulk to get diff
-            # requires getting version through the view and setting parent changeplan
+            new_version,
             special + current,
             None
         )
+
+    def after_export(self, queryset, data, *args, **kwargs):
+        del data['version']

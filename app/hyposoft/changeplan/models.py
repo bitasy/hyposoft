@@ -34,3 +34,6 @@ class ChangePlan(models.Model):
         null=True,
         blank=True
     )
+
+    class Meta:
+        unique_together = ['owner', 'name']

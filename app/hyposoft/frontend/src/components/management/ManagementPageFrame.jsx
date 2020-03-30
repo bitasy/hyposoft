@@ -86,16 +86,26 @@ function ManagementPageFrame({ children }) {
           <HGreed />
           <Col style={{ paddingRight: 24 }}>
             <Select
-              value={JSON.stringify(changePlan ?? null)}
+              value={
+                changePlan
+                  ? JSON.stringify({
+                      id: changePlan.id.toString(),
+                      name: changePlan.name,
+                    })
+                  : "null"
+              }
               onChange={v => {
                 setChangePlan(JSON.parse(v));
               }}
               style={{ width: 250, marginRight: 8 }}
             >
               <Select.Option value="null">LIVE DATA</Select.Option>
-              {changePlans.map((cp, idx) => (
-                <Select.Option key={idx} value={JSON.stringify(cp)}>
-                  {cp.name}
+              {changePlans.map(({ id, name }, idx) => (
+                <Select.Option
+                  key={idx}
+                  value={JSON.stringify({ id: id.toString(), name })}
+                >
+                  {name}
                 </Select.Option>
               ))}
             </Select>

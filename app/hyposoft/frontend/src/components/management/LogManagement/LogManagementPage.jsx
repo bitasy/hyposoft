@@ -3,20 +3,14 @@ import { Typography, Table, Input, Pagination } from "antd";
 import { getLogs } from "../../../api/log";
 
 // a function to create an array of data from a JSON list object based on searchable items
-async function createLogArray(
-  username,
-  displayName,
-  identifier,
-  model,
-  page,
-) {
+async function createLogArray(username, displayName, identifier, model, page) {
   const { results, count } = await getLogs({
     page,
     page_size: 10, // for now
-    username_search: username,
-    display_name_search: displayName,
-    model_search: model,
-    identifier_search: identifier,
+    username__iexact: username,
+    display_name__contains: displayName,
+    model__iexact: model,
+    identifier__contains: identifier,
     ordering: undefined,
     direction: undefined,
   });
@@ -91,13 +85,7 @@ const columns = [
     key: "identifier",
     render: (text, record) =>
       MAPPING[record.model] ? (
-        <a
-          href={`/#/${MAPPING[record.model]}/${
-            record.instance_id
-          }`}
-        >
-          {text}
-        </a>
+        <a href={`/#/${MAPPING[record.model]}/${record.instance_id}`}>{text}</a>
       ) : (
         text
       ),
@@ -148,9 +136,7 @@ class LogManagementPage extends React.Component {
       this.state.identifier,
       this.state.model,
       this.state.page,
-    ).then(({ data, total }) =>
-      this.setState({ datasource: data, total }),
-    );
+    ).then(({ data, total }) => this.setState({ datasource: data, total }));
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -185,9 +171,7 @@ class LogManagementPage extends React.Component {
           this.state.identifier,
           this.state.model,
           this.state.page,
-        ).then(({ data, total }) =>
-          this.setState({ datasource: data, total }),
-        );
+        ).then(({ data, total }) => this.setState({ datasource: data, total }));
       }
     }
   }
@@ -200,36 +184,28 @@ class LogManagementPage extends React.Component {
         <Input
           placeholder="Search exact username"
           value={this.state.username}
-          onChange={e =>
-            this.setState({ username: e.target.value })
-          }
+          onChange={e => this.setState({ username: e.target.value })}
           allowClear
         />
 
         <Input
           placeholder="Search display name"
           value={this.state.displayName}
-          onChange={e =>
-            this.setState({ displayName: e.target.value })
-          }
+          onChange={e => this.setState({ displayName: e.target.value })}
           allowClear
         />
 
         <Input
           placeholder="Search exact model"
           value={this.state.model}
-          onChange={e =>
-            this.setState({ model: e.target.value })
-          }
+          onChange={e => this.setState({ model: e.target.value })}
           allowClear
         />
 
         <Input
           placeholder="Search identifier"
           value={this.state.identifier}
-          onChange={e =>
-            this.setState({ identifier: e.target.value })
-          }
+          onChange={e => this.setState({ identifier: e.target.value })}
           allowClear
         />
 

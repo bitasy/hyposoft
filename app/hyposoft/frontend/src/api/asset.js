@@ -1,5 +1,11 @@
 import Axios from "axios";
-import { getData, makeQueryString, makeHeaders, withLoading } from "./utils";
+import {
+  getData,
+  makeQueryString,
+  makeHeaders,
+  withLoading,
+  processAssetQuery,
+} from "./utils";
 import {
   indexToRow,
   toIndex,
@@ -15,34 +21,12 @@ export function createAsset(fields) {
 }
 
 export function getAssetList(query) {
-  const directionPrefix = `${query.direction === "descending" ? "-" : ""}`;
-
-  const whatCanIDoIfDjangoForcesMeToLOL = {
-    model: ["itmodel__vendor", "itmodel__model_number"],
-    hostname: ["hostname"],
-    location: ["datacenter__abbr", "rack__rack", "rack_position"],
-    owner: ["owner"],
-  };
-
-  const ordering = whatCanIDoIfDjangoForcesMeToLOL[query.ordering];
-
-  const [r1, c1] = toIndex(query.rack_from);
-  const [r2, c2] = toIndex(query.rack_to);
-
-  const q = {
-    ...query,
-    r1: indexToRow(r1),
-    r2: indexToRow(r2),
-    c1: indexToCol(c1),
-    c2: indexToCol(c2),
-    ordering: ordering
-      ? ordering.map(o => directionPrefix + o).join(",")
-      : undefined,
-  };
-
-  return Axios.get(`api/equipment/AssetList?${makeQueryString(q)}`, {
-    headers: makeHeaders(),
-  }).then(getData);
+  return Axios.get(
+    `api/equipment/AssetList?${makeQueryString(processAssetQuery(query))}`,
+    {
+      headers: makeHeaders(),
+    },
+  ).then(getData);
 }
 
 export function getDecommissionedAssetList(query) {

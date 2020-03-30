@@ -1,12 +1,14 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination } from "antd";
+import { Table, Pagination, Button, Row, Col } from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
 import { DCContext } from "../../../../contexts/contexts";
+import { exportAssets, exportNetwork } from "../../../../api/bulk";
+import VSpace from "../../../utility/VSpace";
 
 const AssetTable = styled(Table)`
   :hover {
@@ -74,22 +76,24 @@ function AssetList({ modelID }) {
 
   const realm = React.useRef(0);
 
+  const assetQuery = {
+    search: filterValues.search,
+    page,
+    page_size: pageSize,
+    itmodel: modelID,
+    rack_from: filterValues.rack_from,
+    rack_to: filterValues.rack_to,
+    rack_position_min: filterValues.rack_position[0],
+    rack_position_max: filterValues.rack_position[1],
+    ordering,
+    direction,
+  };
+
   React.useEffect(() => {
     realm.current++;
     const t = realm.current;
 
-    getAssetList({
-      search: filterValues.search,
-      page,
-      page_size: pageSize,
-      itmodel: modelID,
-      rack_from: filterValues.rack_from,
-      rack_to: filterValues.rack_to,
-      rack_position_min: filterValues.rack_position[0],
-      rack_position_max: filterValues.rack_position[1],
-      ordering,
-      direction,
-    }).then(r => {
+    getAssetList(assetQuery).then(r => {
       if (t === realm.current) {
         setData(r.results);
         setTotal(r.count);
@@ -133,13 +137,40 @@ function AssetList({ modelID }) {
     return { onClick };
   }
 
+  function handleAssetExport() {
+    exportAssets(assetQuery);
+  }
+
+  function handleNetworkExport() {
+    exportNetwork(assetQuery);
+  }
+
   return (
     <>
       {modelID == null && (
-        <AssetFilters
-          initialFilterValues={initialFilterValues}
-          onChange={setFilterValues}
-        />
+        <div>
+          <AssetFilters
+            initialFilterValues={initialFilterValues}
+            onChange={setFilterValues}
+          />
+          <VSpace height="8px" />
+          <Button
+            onClick={() => history.push("/import/asset")}
+            style={{ marginRight: 8 }}
+          >
+            Import Assets
+          </Button>
+          <Button onClick={handleAssetExport}>Export Assets</Button>
+          <VSpace height="8px" />
+          <Button
+            onClick={() => history.push("/import/network")}
+            style={{ marginRight: 8 }}
+          >
+            Import Network
+          </Button>
+          <Button onClick={handleNetworkExport}>Export Network</Button>
+          <VSpace height="8px" />
+        </div>
       )}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <AssetTable
