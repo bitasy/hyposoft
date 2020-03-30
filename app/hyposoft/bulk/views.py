@@ -9,15 +9,17 @@ import io
 from django.db import models
 
 from equipment.resources import ITModelResource, AssetResource
-from equipment.models import ITModel, Asset
+from equipment.models import ITModel, Asset, Rack
 from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter
 from equipment.serializers import ITModelSerializer, AssetSerializer
+from changeplan.models import ChangePlan
+from power.models import Powered, PDU
 from network.models import NetworkPort
 from network.resources import NetworkPortResource
 
 
 # The Model and Serializer classes are used for compatibility with the browsable API
-from hyposoft.utils import get_version
+from hyposoft.utils import get_version, versioned_queryset
 
 
 class File(models.Model):
@@ -28,12 +30,19 @@ class FileSerializer(serializers.Serializer):
     file = serializers.FileField()
 
 
+def bool(obj):
+    if type(obj) == bool:
+        return obj
+    return obj == "true" or obj == "True"
+
+
 class ITModelImport(generics.CreateAPIView):
-    queryset = None
+    queryset = ITModel.objects.filter(id=-1)
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
         data = request.data
+        force = bool(request.query_params['force'])
         file = data.get('file')
         with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
             dataset = Dataset().load(text, format="csv")
@@ -41,16 +50,31 @@ class ITModelImport(generics.CreateAPIView):
                                        'power_ports', 'cpu', 'memory', 'storage', 'comment', 'network_port_name_1',
                                        'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
                 raise serializers.ValidationError("Improperly formatted CSV")
-            ITModelResource(get_version(request)).import_data(dataset)
-            return Response({}, HTTP_200_OK)
+
+            result = ITModelResource(
+                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+
+            errors = [
+                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                for row in result.rows if len(row.errors) > 0
+            ]
+
+            if len(errors) > 0:
+                response = {"status": "error", "errors": errors}
+            else:
+                response = {
+                    "status": "diff" if not force else "success",
+                    "diff": {"headers": result.diff_headers, "data": [row.diff for row in result.rows]}}
+            return Response({response}, HTTP_200_OK)
 
 
 class AssetImport(generics.CreateAPIView):
-    queryset = None
+    queryset = Asset.objects.filter(id=-1)
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
         data = request.data
+        force = bool(request.query_params['force'])
         file = data.get('file')
         with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
             dataset = Dataset().load(text, format="csv")
@@ -58,23 +82,93 @@ class AssetImport(generics.CreateAPIView):
                                        'vendor', 'model_number', 'owner', 'comment',
                                        'power_port_connection_1', 'power_port_connection_2']:
                 raise serializers.ValidationError("Improperly formatted CSV")
-            result = AssetResource(get_version(request)).import_data(dataset)
-            return Response({}, HTTP_200_OK)
+
+            result = AssetResource(
+                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+
+            errors = [
+                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                for row in result.rows if len(row.errors) > 0
+            ]
+
+            if len(errors) > 0:
+                return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+            elif not force:
+                resource = AssetResource(get_version(request), request.user, False)
+                result = resource.import_data(dataset)
+
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    # No changes, all objects skipped
+                    return Response({}, status=HTTP_200_OK)
+
+                errors = [
+                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                    for row in result.rows if len(row.errors) > 0
+                ]
+
+                if len(errors) > 0:
+                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+
+                #todo calculate diff
+
+                for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                    model.objects.filter(version=changeplan).delete()
+                changeplan.delete()
+
+                #todo return response diff
+            else:
+                return Response({}, status=HTTP_200_OK)
 
 
 class NetworkImport(generics.CreateAPIView):
-    queryset = None
+    queryset = NetworkPort.objects.filter(id=-1)
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
         data = request.data
+        force = bool(request.query_params['force'])
         file = data.get('file')
         with io.TextIOWrapper(file, encoding='utf-8-sig') as text:
             dataset = Dataset().load(text, format="csv")
             if not dataset.headers == ['src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port']:
                 raise serializers.ValidationError("Improperly formatted CSV")
-            NetworkPortResource(get_version(request)).import_data(dataset)
-            return Response({}, HTTP_200_OK)
+            result = NetworkPortResource(
+                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+
+            errors = [
+                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                for row in result.rows if len(row.errors) > 0
+            ]
+
+            if len(errors) > 0:
+                return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+            elif not force:
+                resource = NetworkPortResource(get_version(request), request.user, False)
+                result = resource.import_data(dataset)
+
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    # No changes, all objects skipped
+                    return Response({}, status=HTTP_200_OK)
+
+                errors = [
+                    {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                    for row in result.rows if len(row.errors) > 0
+                ]
+
+                if len(errors) > 0:
+                    return Response({"status": "error", "errors": errors}, HTTP_200_OK)
+
+                #todo calculate diff
+
+                for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                    model.objects.filter(version=changeplan).delete()
+                changeplan.delete()
+            else:
+                return Response({}, status=HTTP_200_OK)
 
 
 class CSVRenderer(renderers.BaseRenderer):
@@ -103,7 +197,8 @@ class ITModelExport(generics.ListAPIView):
     filterset_class = ITModelFilter
 
     def get(self, request, *args, **kwargs):
-        data = ITModelResource(get_version(request)).export(queryset=self.filter_queryset(self.get_queryset()))
+        data = ITModelResource(get_version(request), request.user)\
+            .export(queryset=self.filter_queryset(self.get_queryset()))
         return Response(data, HTTP_200_OK)
 
 
@@ -127,14 +222,17 @@ class AssetExport(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        return Asset.objects.filter(
-            commissioned=Asset.Decommissioned.COMMISSIONED,
-            version_id=get_version(self.request))
+        combined = Asset.objects.filter(commissioned=Asset.Decommissioned.COMMISSIONED)
+        version = ChangePlan.objects.get(id=get_version(self.request))
+        versioned = versioned_queryset(combined, version, Asset.IDENTITY_FIELDS)
+        return versioned
+
     serializer_class = AssetSerializer
     filterset_class = AssetFilter
 
     def get(self, request, *args, **kwargs):
-        data = AssetResource(get_version(request)).export(queryset=self.filter_queryset(self.get_queryset()))
+        data = AssetResource(get_version(request), request.user)\
+            .export(queryset=self.filter_queryset(self.get_queryset()))
         return Response(data, HTTP_200_OK)
 
 
@@ -158,14 +256,11 @@ class NetworkExport(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        return Asset.objects.filter(
-            commissioned=Asset.Decommissioned.COMMISSIONED,
-            version_id=get_version(self.request))
+        return NetworkPort.objects.filter(asset__commissioned=Asset.Decommissioned.COMMISSIONED)
+
     serializer_class = AssetSerializer
     filterset_class = AssetFilter
 
     def get(self, request, *args, **kwargs):
-        data = NetworkPortResource(get_version(request)).export(queryset=
-            NetworkPort.objects.filter(asset__in=self.filter_queryset(self.get_queryset()))
-        )
+        data = NetworkPortResource(get_version(request), request.user).export(version_id=get_version(request))
         return Response(data, HTTP_200_OK)

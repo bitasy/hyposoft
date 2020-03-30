@@ -124,7 +124,8 @@ class Rack(models.Model):
 
 class Asset(models.Model):
     asset_number = models.IntegerField(
-        null=True
+        null=True,
+        blank=True
     )
     hostname = models.CharField(
         blank=True,
@@ -191,6 +192,7 @@ class Asset(models.Model):
     decommissioned_by = models.ForeignKey(
         User,
         null=True,
+        blank=True,
         on_delete=models.SET_NULL,
         related_name='decommissioned_assets'
     )
