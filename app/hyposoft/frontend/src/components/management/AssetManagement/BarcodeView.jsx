@@ -1,7 +1,8 @@
 import React from "react";
+//import Box from '@material-ui/core/Box'
 import Barcode from "react-barcode";
 import { useLocation } from "react-router-dom";
-import { Row, Col, Button, Typography } from "antd";
+import { Row, Col, Button, Typography, Card } from "antd";
 import ReactToPrint from "react-to-print";
 import { PrinterOutlined } from "@ant-design/icons";
 import { getAssetList } from "../../../api/asset";
@@ -27,14 +28,23 @@ function partition(arr, nPerArr) {
 //function to create one barcode label
 function CreateBarcodeLabel({ assetNumber }) {
   return (
-    <div style={{ textAlign: "center" }}>
-      <Barcode
-        value={assetNumber.toString()}
-        format={"CODE128C"}
-        displayValue={false}
-      />
-      <p>Hyposoft {assetNumber}</p>
-    </div>
+    <Card style={{ textAlign: "center", border:true }}>
+      <p>
+          <Barcode
+            value={assetNumber.toString()}
+            format={"CODE128C"}
+            displayValue={false}
+            height={28}
+            marginTop={0}
+            marginBottom={0}
+            marginLeft={12}
+            marginRight={12}
+          />
+      </p>
+      <p>
+          HypoSoft {assetNumber}
+      </p>
+    </Card>
   );
 }
 
