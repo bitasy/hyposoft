@@ -26,8 +26,12 @@ class Report(views.APIView):
                     for asset in rack.asset_set.all():
                         if asset.itmodel in itmodels:
                             used_space += asset.itmodel.height
-        used = used_space / total_space
-        free = (total_space - used_space) / total_space
+        try:
+            used = used_space / total_space
+            free = (total_space - used_space) / total_space
+        except:
+            used = 0
+            free = 0
         msg = [
             {
                 "category": vendor,
@@ -55,8 +59,12 @@ class Report(views.APIView):
                     for asset in rack.asset_set.all():
                         if asset.itmodel == model:
                             used_space += asset.itmodel.height
-        used = used_space / total_space
-        free = (total_space - used_space) / total_space
+        try:
+            used = used_space / total_space
+            free = (total_space - used_space) / total_space
+        except:
+            used = 0
+            free = 0
         msg = [
             {"category": str(model),
              "used": used,
@@ -83,8 +91,12 @@ class Report(views.APIView):
                     rack_assets = rack.asset_set.filter(owner=my_owner)
                     for asset in rack_assets:
                         used_space += asset.itmodel.height
-        used = used_space / total_space
-        free = (total_space - used_space) / total_space
+        try:
+            used = used_space / total_space
+            free = (total_space - used_space) / total_space
+        except:
+            used = 0
+            free = 0
         msg = [
             {
                 "category": my_owner.username,
@@ -113,6 +125,13 @@ class Report(views.APIView):
         else:
             total = Rack.objects.filter(version_id=0).count()
         total *= 42
+
+        try:
+            used = used / total
+            free = (total - used) / total
+        except:
+            used = 0
+            free = 0
         return Response({
             'total': [{"category": "total", "used": used / total, "free": (total - used) / total}],
             'by_model': models,
