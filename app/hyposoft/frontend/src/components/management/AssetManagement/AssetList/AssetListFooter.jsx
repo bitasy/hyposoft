@@ -1,18 +1,26 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../../../../contexts/contexts";
 import { useHistory } from "react-router-dom";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, PrinterOutlined } from "@ant-design/icons";
 import CreateTooltip from "../../../utility/CreateTooltip";
 import { Button } from "antd";
 
-function AssetListFooter() {
+function AssetListFooter({ selectedAssets }) {
   const history = useHistory();
   const { user } = useContext(AuthContext);
 
+  //TODO: fix permissions
   const createDisabled = !user?.is_staff;
+
+  console.log(selectedAssets);
+  const printDisabled = selectedAssets.length == 0;
 
   function onCreate() {
     history.push("/assets/create");
+  }
+
+  function onPrint() {
+    history.push(`/assets/print_view?asset_ids=${selectedAssets.join(",")}`);
   }
 
   return user ? (
@@ -25,6 +33,9 @@ function AssetListFooter() {
           <PlusOutlined />
         </Button>
       </CreateTooltip>
+      <Button onClick={onPrint} disabled={printDisabled}>
+        <PrinterOutlined />
+      </Button>
     </div>
   ) : null;
 }
