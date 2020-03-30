@@ -8,6 +8,10 @@ from .models import NetworkPort
 @receiver(pre_save, sender=NetworkPort)
 def check_connection(sender, instance, *args, **kwargs):
     if instance.connection:
+        if len(instance.asset.hostname) == 0:
+            raise serializers.ValidationError(
+                "You must set a hostname before setting connections."
+            )
         if instance.asset == instance.connection.asset:
             raise serializers.ValidationError(
                 "Connections must be between different assets.")
@@ -18,7 +22,7 @@ def check_connection(sender, instance, *args, **kwargs):
 
         try:
             other = instance.connection.connection
-            if other and other.id is not instance.id:
+            if other and other.id != instance.id:
                 raise serializers.ValidationError(
                     "{} is already connected to {} on {}".format(
                         instance.connection.asset,
@@ -26,6 +30,8 @@ def check_connection(sender, instance, *args, **kwargs):
                         instance.connection.label.name
                     )
                 )
+            elif other:
+                return
         except NetworkPort.DoesNotExist:
             pass
 

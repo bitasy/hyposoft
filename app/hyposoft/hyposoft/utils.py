@@ -4,7 +4,7 @@
 # Essentially, after Z is AA and after AA is AB etc.
 from django.db.models import Q
 
-from equipment.models import Rack
+from equipment.models import Rack, Asset
 from network.models import NetworkPort
 
 
@@ -55,11 +55,7 @@ def generate_racks(r1, r2, c1, c2):
 
 def get_version(request):
     val = request.META.get('HTTP_X_CHANGE_PLAN', 0)
-    try:
-        num = int(val)
-        return num
-    except ValueError:
-        return 0
+    return val if isinstance(val, int) else 0
 
 
 def versioned_object(obj, version, identity_fields):
@@ -93,13 +89,23 @@ def versioned_queryset(queryset, version, identity_fields):
 
 # For adding various objects from live to a change plan
 def add_rack(rack, change_plan):
+    if rack.version == change_plan:
+        return rack
+    newer_rack = versioned_object(rack, change_plan, Rack.IDENTITY_FIELDS)
+    if newer_rack:
+        return newer_rack
     rack.id = None
     rack.version = change_plan
     rack.save()
     return rack
 
 
-def add_asset(asset, change_plan):
+def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
+    if asset.version == change_plan:
+        return asset
+    newer_asset = versioned_object(asset, change_plan, identity_fields)
+    if newer_asset:
+        return newer_asset
     rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
     if rack is None:
         rack = add_rack(asset.rack, change_plan)
@@ -112,11 +118,11 @@ def add_asset(asset, change_plan):
 
 
 def add_network_conn(connection, version):
-    versioned_conn = versioned_object(connection, version, NetworkPort.IDENTITY_FIELDS)
+    versioned_conn = versioned_object(connection, version, ['asset__hostname', 'label'])
     if versioned_conn is None:
         # Add connected asset to change plan
         conn_asset = connection.asset
-        new_asset = add_asset(conn_asset, version)
+        new_asset = add_asset(conn_asset, version, identity_fields=['hostname'])
         connection.id = None
         connection.asset = new_asset
         connection.connection = None

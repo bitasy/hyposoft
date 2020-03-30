@@ -17,6 +17,8 @@ from power.models import Powered, PDU
 from network.models import NetworkPort
 from network.resources import NetworkPortResource
 
+from changeplan.handlers import create_asset_diffs, create_networkport_diffs, create_powered_diffs
+from changeplan.views import AssetChangePlanDiff, NetworkPortChangePlanDiff, PoweredChangePlanDiff
 
 # The Model and Serializer classes are used for compatibility with the browsable API
 from hyposoft.utils import get_version, versioned_queryset
@@ -51,8 +53,7 @@ class ITModelImport(generics.CreateAPIView):
                                        'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
                 raise serializers.ValidationError("Improperly formatted CSV")
 
-            result = ITModelResource(
-                get_version(request), request.user, True).import_data(dataset, dry_run=not force)
+            result = ITModelResource().import_data(dataset, dry_run=not force)
 
             errors = [
                 {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
@@ -65,7 +66,7 @@ class ITModelImport(generics.CreateAPIView):
                 response = {
                     "status": "diff" if not force else "success",
                     "diff": {"headers": result.diff_headers, "data": [row.diff for row in result.rows]}}
-            return Response({response}, HTTP_200_OK)
+            return Response(response, HTTP_200_OK)
 
 
 class AssetImport(generics.CreateAPIView):
@@ -97,12 +98,6 @@ class AssetImport(generics.CreateAPIView):
                 resource = AssetResource(get_version(request), request.user, False)
                 result = resource.import_data(dataset)
 
-                try:
-                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
-                except ChangePlan.DoesNotExist:
-                    # No changes, all objects skipped
-                    return Response({}, status=HTTP_200_OK)
-
                 errors = [
                     {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
                     for row in result.rows if len(row.errors) > 0
@@ -111,13 +106,23 @@ class AssetImport(generics.CreateAPIView):
                 if len(errors) > 0:
                     return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
-                #todo calculate diff
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    return Response({"status": "skip"}, status=HTTP_200_OK)
+
+                response = {
+                    'status': "diff",
+                    'asset': AssetChangePlanDiff.get(None, changeplan, get_version(request)),
+                    'power': PoweredChangePlanDiff.get(None, changeplan, get_version(request)),
+                }
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()
                 changeplan.delete()
 
-                #todo return response diff
+                return Response(response, status=HTTP_200_OK)
+
             else:
                 return Response({}, status=HTTP_200_OK)
 
@@ -148,12 +153,6 @@ class NetworkImport(generics.CreateAPIView):
                 resource = NetworkPortResource(get_version(request), request.user, False)
                 result = resource.import_data(dataset)
 
-                try:
-                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
-                except ChangePlan.DoesNotExist:
-                    # No changes, all objects skipped
-                    return Response({}, status=HTTP_200_OK)
-
                 errors = [
                     {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
                     for row in result.rows if len(row.errors) > 0
@@ -162,11 +161,22 @@ class NetworkImport(generics.CreateAPIView):
                 if len(errors) > 0:
                     return Response({"status": "error", "errors": errors}, HTTP_200_OK)
 
-                #todo calculate diff
+                try:
+                    changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
+                except ChangePlan.DoesNotExist:
+                    return Response({"status": "skip"}, status=HTTP_200_OK)
+
+                response = {
+                    'status': "diff",
+                    'network': NetworkPortChangePlanDiff.get(None, changeplan, get_version(request)),
+                }
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     model.objects.filter(version=changeplan).delete()
                 changeplan.delete()
+
+                return Response(response, status=HTTP_200_OK)
+
             else:
                 return Response({}, status=HTTP_200_OK)
 
@@ -197,8 +207,7 @@ class ITModelExport(generics.ListAPIView):
     filterset_class = ITModelFilter
 
     def get(self, request, *args, **kwargs):
-        data = ITModelResource(get_version(request), request.user)\
-            .export(queryset=self.filter_queryset(self.get_queryset()))
+        data = ITModelResource().export(queryset=self.filter_queryset(self.get_queryset()))
         return Response(data, HTTP_200_OK)
 
 

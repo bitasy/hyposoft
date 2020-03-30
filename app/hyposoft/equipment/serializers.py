@@ -218,10 +218,6 @@ class AssetSerializer(serializers.ModelSerializer):
         connections = Powered.objects.filter(asset=instance)
         ports = NetworkPort.objects.filter(asset=instance)
         if instance.version.id != 0:
-            live = versioned_object(instance, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
-            if live:
-                connections = connections.union(Powered.objects.filter(asset=live))
-                ports = ports.union(NetworkPort.objects.filter(asset=live))
             connections = versioned_queryset(connections, instance.version, Powered.IDENTITY_FIELDS)
             ports = versioned_queryset(ports, instance.version, NetworkPort.IDENTITY_FIELDS)
         data['power_connections'] = [

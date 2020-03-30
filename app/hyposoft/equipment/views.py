@@ -4,13 +4,11 @@ from django.utils import timezone
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
-
 from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra
 from .serializers import *
 from .models import *
-
 import logging
 
 
@@ -208,8 +206,21 @@ class AssetDetailRetrieve(generics.RetrieveAPIView):
     serializer_class = AssetDetailSerializer
 
 
+class RackView(views.APIView):
+    def post(self, request):
+        rack_ids = request.data['rack_ids']
+        racks = [Rack.objects.get(id=id) for id in rack_ids]
+        return Response({
+            rack.id: {
+                "rack": RackSerializer(rack).data,
+                "assets": [{"asset": AssetSerializer(asset).data, "model": ITModelSerializer(asset.itmodel).data}
+                           for asset in rack.asset_set.order_by('rack_position')]}
+            for rack in racks}, status=HTTP_200_OK)
+
+
 class DecommissionAsset(views.APIView):
-    serializer_class = DecommissionedAssetSerializer
+    serializer_class = AssetDetailSerializer
+
     @transaction.atomic()
     def post(self, request, asset_id):
         try:
@@ -251,7 +262,7 @@ class DecommissionAsset(views.APIView):
                 pdu.version = change_plan
                 pdu.save()
 
-                for power in old_pdu.powered_set.filter(version=version):
+                for power in old_pdu.powered_set.filter(version=version): #todo is this version correct? it excludes  live power ports
                     power.id = None
                     power.pdu = pdu
                     power.asset = Asset.objects.get(asset_number=power.asset.asset_number, version=change_plan)
@@ -296,9 +307,8 @@ class DecommissionAsset(views.APIView):
 
             loop_ports(old_asset, True)
 
-            old_asset.delete()
-
             log_decommission(self, old_asset)
+            old_asset.delete()
 
             response = AssetDetailSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)

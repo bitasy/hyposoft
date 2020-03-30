@@ -33,6 +33,7 @@ class NetworkPort(models.Model):
     )
     mac_address = models.CharField(
         null=True,
+        blank=True,
         max_length=17,
         validators=[
             RegexValidator("^([0-9a-fA-F]{2}[:_-]{0,1}){5}[0-9a-fA-F]{2}$",
