@@ -12,7 +12,6 @@ import VSpace from "../../../utility/VSpace";
 
 const AssetTable = styled(Table)`
   :hover {
-    cursor: pointer;
   }
 `;
 
@@ -47,7 +46,12 @@ export const assetColumns = [
     sorter: false,
     render: r => {
       return (
-        r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />
+        <div>
+          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
+            Details
+          </a>
+          {r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />}
+        </div>
       );
     },
   },
@@ -59,7 +63,6 @@ const initialFilterValues = {
   rack_to: "Z99",
   rack_position: [1, 42],
 };
-
 
 // modelID?: number
 function AssetList({ modelID }) {
@@ -103,8 +106,6 @@ function AssetList({ modelID }) {
     });
   }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
 
-  console.log("data/selectedAssets", data);
-
   React.useEffect(() => {
     setPage(1);
   }, [filterValues, ordering, direction]);
@@ -137,40 +138,12 @@ function AssetList({ modelID }) {
     }
   }
 
-  //prevents selecting checkbox as is, changing to onCell
-  // function onRow(r) {
-  //   const onClick = () => history.push(`/assets/${r.id}`);
-  //   return { onClick };
-  // }
-
-  // function onCell(r) {
-  //   const onClick = () => history.push(`/assets/${r.id}`);
-  //   return { onClick };
-  // }
-
-  // //TODO: function to add selected rows to an array
-  // function onSelectChange(r) {
-  //   const onClick = () => selectedRowKeys.concat(`${r.id}`);
-  //   console.log(selectedRowKeys); //testing
-  //   return { onClick };
-  // }
-
-  function onSelectChange(r) {
-    const onClick = () => setSelectedAssets(r.data);
-    return { onClick };
-    console.log('selectedAssets changed: ', selectedAssets);
-  };
-
   //TODO: test rowSelection
   const rowSelection = {
     selectedAssets,
-    selections: [
-      Table.SELECTION_ALL,
-      Table.SELECTION_INVERT,
-    ],
-    onChange: onSelectChange(),
-    onSelect: setSelectedAssets
-  }
+    selections: [Table.SELECTION_ALL, Table.SELECTION_INVERT],
+    onChange: setSelectedAssets,
+  };
 
   function handleAssetExport() {
     exportAssets(assetQuery);
@@ -214,11 +187,11 @@ function AssetList({ modelID }) {
         rowKey={r => r.id}
         columns={assetColumns}
         dataSource={data}
-        // onRow={onRow}
-        onCell={onCell}
         onChange={onChange}
         pagination={false}
-        footer={() => (modelID ? null : AssetListFooter(selectedAssets))}
+        footer={() =>
+          modelID ? null : <AssetListFooter selectedAssets={selectedAssets} />
+        }
       />
     </>
   );
