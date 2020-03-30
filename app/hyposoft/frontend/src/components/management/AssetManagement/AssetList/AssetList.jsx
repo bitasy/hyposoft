@@ -60,7 +60,6 @@ const initialFilterValues = {
   rack_position: [1, 42],
 };
 
-const selectedRowKeys = [];
 
 // modelID?: number
 function AssetList({ modelID }) {
@@ -70,13 +69,12 @@ function AssetList({ modelID }) {
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize, setPageSize] = React.useState(100000);
   const [total, setTotal] = React.useState(0);
   const [data, setData] = React.useState([]);
   const [ordering, setOrdering] = React.useState(undefined);
   const [direction, setDirection] = React.useState(undefined);
-
-  const [selected] = React.useState(selectedRowKeys);
+  const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of ids of selected assets
 
   const realm = React.useRef(0);
 
@@ -109,6 +107,7 @@ function AssetList({ modelID }) {
     setPage(1);
   }, [filterValues, ordering, direction]);
 
+  //effectively no more pagination
   const paginationConfig = {
     position: "top",
     total,
@@ -136,29 +135,39 @@ function AssetList({ modelID }) {
     }
   }
 
-  function onRow(r) {
+  //prevents selecting checkbox as is, changing to onCell
+  // function onRow(r) {
+  //   const onClick = () => history.push(`/assets/${r.id}`);
+  //   return { onClick };
+  // }
+
+  function onCell(r) {
     const onClick = () => history.push(`/assets/${r.id}`);
     return { onClick };
   }
 
-  //TODO: function to add selected rows to an array
+  // //TODO: function to add selected rows to an array
+  // function onSelectChange(r) {
+  //   const onClick = () => selectedRowKeys.concat(`${r.id}`);
+  //   console.log(selectedRowKeys); //testing
+  //   return { onClick };
+  // }
+
   function onSelectChange(r) {
-    const onClick = () => selectedRowKeys.concat(`${r.id}`);
-    console.log(selectedRowKeys); //testing
+    const onClick = () => setSelectedAssets(r.data);
     return { onClick };
-  }
+    console.log('selectedAssets changed: ', selectedAssets);
+  };
 
   //TODO: define rowSelection
   const rowSelection = {
-    selectedRowKeys,
+    selectedAssets,
     selections: [
       Table.SELECTION_ALL,
       Table.SELECTION_INVERT,
     ],
-//    onChange: onSelectChange(),
-//    onSelect:
-    //onSelectAll:
-
+    onChange: onSelectChange(),
+    onSelect: setSelectedAsset
   }
 
   function handleAssetExport() {
@@ -203,10 +212,11 @@ function AssetList({ modelID }) {
         rowKey={r => r.id}
         columns={assetColumns}
         dataSource={data}
-        onRow={onRow}
+        // onRow={onRow}
+        onCell={onCell}
         onChange={onChange}
         pagination={false}
-        footer={() => (modelID ? null : AssetListFooter())}
+        footer={() => (modelID ? null : AssetListFooter(selectedAssets))}
       />
     </>
   );

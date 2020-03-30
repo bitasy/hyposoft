@@ -22,42 +22,40 @@ function partition(arr, nPerArr) {
     return acc;
 }
 
-//function to create one label
-function CreateBarcodeLabel( {assetID} ) {
+//function to create one barcode label
+function CreateBarcodeLabel( {assetNumber} ) {
     return (
         <div>
             <Barcode
-                value={assetID}
+                value={assetNumber}
                 format={"CODE128C"}
                 displayValue={false}
             >
             </Barcode>
             <div>
-                Hyposoft {assetID}
+                Hyposoft {assetNumber}
             </div>
         </div>
     );
 }
 
-//function to add multiple barcodes in a page to a page
+//function to add multiple barcodes to a page
 function BarcodeView({ r }) {
-    const idsStr = new URLSearchParams(useLocation().search).get("ids");
+    const numbersStr = new URLSearchParams(useLocation().search).get("asset_numbers");
 
     const history = useHistory();
 
-    //const assetIDs = idsStr.split(",").map(s => parseInt(s));
-    const testAssetIDs = ["100000", "100001", "100002", "100003", "100004"];
-    console.log(testAssetIDs);
+    const assetNumbers = numbersStr.split(",").map(s => parseInt(s));
+    //const testAssetNumbers = ["100000", "100001", "100002", "100003", "100004"]; //working
+    console.log(assetNumbers);
 
-    //const barcodeSplit = partition(assetIDs, BARCODES_IN_ROW);
-    const barcodeSplit = partition(testAssetIDs, BARCODES_IN_ROW);
+    const barcodeSplit = partition(assetNumbers, BARCODES_IN_ROW);
+    //const barcodeSplit = partition(testAssetNumbers, BARCODES_IN_ROW);
 
-    //TODO: fix iterator for assetIDs array
     let counter = 0;
 
     return (
         <div ref={r}>
-            {counter = counter + 1}
             {barcodeSplit.map((row, rIdx) => (
                 <Row
                     key={rIdx}
@@ -79,8 +77,9 @@ function BarcodeView({ r }) {
                                 marginBottom: "auto",
                             }}
                         >
-                           {/*<CreateBarcodeLabel assetID={assetIDs[r]} />*/}
-                           <CreateBarcodeLabel assetID={testAssetIDs[counter]} />
+                           {/*<CreateBarcodeLabel assetNumber={assetNumbers[counter++]} />*/}
+                           {/*<CreateBarcodeLabel assetNumber={testAssetNumbers[counter++]} />*/}
+                            <CreateBarcodeLabel assetID={assetNumber} />
                         </Col>
                     ))}
                 </Row>
