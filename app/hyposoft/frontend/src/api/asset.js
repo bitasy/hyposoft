@@ -6,11 +6,6 @@ import {
   withLoading,
   processAssetQuery,
 } from "./utils";
-import {
-  indexToRow,
-  toIndex,
-  indexToCol,
-} from "../components/management/RackManagement/GridUtils";
 
 export function createAsset(fields) {
   return withLoading(() =>
@@ -44,7 +39,7 @@ export function getAssetPicklist(query) {
 
 export function decommissionAsset(id) {
   return withLoading(() =>
-    Axios.post(`api/equipment/DecommissionAsset/${id}`, {
+    Axios.post(`api/equipment/DecommissionAsset/${id}`, null, {
       headers: makeHeaders(),
     }).then(getData),
   );

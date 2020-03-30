@@ -15,6 +15,7 @@ import CreateAssetPage from "./management/AssetManagement/CreateAssetPage";
 import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import LogManagementPage from "./management/LogManagement/LogManagementPage";
+import DecommissionManagementPage from "./management/DecommissionManagement/DecommissionManagementPage";
 import DatacenterManagementPage from "./management/DatacenterManagment/DatacenterManagementPage";
 import {
   AuthContext,
@@ -196,6 +197,9 @@ function App() {
                       </Route>
                       <Route exact path="/logs">
                         <LogManagementPage />
+                      </Route>
+                      <Route exact path="/decommission">
+                        <DecommissionManagementPage />
                       </Route>
                       <Route exact path="/changeplan">
                         <ChangePlanList />

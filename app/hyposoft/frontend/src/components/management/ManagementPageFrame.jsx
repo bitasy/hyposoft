@@ -6,6 +6,7 @@ import {
   LogoutOutlined,
   AppstoreOutlined,
   DatabaseOutlined,
+  DisconnectOutlined,
   BuildOutlined,
   TableOutlined,
   BookOutlined,
@@ -28,6 +29,8 @@ const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const { user } = useContext(AuthContext);
+    console.log(user); //testing
+
   const {
     datacenter,
     setDCByID,
@@ -180,6 +183,11 @@ function Sidebar() {
       <Menu.Item key="/assets">
         <DatabaseOutlined />
         <span>Assets</span>
+      </Menu.Item>
+
+      <Menu.Item key="/decommission">
+        <DisconnectOutlined/>
+        <span>Decommission</span>
       </Menu.Item>
 
       <Menu.Item key="/datacenters">
