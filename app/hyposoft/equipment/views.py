@@ -207,6 +207,8 @@ class AssetDetailRetrieve(generics.RetrieveAPIView):
 
 
 class DecommissionAsset(views.APIView):
+    serializer_class = AssetDetailSerializer
+
     @transaction.atomic()
     def post(self, request, asset_id):
         try:
@@ -219,7 +221,7 @@ class DecommissionAsset(views.APIView):
                 owner=user,
                 name='_DECOMMISSION_' + str(asset.asset_number),
                 executed=version.executed,
-                time_executed=now,
+                executed_at=now,
                 auto_created=True,
                 parent=version
             )
@@ -248,7 +250,7 @@ class DecommissionAsset(views.APIView):
                 pdu.version = change_plan
                 pdu.save()
 
-                for power in old_pdu.powered_set.filter(version=version):
+                for power in old_pdu.powered_set.filter(version=version): #todo is this version correct? it excludes  live power ports
                     power.id = None
                     power.pdu = pdu
                     power.asset = Asset.objects.get(asset_number=power.asset.asset_number, version=change_plan)
@@ -293,9 +295,8 @@ class DecommissionAsset(views.APIView):
 
             loop_ports(old_asset, True)
 
-            old_asset.delete()
-
             log_decommission(self, old_asset)
+            old_asset.delete()
 
             response = AssetDetailSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)
