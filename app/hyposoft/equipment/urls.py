@@ -31,5 +31,7 @@ urlpatterns = [
     path('RackList', RackList.as_view()),
     path('DatacenterList', DatacenterList.as_view()),
 
+    path('rack_view', RackView.as_view()),
+
     path('DecommissionAsset/<int:asset_id>', DecommissionAsset.as_view())
 ]

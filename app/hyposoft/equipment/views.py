@@ -206,6 +206,18 @@ class AssetDetailRetrieve(generics.RetrieveAPIView):
     serializer_class = AssetDetailSerializer
 
 
+class RackView(views.APIView):
+    def post(self, request):
+        rack_ids = request.data['rack_ids']
+        racks = [Rack.objects.get(id=id) for id in rack_ids]
+        return Response({
+            rack.id: {
+                "rack": RackSerializer(rack).data,
+                "assets": [{"asset": AssetSerializer(asset).data, "model": ITModelSerializer(asset.itmodel).data}
+                           for asset in rack.asset_set.order_by('rack_position')]}
+            for rack in racks}, status=HTTP_200_OK)
+
+
 class DecommissionAsset(views.APIView):
     serializer_class = AssetDetailSerializer
 
