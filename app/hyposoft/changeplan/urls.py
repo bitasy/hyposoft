@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import *
+from .views import ChangePlanList, ChangePlanDetails, ChangePlanCreate, ChangePlanDestroy, ChangePlanUpdate
 
 urlpatterns = [
     path('ChangePlanList', ChangePlanList.as_view()),

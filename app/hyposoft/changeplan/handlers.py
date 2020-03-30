@@ -1,7 +1,9 @@
 from equipment.models import Asset
 from network.models import NetworkPort
 from power.models import Powered
-from .models import AssetDiff, NetworkPortDiff, PoweredDiff
+from .models import AssetDiff, NetworkPortDiff, PoweredDiff, ChangePlan
+
+
 
 
 def create_asset_diffs(changeplan, target):
@@ -196,3 +198,56 @@ def execute_decommissioned_powereds(changeplan):
             create_live_powered(changed_powered)
         except:
             create_live_powered(changed_powered)
+
+def get_asset(changeplan, target):
+    live = ChangePlan.objects.get(id=target)
+    if changeplan:
+        create_asset_diffs(changeplan, live)
+        asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
+        diffs = [
+            {
+                "changeplan": asset_diff.changeplan.name,
+                "message": asset_diff.message
+            }
+            for asset_diff
+            in asset_diffs
+        ]
+        return diffs
+    else:
+        return []
+
+
+def get_network(changeplan, target):
+    live = ChangePlan.objects.get(id=target)
+    if changeplan:
+        create_networkport_diffs(changeplan, live)
+        networkport_diffs = NetworkPortDiff.objects.filter(changeplan=changeplan)
+        diffs = [
+            {
+                "changeplan": networkport_diff.changeplan.name,
+                "message": networkport_diff.message
+            }
+            for networkport_diff
+            in networkport_diffs
+        ]
+        return diffs
+    else:
+        return []
+
+
+def get_power(changeplan, target):
+    live = ChangePlan.objects.get(id=target)
+    if changeplan:
+        create_powered_diffs(changeplan, live)
+        powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
+        diffs = [
+            {
+                "changeplan": powered_diff.changeplan.name,
+                "message": powered_diff.message
+            }
+            for powered_diff
+            in powered_diffs
+        ]
+        return diffs
+    else:
+        return []

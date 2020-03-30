@@ -2,68 +2,17 @@ from django.utils.timezone import now
 from rest_framework import views
 from django.core.exceptions import ValidationError
 from rest_framework import generics
-from equipment.models import Rack
-from power.models import PDU
-from .models import ChangePlan
-from .handlers import *
+from equipment.models import Rack, Asset
+from network.models import NetworkPort
+from power.models import PDU, Powered
+from .models import ChangePlan, AssetDiff, NetworkPortDiff, PoweredDiff
+from .handlers import create_asset_diffs, create_networkport_diffs, create_powered_diffs, execute_assets,\
+    execute_networkports, execute_powereds, execute_decommissioned_assets, execute_decommissioned_networkports,\
+    execute_decommissioned_powereds
 from .serializers import ChangePlanSerializer, ChangePlanDetailSerializer
 
 
-class AssetChangePlanDiff(views.APIView):
-    def get(self, changeplan, target):
-        live = ChangePlan.objects.get(id=target)
-        if changeplan:
-            create_asset_diffs(changeplan, live)
-            asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
-            diffs = [
-                {
-                    "changeplan": asset_diff.changeplan.name,
-                    "message": asset_diff.message
-                }
-                for asset_diff
-                in asset_diffs
-            ]
-            return diffs
-        else:
-            return []
 
-
-class NetworkPortChangePlanDiff(views.APIView):
-    def get(self, changeplan, target):
-        live = ChangePlan.objects.get(id=target)
-        if changeplan:
-            create_networkport_diffs(changeplan, live)
-            networkport_diffs = NetworkPortDiff.objects.filter(changeplan=changeplan)
-            diffs = [
-                {
-                    "changeplan": networkport_diff.changeplan.name,
-                    "message": networkport_diff.message
-                }
-                for networkport_diff
-                in networkport_diffs
-            ]
-            return diffs
-        else:
-            return []
-
-
-class PoweredChangePlanDiff(views.APIView):
-    def get(self, changeplan, target):
-        live = ChangePlan.objects.get(id=target)
-        if changeplan:
-            create_powered_diffs(changeplan, live)
-            powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
-            diffs = [
-                {
-                    "changeplan": powered_diff.changeplan.name,
-                    "message": powered_diff.message
-                }
-                for powered_diff
-                in powered_diffs
-            ]
-            return diffs
-        else:
-            return []
 
 
 class ExecuteChangePlan(views.APIView):

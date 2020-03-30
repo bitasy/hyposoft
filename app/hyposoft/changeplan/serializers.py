@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from views import AssetChangePlanDiff, PoweredChangePlanDiff, NetworkPortChangePlanDiff
+from .handlers import get_asset, get_power, get_network
 from .models import ChangePlan
 
 
@@ -29,8 +29,8 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
         target = ChangePlan.objects.get(id=0)
         data = super(ChangePlanDetailSerializer, self).to_representation(instance)
         data['diffs'] = {
-            'asset': AssetChangePlanDiff.get(None, instance, target),
-            'power': PoweredChangePlanDiff.get(None, instance, target),
-            'network': NetworkPortChangePlanDiff.get(None, instance, target)
+            'asset': get_asset(instance, target),
+            'power': get_power(instance, target),
+            'network': get_network(instance, target)
         }
         return data

@@ -17,9 +17,6 @@ from power.models import Powered, PDU
 from network.models import NetworkPort
 from network.resources import NetworkPortResource
 
-from changeplan.handlers import create_asset_diffs, create_networkport_diffs, create_powered_diffs
-from changeplan.views import AssetChangePlanDiff, NetworkPortChangePlanDiff, PoweredChangePlanDiff
-
 # The Model and Serializer classes are used for compatibility with the browsable API
 from hyposoft.utils import get_version, versioned_queryset
 
