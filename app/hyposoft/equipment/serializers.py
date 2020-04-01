@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import transaction
+from django.db.models import Max
 
 from network.handlers import net_graph
 from hyposoft.utils import get_version, versioned_queryset

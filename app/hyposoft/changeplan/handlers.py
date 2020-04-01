@@ -1,40 +1,36 @@
 from equipment.models import Asset
 from network.models import NetworkPort
 from power.models import Powered
+from hyposoft.utils import versioned_object
 from .models import AssetDiff, NetworkPortDiff, PoweredDiff, ChangePlan
-
-
 
 
 def create_asset_diffs(changeplan, target):
     changed_assets = Asset.objects.filter(version=changeplan)
     for changed_asset in changed_assets:
         try:
-            live_asset = Asset.objects.get(
-                asset_number=changed_asset.asset_number,
-                version=target
-            )
+            live_asset = versioned_object(changed_asset, target, Asset.IDENTITY_FIELDS)
+            if live_asset is None:
+                live_asset = versioned_object(changed_asset, target, ['hostname'])
             AssetDiff.objects.create(
                 changeplan=changeplan,
                 live_asset=live_asset,
                 changed_asset=changed_asset,
             )
-        except:
+        except Asset.DoesNotExist:
             AssetDiff.objects.create(
                 changeplan=changeplan,
                 changed_asset=changed_asset,
             )
+        except Exception as e:
+            print(e)
 
 
 def create_networkport_diffs(changeplan, target):
     changed_networkports = NetworkPort.objects.filter(version=changeplan)
     for changed_networkport in changed_networkports:
         try:
-            live_networkport = NetworkPort.objects.get(
-                asset=changed_networkport.asset,
-                label=changed_networkport.label,
-                version=target
-            )
+            live_networkport = versioned_object(changed_networkport, target, NetworkPort.IDENTITY_FIELDS)
             NetworkPortDiff.objects.create(
                 changeplan=changeplan,
                 live_networkport=live_networkport,
@@ -51,12 +47,7 @@ def create_powered_diffs(changeplan, target):
     changed_powereds = Powered.objects.filter(version=changeplan)
     for changed_powered in changed_powereds:
         try:
-            live_powered = Powered.objects.get(
-                plug_number=changed_powered.plug_number,
-                pdu=changed_powered.pdu,
-                asset=changed_powered.asset,
-                version=target
-            )
+            live_powered = versioned_object(changed_powered, target, Powered.IDENTITY_FIELDS)
             PoweredDiff.objects.create(
                 changeplan=changeplan,
                 live_powered=live_powered,
@@ -79,10 +70,11 @@ def execute_assets(changeplan):
     changed_assets = Asset.objects.filter(changeplan=changeplan)
     for changed_asset in changed_assets:
         try:
-            live_asset = Asset.objects.get(
-                asset_number=changed_asset.asset_number,
-                version_id=0
-            )
+            live = ChangePlan.objects.get(id=0)
+            live_asset = versioned_object(changed_asset, live, Asset.IDENTITY_FIELDS)
+            if live_asset is None:
+                live_asset = versioned_object(changed_asset, live, ['hostname'])
+
             live_asset.asset_number = changed_asset.asset_number
             live_asset.hostname = changed_asset.hostname
             live_asset.datacenter = changed_asset.datacenter
@@ -105,10 +97,11 @@ def execute_decommissioned_assets(changeplan):
     changed_assets = Asset.objects.filter(changeplan=changeplan)
     for changed_asset in changed_assets:
         try:
-            live_asset = Asset.objects.get(
-                asset_number=changed_asset.asset_number,
-                version_id=0
-            )
+            live = ChangePlan.objects.get(id=0)
+            live_asset = versioned_object(changed_asset, live, Asset.IDENTITY_FIELDS)
+            if live_asset is None:
+                live_asset = versioned_object(changed_asset, live, ['hostname'])
+
             live_asset.destroy()
             create_live_asset(changed_asset)
         except:
@@ -125,11 +118,9 @@ def execute_networkports(changeplan):
     changed_networkports = NetworkPort.objects.filter(changeplan=changeplan)
     for changed_networkport in changed_networkports:
         try:
-            live_networkport = NetworkPort.objects.get(
-                asset=changed_networkport.asset,
-                label=changed_networkport.label,
-                version_id=0
-            )
+            live = ChangePlan.objects.get(id=0)
+            live_networkport = versioned_object(changed_networkport, live, NetworkPort.IDENTITY_FIELDS)
+
             live_networkport.asset = changed_networkport.asset
             live_networkport.label = changed_networkport.label
             live_networkport.mac_address = changed_networkport.mac_address
@@ -145,11 +136,9 @@ def execute_decommissioned_networkports(changeplan):
     changed_networkports = NetworkPort.objects.filter(changeplan=changeplan)
     for changed_networkport in changed_networkports:
         try:
-            live_networkport = NetworkPort.objects.get(
-                asset=changed_networkport.asset,
-                label=changed_networkport.label,
-                version_id=0
-            )
+            live = ChangePlan.objects.get(id=0)
+            live_networkport = versioned_object(changed_networkport, live, NetworkPort.IDENTITY_FIELDS)
+
             live_networkport.destroy()
             create_live_networkport(changed_networkport)
         except:
@@ -166,12 +155,9 @@ def execute_powereds(changeplan):
     changed_powereds = Powered.objects.filter(changeplan=changeplan)
     for changed_powered in changed_powereds:
         try:
-            live_powered = Powered.objects.get(
-                plug_number=changed_powered.plug_number,
-                pdu=changed_powered.pdu,
-                asset=changed_powered.asset,
-                version_id=0
-            )
+            live = ChangePlan.objects.get(id=0)
+            live_powered = versioned_object(changed_powered, live, Powered.IDENTITY_FIELDS)
+
             live_powered.plug_number = changed_powered.plug_number
             live_powered.pdu = changed_powered.pdu
             live_powered.asset = changed_powered.asset
@@ -188,12 +174,9 @@ def execute_decommissioned_powereds(changeplan):
     changed_powereds = Powered.objects.filter(changeplan=changeplan)
     for changed_powered in changed_powereds:
         try:
-            live_powered = Powered.objects.get(
-                plug_number=changed_powered.plug_number,
-                pdu=changed_powered.pdu,
-                asset=changed_powered.asset,
-                version_id=0
-            )
+            live = ChangePlan.objects.get(id=0)
+            live_powered = versioned_object(changed_powered, live, Powered.IDENTITY_FIELDS)
+
             live_powered.destroy()
             create_live_powered(changed_powered)
         except:
@@ -210,7 +193,7 @@ def get_asset(changeplan, target):
                 "message": asset_diff.message
             }
             for asset_diff
-            in asset_diffs
+            in asset_diffs if len(asset_diff.message) > 0
         ]
         AssetDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
@@ -228,7 +211,7 @@ def get_network(changeplan, target):
                 "message": networkport_diff.message
             }
             for networkport_diff
-            in networkport_diffs
+            in networkport_diffs if len(networkport_diff.message) > 0
         ]
         NetworkPortDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
@@ -246,7 +229,7 @@ def get_power(changeplan, target):
                 "message": powered_diff.message
             }
             for powered_diff
-            in powered_diffs
+            in powered_diffs if len(powered_diff.message) > 0
         ]
         PoweredDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs

@@ -2,6 +2,8 @@
 
 # Given a rack row letter, provides the next row letter
 # Essentially, after Z is AA and after AA is AB etc.
+from copy import deepcopy
+
 from django.db.models import Q
 from rest_framework import serializers
 
@@ -56,7 +58,10 @@ def generate_racks(r1, r2, c1, c2):
 
 def get_version(request):
     val = request.META.get('HTTP_X_CHANGE_PLAN', 0)
-    return val if isinstance(val, int) else 0
+    try:
+        return int(val)
+    except:
+        return 0
 
 
 def versioned_object(obj, version, identity_fields):
@@ -88,6 +93,19 @@ def versioned_queryset(queryset, version, identity_fields):
         return queryset
 
 
+def versioned_equal(obj1, obj2, identity_fields):
+    for field in identity_fields:
+        attrs = field.split("__")
+        obj1v = obj1
+        obj2v = obj2
+        for attr in attrs:
+            obj1v = getattr(obj1v, attr)
+            obj2v = getattr(obj2v, attr)
+        if obj1v != obj2v:
+            return False
+    return True
+
+
 # For adding various objects from live to a change plan
 def add_rack(rack, change_plan):
     if rack.version == change_plan:
@@ -95,6 +113,7 @@ def add_rack(rack, change_plan):
     newer_rack = versioned_object(rack, change_plan, Rack.IDENTITY_FIELDS)
     if newer_rack:
         return newer_rack
+    rack = deepcopy(rack)
     rack.id = None
     rack.version = change_plan
     rack.save()

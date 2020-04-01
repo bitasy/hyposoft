@@ -38,7 +38,7 @@ function Diff0({ messages }) {
     <table style={{ border: "1px solid black" }}>
       <tbody>
         {messages.map(({ diffType, message }, idx) => (
-          <tr>
+          <tr key={idx}>
             <td>{idx}</td>
             <td>{diffType}</td>
             <td>{message}</td>

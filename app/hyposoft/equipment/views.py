@@ -46,7 +46,7 @@ class RackRangeCreate(views.APIView):
 
         racks = generate_racks(r1, r2, c1, c2)
 
-        version = get_version(request)
+        version = ChangePlan.objects.get(id=get_version(request))
         created = []
         warns = []
         err = []
@@ -55,7 +55,7 @@ class RackRangeCreate(views.APIView):
             try:
                 new = Rack(
                     datacenter=Datacenter.objects.get(id=request.data['datacenter']),
-                    version=ChangePlan.objects.get(id=version),
+                    version=version,
                     rack=rack
                 )
                 new.save()
@@ -82,6 +82,7 @@ class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
+    @transaction.atomic()
     def update(self, request, *args, **kwargs):
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
@@ -91,20 +92,22 @@ class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
             rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
             if not rack:
                 rack = add_rack(asset.rack, version)
+                create_rack_extra(rack, version)
             old_pdus = {port['id']: port['position']
                         for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
             new_pdus = {port['position']: port['id']
                         for port in rack.pdu_set.order_by('position').values('id', 'position')}
             data['rack'] = rack.id
             for i, port in enumerate(request.data['power_connections']):
-                data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[port['id']]]
+               data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[port['pdu_id']]]
 
             for i, port in enumerate(request.data['network_ports']):
                 if port['connection'] is not None:
                     versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
                     data['network_ports'][i]['connection'] = versioned_conn.id
 
-            serializer = AssetSerializer(data=data, context={'request': request, 'version': version})
+            serializer = AssetSerializer(data=data, context={'request': request, 'version': version.id})
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(data=serializer.data, status=HTTP_200_OK)
 
@@ -262,7 +265,7 @@ class DecommissionAsset(views.APIView):
                 pdu.version = change_plan
                 pdu.save()
 
-                for power in old_pdu.powered_set.filter(version=version): #todo is this version correct? it excludes  live power ports
+                for power in old_pdu.powered_set.filter(version=version):
                     power.id = None
                     power.pdu = pdu
                     power.asset = asset

@@ -71,6 +71,5 @@ def create_asset_extra(asset, version, power_connections, net_ports):
 
 
 def create_rack_extra(rack, version):
-    if version == 0:
-        PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version_id=version)
-        PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version_id=version)
+    PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version=version)
+    PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version=version)

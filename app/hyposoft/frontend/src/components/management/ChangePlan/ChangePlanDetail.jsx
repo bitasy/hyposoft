@@ -104,7 +104,7 @@ function ChangePlanDetail() {
       for (diff in changePlan.diffs[diffType]) {
         diffList.push({
           diffType: diffType,
-          message: diff,
+          message: changePlan.diffs[diffType][diff]["message"],
         });
       }
     }
@@ -171,7 +171,7 @@ function ChangePlanDetail() {
 
       <Divider />
 
-      <Typography.Title level={4}>Change Summary</Typography.Title>
+      <Typography.Title level={4}>Change Summary?</Typography.Title>
 
       <Diff0 messages={summaryDiff0()} />
 

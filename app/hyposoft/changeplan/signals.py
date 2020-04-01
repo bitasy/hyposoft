@@ -1,9 +1,11 @@
 from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth.models import User
 from django.dispatch import receiver
+
+from hyposoft.utils import versioned_equal
 from .models import ChangePlan, AssetDiff, NetworkPortDiff, PoweredDiff
-from equipment.models import Asset
-from power.models import Powered
+from equipment.models import Asset, Rack
+from power.models import Powered, PDU
 from django.db.models.signals import pre_save
 
 
@@ -17,14 +19,13 @@ def create_live(*args, **kwargs):
 def assetdiff_message(sender, instance, *args, **kwargs):
     message = ''
     if instance.live_asset:
-        message += ('UPDATED ASSET' + '\n')
         if instance.changed_asset.asset_number != instance.live_asset.asset_number:
             message += ('OLD ASSET NUMBER: ' + str(instance.live_asset.asset_number) + '\n')
             message += ('NEW ASSET NUMBER: ' + str(instance.changed_asset.asset_number) + '\n')
         if instance.changed_asset.hostname != instance.live_asset.hostname:
             message += ('OLD HOSTNAME: ' + str(instance.live_asset.hostname) + '\n')
             message += ('NEW HOSTNAME: ' + str(instance.changed_asset.hostname) + '\n')
-        if instance.changed_asset.rack != instance.live_asset.rack:
+        if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
             message += ('OLD RACK: ' + str(instance.live_asset.rack.rack) + '\n')
             message += ('NEW RACK: ' + str(instance.changed_asset.rack.rack) + '\n')
         if instance.changed_asset.rack_position != instance.live_asset.rack_position:
@@ -38,13 +39,15 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         if instance.changed_asset.owner != instance.live_asset.owner:
             message += ('OLD OWNER: ' + str(instance.live_asset.owner.username) + '\n') \
                 if instance.live_asset.owner else ''
-            message += ('NEW OWNER: ' + str(instance.changed_asset.owner.username) + '\n')\
+            message += ('NEW OWNER: ' + str(instance.changed_asset.owner.username) + '\n') \
                 if instance.changed_asset.owner else ''
         if instance.changed_asset.comment != instance.live_asset.comment:
             message += ('OLD COMMENT: ' + str(instance.live_asset.comment) + '\n')
             message += ('NEW COMMENT: ' + str(instance.changed_asset.comment) + '\n')
         if instance.live_asset.decommissioned_timestamp:
             message += ('CONFLICT: LIVE ASSET IS DECOMMISSIONED' + '\n')
+        if len(message) > 0:
+            message = ('UPDATED ASSET' + '\n') + message
 
     else:
         message += ('CREATED ASSET' + '\n')
@@ -54,7 +57,7 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         message += ('RACK POSITION: ' + str(instance.changed_asset.rack_position) + '\n')
         message += ('ITMODEL: ' + str(instance.changed_asset.itmodel.model_number) + 'by' +
                     str(instance.changed_asset.itmodel.vendor) + '\n')
-        message += ('OWNER: ' + str(instance.changed_asset.owner.username) + '\n')\
+        message += ('OWNER: ' + str(instance.changed_asset.owner.username) + '\n') \
             if instance.changed_asset.owner else ''
         message += ('COMMENT: ' + str(instance.changed_asset.comment) + '\n')
 
@@ -84,10 +87,6 @@ def assetdiff_message(sender, instance, *args, **kwargs):
 def networkportdiff_message(sender, instance, *args, **kwargs):
     message = ''
     if instance.live_networkport:
-        message += ('UPDATED NETWORKPORT' + '\n')
-        if instance.changed_networkport.asset != instance.live_networkport.asset:
-            message += ('OLD ASSET: ' + str(instance.live_networkport.asset.asset_number) + '\n')
-            message += ('NEW ASSET: ' + str(instance.changed_networkport.asset.asset_number) + '\n')
         if instance.changed_networkport.label != instance.live_networkport.label:
             message += ('OLD LABEL: ' + str(instance.live_networkport.label.name) + '\n')
             message += ('NEW LABEL: ' + str(instance.changed_networkport.label.name) + '\n')
@@ -95,25 +94,34 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             message += ('OLD MAC ADDRESS: ' + str(instance.live_networkport.mac_address) + '\n')
             message += ('NEW MAC ADDRESS: ' + str(instance.changed_networkport.mac_address) + '\n')
         if instance.changed_networkport.connection != instance.live_networkport.connection:
-            message += ('OLD CONNECTION: ' + str(instance.live_networkport.connection.asset.asset_number) + ' ' +
-                        str(instance.live_networkport.connection.label.name) + '\n')
-            message += ('NEW CONNECTION: ' + str(instance.changed_networkport.connection.asset.asset_number) + ' ' +
-                        str(instance.changed_networkport.connection.label.name) + '\n')
+            message += ('OLD CONNECTION: ' + (str(instance.live_networkport.connection.asset) + ' ' +
+                        str(instance.live_networkport.connection.label.name))
+                        if instance.live_networkport.connection else 'None\n')
+            message += ('NEW CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
+                        str(instance.changed_networkport.connection.label.name)
+                        if instance.changed_networkport.connection else 'None\n')
+        if len(message) > 0:
+            message = ('UPDATED NETWORKPORT' + '\n') + message
 
     else:
         message += ('CREATED NETWORKPORT' + '\n')
-        message += ('ASSET: ' + str(instance.changed_networkport.asset.asset_number) + '\n')
+        message += ('ASSET: ' + str(instance.changed_networkport.asset) + '\n')
         message += ('LABEL: ' + str(instance.changed_networkport.label.name) + '\n')
         message += ('MAC ADDRESS: ' + str(instance.changed_networkport.mac_address) + '\n')
-        message += ('CONNECTION: ' + str(instance.changed_networkport.connection.asset.asset_number) + ' ' +
-                    str(instance.changed_networkport.connection.label.name) + '\n')
+        if instance.changed_networkport.connection:
+            message += ('CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
+                        str(instance.changed_networkport.connection.label.name) + '\n')
 
     if instance.changed_networkport.connection:
-        if instance.changed_networkport.asset == instance.changed_networkport.connection.asset:
+        if instance.changed_networkport.connection and \
+                instance.changed_networkport.asset == instance.changed_networkport.connection.asset:
             message += ('CONFLICT: ' + 'Connections must be between different assets.' + '\n')
-        if instance.changed_networkport.connection.asset.datacenter != instance.changed_networkport.asset.datacenter:
+        if instance.changed_networkport.connection and \
+                instance.changed_networkport.connection.asset.datacenter != instance.changed_networkport.asset.datacenter:
             message += ('CONFLICT: ' + 'Connections must be in the same datacenter.' + '\n')
-        if instance.changed_networkport.connection.connection is not None and instance.changed_networkport.connection.connection.id != instance.changed_networkport.id:
+        if instance.changed_networkport.connection and \
+                instance.changed_networkport.connection.connection is not None and \
+                instance.changed_networkport.connection.connection.id != instance.changed_networkport.id:
             message += ('CONFLICT: ' +
                         '{} is already connected to {} on {}'.format(
                             instance.changed_networkport.connection.asset,
@@ -128,29 +136,26 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
 def powereddiff_message(sender, instance, *args, **kwargs):
     message = ''
     if instance.live_powered:
-        message += ('UPDATED POWERED' + '\n')
         if instance.changed_powered.plug_number != instance.live_powered.plug_number:
             message += ('OLD PLUG NUMBER: ' + str(instance.live_powered.plug_number) + '\n')
             message += ('NEW PLUG NUMBER: ' + str(instance.changed_powered.plug_number) + '\n')
-        if instance.changed_powered.pdu != instance.live_powered.pdu:
+        if not versioned_equal(instance.changed_powered.pdu, instance.live_powered.pdu, PDU.IDENTITY_FIELDS):
             message += ('OLD PDU: ' + str(instance.live_powered.pdu.rack.rack) + ' ' +
                         str(instance.live_powered.pdu.position) + '\n')
             message += ('NEW PDU: ' + str(instance.changed_powered.pdu.rack.rack) + ' ' +
                         str(instance.changed_powered.pdu.position) + '\n')
-        if instance.changed_powered.asset != instance.live_powered.asset:
-            message += ('OLD ASSET: ' + str(instance.live_powered.asset.asset_number) + '\n')
-            message += ('NEW ASSET: ' + str(instance.changed_powered.asset.asset_number) + '\n')
-        if instance.changed_powered.on != instance.live_powered.on:
-            message += ('OLD ON: ' + str(instance.live_powered.on) + '\n')
-            message += ('NEW ON: ' + str(instance.changed_powered.on) + '\n')
+        if not versioned_equal(instance.changed_powered.asset, instance.live_powered.asset, Asset.IDENTITY_FIELDS):
+            message += ('OLD ASSET: ' + str(instance.live_powered.asset) + '\n')
+            message += ('NEW ASSET: ' + str(instance.changed_powered.asset) + '\n')
+        if len(message) > 0:
+            message = ('UPDATED POWERED' + '\n') + message
 
     else:
         message += ('CREATED POWERED' + '\n')
         message += ('PLUG NUMBER: ' + str(instance.changed_powered.plug_number) + '\n')
         message += ('PDU: ' + str(instance.changed_powered.pdu.rack.rack) + ' ' +
                     str(instance.changed_powered.pdu.position) + '\n')
-        message += ('ASSET: ' + str(instance.changed_powered.asset.asset_number) + '\n')
-        message += ('ON: ' + str(instance.changed_powered.on) + '\n')
+        message += ('ASSET: ' + str(instance.changed_powered.asset) + '\n')
 
     num_powered = len(Powered.objects.filter(asset=instance.changed_powered.asset))
     if instance.changed_powered not in Powered.objects.all() and num_powered == instance.changed_powered.asset.itmodel.power_ports:
