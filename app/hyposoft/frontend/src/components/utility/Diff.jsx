@@ -33,6 +33,22 @@ const TDD = styled("td")`
   padding: 4px;
 `;
 
+function Diff0({ messages }) {
+  return (
+    <table style={{ border: "1px solid black" }}>
+      <tbody>
+        {messages.map(({ diffType, message }, idx) => (
+          <tr>
+            <td>{idx}</td>
+            <td>{diffType}</td>
+            <td>{message}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 function Diff({ headers, diff, beforeText = "Before", afterText = "After" }) {
   return (
     <table style={{ border: "1px solid black" }}>
@@ -95,4 +111,4 @@ function Diff({ headers, diff, beforeText = "Before", afterText = "After" }) {
   );
 }
 
-export default Diff;
+export default Diff0;

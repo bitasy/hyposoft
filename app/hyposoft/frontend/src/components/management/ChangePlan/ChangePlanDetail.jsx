@@ -8,6 +8,7 @@ import {
 } from "../../../api/changeplan";
 import moment from "moment";
 import Diff from "../../utility/Diff";
+import Diff0 from "../../utility/Diff";
 import { ChangePlanContext } from "../../../contexts/contexts";
 
 const ASSET_HEADERS = [
@@ -95,7 +96,23 @@ function ChangePlanDetail() {
 
   const summaryHeaders = ASSET_HEADERS.map(({ name }) => name);
 
-  const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
+  const summaryDiff0 = function() {
+    let diffList = [];
+    let diffType;
+    for (diffType in changePlan.diffs) {
+      let diff;
+      for (diff in changePlan.diffs[diffType]) {
+        diffList.push({
+          diffType: diffType,
+          message: diff,
+        });
+      }
+    }
+
+    return diffList;
+  };
+
+  /*const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
     const before =
       live != null ? ASSET_HEADERS.map(({ toText }) => toText(live)) : null;
 
@@ -130,7 +147,7 @@ function ChangePlanDetail() {
       warning: null,
       action,
     };
-  });
+  });*/
 
   return (
     <div>
@@ -145,8 +162,7 @@ function ChangePlanDetail() {
       </Typography.Text>
       {changePlan?.executed_at && (
         <Typography.Paragraph style={{ color: "blue" }}>
-          Executed on{" "}
-          {moment(changePlan?.executed_at).format("MMMM Do YYYY, h:mm:ss a")}
+          Executed on {changePlan?.executed_at}
         </Typography.Paragraph>
       )}
 
@@ -157,12 +173,14 @@ function ChangePlanDetail() {
 
       <Typography.Title level={4}>Change Summary</Typography.Title>
 
-      <Diff
+      <Diff0 messages={summaryDiff0()} />
+
+      {/*<Diff
         headers={summaryHeaders}
         diff={summaryDiff}
         beforeText="Live"
         afterText="Plan"
-      />
+      />*/}
 
       <Divider />
 

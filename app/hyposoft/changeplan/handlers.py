@@ -199,10 +199,10 @@ def execute_decommissioned_powereds(changeplan):
         except:
             create_live_powered(changed_powered)
 
+
 def get_asset(changeplan, target):
-    live = ChangePlan.objects.get(id=target)
     if changeplan:
-        create_asset_diffs(changeplan, live)
+        create_asset_diffs(changeplan, target)
         asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
         diffs = [
             {
@@ -212,15 +212,15 @@ def get_asset(changeplan, target):
             for asset_diff
             in asset_diffs
         ]
+        AssetDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
     else:
         return []
 
 
 def get_network(changeplan, target):
-    live = ChangePlan.objects.get(id=target)
     if changeplan:
-        create_networkport_diffs(changeplan, live)
+        create_networkport_diffs(changeplan, target)
         networkport_diffs = NetworkPortDiff.objects.filter(changeplan=changeplan)
         diffs = [
             {
@@ -230,15 +230,15 @@ def get_network(changeplan, target):
             for networkport_diff
             in networkport_diffs
         ]
+        NetworkPortDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
     else:
         return []
 
 
 def get_power(changeplan, target):
-    live = ChangePlan.objects.get(id=target)
     if changeplan:
-        create_powered_diffs(changeplan, live)
+        create_powered_diffs(changeplan, target)
         powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
         diffs = [
             {
@@ -248,6 +248,7 @@ def get_power(changeplan, target):
             for powered_diff
             in powered_diffs
         ]
+        PoweredDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
     else:
         return []

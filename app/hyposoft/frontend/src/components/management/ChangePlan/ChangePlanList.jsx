@@ -12,17 +12,15 @@ const CPTable = styled(Table)`
 
 const cpColumns = [
   {
-    title: "name",
+    title: "Name",
     dataIndex: "name",
     sorter: false,
   },
   {
-    title: "executed_at",
+    title: "Executed At",
     key: "executed_at",
     render: (t, r) => {
-      return r.executed_at
-        ? moment(r.executed_at).format("MMMM Do YYYY, h:mm:ss a")
-        : "N/A";
+      return r.executed_at ?? "N/A";
     },
     sorter: false,
   },
