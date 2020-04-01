@@ -231,7 +231,7 @@ class DecommissionAsset(views.APIView):
 
             change_plan = ChangePlan.objects.create(
                 owner=user,
-                name='_DECOMMISSION_' + str(asset.asset_number),
+                name='_DECOMMISSION_' + str(asset.id),
                 executed=version.executed,
                 executed_at=now,
                 auto_created=True,
@@ -251,7 +251,7 @@ class DecommissionAsset(views.APIView):
             asset.decommissioned_timestamp = now
             asset.save()
 
-            for asset in old_rack.asset_set.exclude(asset_number=old_asset.asset_number):
+            for asset in old_rack.asset_set.exclude(id=old_asset.id):
                 add_asset(asset, change_plan)
 
             for pdu in old_rack.pdu_set.filter(version=version):
@@ -265,41 +265,19 @@ class DecommissionAsset(views.APIView):
                 for power in old_pdu.powered_set.filter(version=version): #todo is this version correct? it excludes  live power ports
                     power.id = None
                     power.pdu = pdu
-                    power.asset = Asset.objects.get(asset_number=power.asset.asset_number, version=change_plan)
+                    power.asset = asset
                     power.version = change_plan
                     power.save()
-
-            def add_port(port):
-                new_port = NetworkPort.objects.filter(
-                    version=change_plan,
-                    asset__asset_number=port.asset.asset_number,
-                    label=port.label).first()
-                if new_port:
-                    return new_port
-                port_asset = port.asset
-                port_rack = port_asset.rack
-                new_port_rack = Rack.objects.filter(version=change_plan, rack=port_rack.rack).first()
-                if new_port_rack is None:
-                    new_port_rack = add_rack(port_rack, change_plan)
-                new_port_asset = Asset.objects.filter(version=change_plan, asset_number=port_asset.asset_number).first()
-                if new_port_asset is None:
-                    new_port_asset = add_asset(port_asset, new_port_rack)
-                port.id = None
-                port.asset = new_port_asset
-                port.version = change_plan
-                port.connection = None
-                port.save()
-                return port
 
             def loop_ports(old_asset, recurse):
                 for port in old_asset.networkport_set.all():
                     old_port = NetworkPort.objects.get(id=port.id)
                     other = old_port.connection
-                    port = add_port(port)
+                    port = add_network_conn(port, change_plan)
                     if other:
                         if recurse:
                             loop_ports(other.asset, False)
-                        other = add_port(other)
+                        other = add_network_conn(other, change_plan)
                         other.connection = port
                         port.connection = other
                         other.save()

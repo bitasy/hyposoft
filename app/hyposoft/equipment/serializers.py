@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import transaction
 
 from network.handlers import net_graph
@@ -301,6 +303,15 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
             'decommissioned_by',
             'decommissioned_timestamp'
         ]
+
+    def to_representation(self, instance):
+        data = super(DecommissionedAssetSerializer, self).to_representation(instance)
+        old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+        new_format = '%d-%m-%Y %H:%M:%S'
+
+        data['timestamp'] = \
+            datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)
+        return data
 
 
 class RackSerializer(serializers.ModelSerializer):

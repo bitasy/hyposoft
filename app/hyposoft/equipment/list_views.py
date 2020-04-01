@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import dateparse
 from rest_framework import filters, generics
@@ -150,6 +151,7 @@ class DecommissionedAssetList(generics.ListAPIView):
         user = self.request.query_params.get('username', None)
         time_from = self.request.query_params.get('timestamp_from', None)
         time_to = self.request.query_params.get('timestamp_to', None)
+        owner = self.request.query_params.get('owner', None)
         datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
         version = get_version(self.request)
 
@@ -164,6 +166,16 @@ class DecommissionedAssetList(generics.ListAPIView):
             dt_to = dateparse.parse_datetime(time_to)
 
             queryset = queryset.filter(decommissioned_timestamp__range=(dt_from, dt_to))
+
+        if owner:
+            queryset = queryset.filter(
+                Q(decommissioned_by__username__icontains=owner) |
+                Q(decommissioned_by__first_name__icontains=owner) |
+                Q(decommissioned_by__last_name__icontains=owner) |
+                Q(owner__username__icontains=owner) |
+                Q(owner__first_name__icontains=owner) |
+                Q(owner__last_name__icontains=owner)
+            )
 
         queryset.filter(version__parent=version)
 

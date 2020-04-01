@@ -3,6 +3,7 @@
 # Given a rack row letter, provides the next row letter
 # Essentially, after Z is AA and after AA is AB etc.
 from django.db.models import Q
+from rest_framework import serializers
 
 from equipment.models import Rack, Asset
 from network.models import NetworkPort
@@ -122,6 +123,10 @@ def add_network_conn(connection, version):
     if versioned_conn is None:
         # Add connected asset to change plan
         conn_asset = connection.asset
+        if conn_asset.hostname is None:
+            raise serializers.ValidationError(
+                "Hostname of an asset with network connections must be set"
+            )
         new_asset = add_asset(conn_asset, version, identity_fields=['hostname'])
         connection.id = None
         connection.asset = new_asset
