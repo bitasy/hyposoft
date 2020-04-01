@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import dateparse
-from rest_framework import filters, generics
+from rest_framework import filters, generics, serializers
 from rest_framework.pagination import PageNumberPagination
 from hyposoft.utils import get_version, versioned_queryset
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
@@ -180,7 +180,7 @@ class DecommissionedAssetList(generics.ListAPIView):
                 Q(owner__last_name__icontains=owner)
             )
 
-        queryset.filter(version__parent=version)
+        queryset = queryset.filter(version__parent_id__in=(0, version))
 
         return queryset
 

@@ -230,13 +230,12 @@ class DecommissionAsset(views.APIView):
             asset = Asset.objects.get(id=asset_id)
             user = request.user
             version = ChangePlan.objects.get(id=get_version(request))
-            now = timezone.now()
 
             change_plan = ChangePlan.objects.create(
                 owner=user,
                 name='_DECOMMISSION_' + str(asset.id),
                 executed=version.executed,
-                executed_at=now,
+                executed_at=version.executed_at,
                 auto_created=True,
                 parent=version
             )
@@ -251,7 +250,7 @@ class DecommissionAsset(views.APIView):
             rack = asset.rack
             asset.commissioned = None
             asset.decommissioned_by = user
-            asset.decommissioned_timestamp = now
+            asset.decommissioned_timestamp = datetime.datetime.now()
             asset.save()
 
             for asset in old_rack.asset_set.exclude(id=old_asset.id):
@@ -289,9 +288,11 @@ class DecommissionAsset(views.APIView):
             loop_ports(old_asset, True)
 
             log_decommission(self, old_asset)
-            old_asset.delete()
 
-            response = AssetDetailSerializer(asset, context={'request': request, 'version': version.id})
+            if old_asset.version == version:
+                old_asset.delete()
+
+            response = DecommissionedAssetSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)
         except Asset.DoesNotExist:
             raise serializers.ValidationError(
