@@ -29,8 +29,6 @@ const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const { user } = useContext(AuthContext);
-    console.log(user); //testing
-
   const {
     datacenter,
     setDCByID,
@@ -99,7 +97,7 @@ function ManagementPageFrame({ children }) {
               }}
               style={{ width: 250, marginRight: 8 }}
             >
-              <Select.Option value="null">LIVE DATA</Select.Option>
+              <Select.Option value="null">Live Data</Select.Option>
               {changePlans.map(({ id, name }, idx) => (
                 <Select.Option
                   key={idx}

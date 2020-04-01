@@ -1,7 +1,5 @@
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator
-from django.db.models import Max
-from rest_framework import serializers
 from django.contrib.auth.models import User
 
 from changeplan.models import ChangePlan
@@ -87,6 +85,7 @@ class ITModel(models.Model):
         unique_together = ('vendor', 'model_number')
         verbose_name = "Model"
         verbose_name_plural = "Models"
+        ordering = ['vendor', 'model_number']
 
     def __str__(self):
         return '{} by {}'.format(self.model_number, self.vendor)
@@ -118,6 +117,7 @@ class Rack(models.Model):
 
     class Meta:
         unique_together = ['rack', 'datacenter', 'version']
+        ordering = 'rack',
 
     IDENTITY_FIELDS = ['rack', 'datacenter']
 
@@ -203,10 +203,12 @@ class Asset(models.Model):
             ['hostname', 'version', 'commissioned'],
             ['asset_number', 'version']
         ]
+        ordering = 'hostname', 'asset_number'
 
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:
             return self.hostname
-        return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
+        # return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
+        return str(self.asset_number)
 
     IDENTITY_FIELDS = ['asset_number']

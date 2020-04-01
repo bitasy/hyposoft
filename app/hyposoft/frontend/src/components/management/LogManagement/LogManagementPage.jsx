@@ -8,9 +8,9 @@ async function createLogArray(username, displayName, identifier, model, page) {
     page,
     page_size: 10, // for now
     username__iexact: username,
-    display_name__contains: displayName,
+    display_name__icontains: displayName,
     model__iexact: model,
-    identifier__contains: identifier,
+    identifier__icontains: identifier,
     ordering: undefined,
     direction: undefined,
   });
@@ -34,7 +34,7 @@ async function createLogArray(username, displayName, identifier, model, page) {
       model: obj.model,
       instance_id: obj.instance_id,
       identifier: obj.identifier,
-      field_change: obj.field_change,
+      field_changed: obj.field_changed,
       old_value: obj.old_value,
       new_value: obj.new_value,
       timestamp: obj.timestamp,
@@ -50,9 +50,9 @@ async function createLogArray(username, displayName, identifier, model, page) {
 // log table headers
 const columns = [
   {
-    title: "ID",
-    dataIndex: "id",
-    key: "id",
+    title: "Timestamp",
+    dataIndex: "timestamp",
+    key: "timestamp",
   },
   {
     title: "Action",
@@ -73,11 +73,6 @@ const columns = [
     title: "Model",
     dataIndex: "model",
     key: "model",
-  },
-  {
-    title: "Instance ID",
-    dataIndex: "instance_id",
-    key: "instance_id",
   },
   {
     title: "Identifier",
@@ -104,11 +99,6 @@ const columns = [
     title: "New Value",
     dataIndex: "new_value",
     key: "new_value",
-  },
-  {
-    title: "Timestamp",
-    dataIndex: "timestamp",
-    key: "timestamp",
   },
 ];
 
@@ -140,7 +130,6 @@ class LogManagementPage extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    console.log(this.state.page);
     if (
       !(
         this.state.page === prevState.page &&

@@ -12,9 +12,12 @@ export function displayWarning(msg) {
 }
 
 export function displayError(msg) {
+  console.log(msg);
   let str = msg;
   if (typeof msg === "object") {
-    if (msg.message) str = msg.message;
+    if (Array.isArray(msg)) {
+      str = msg.join("\n");
+    } else if (msg.message) str = msg.message;
     else
       str = Object.entries(msg)
         .map(([k, v]) => `${k}: ${v}`)

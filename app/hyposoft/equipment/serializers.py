@@ -1,7 +1,8 @@
 from django.db import transaction
 
 from network.handlers import net_graph
-from hyposoft.utils import get_version, versioned_queryset, versioned_object
+from hyposoft.utils import get_version, versioned_queryset
+from network.serializers import NetworkPortSerializer
 from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPort, NetworkPortLabel
@@ -71,9 +72,24 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def update(self, instance, validated_data):
-        if 'network_port_labels' in validated_data:
+        ports = instance.networkportlabel_set.all()
+        old_ports = [name for name in ports.values_list('name', flat=True).order_by('order')]
+        new_ports = validated_data['network_port_labels']
+        if instance.asset_set.exists():
+            def throw():
+                raise serializers.ValidationError(
+                    "Cannot modify physical fields if assets are deployed"
+                )
+            if instance.height != validated_data['height']:
+                throw()
+            if instance.power_ports != validated_data['power_ports']:
+                throw()
+            if old_ports != new_ports:
+                throw()
+        elif old_ports != new_ports:
             NetworkPortLabel.objects.filter(itmodel=instance).delete()
             create_itmodel_extra(instance, validated_data['network_port_labels'])
+
         return super(ITModelSerializer, self).update(instance, validated_data)
 
     def to_representation(self, instance):
@@ -125,11 +141,12 @@ class AssetEntrySerializer(serializers.ModelSerializer):
         model = Asset
         fields = [
             'id',
+            'itmodel',
             'model',
             'asset_number',
             'hostname',
             'owner',
-            'location'
+            'location',
         ]
 
     def to_representation(self, instance):
@@ -142,7 +159,7 @@ class AssetEntrySerializer(serializers.ModelSerializer):
             if pdu.networked:
                 networked = True
                 break
-        permission = self.context['request'].user == instance.owner #todo implement this correctly
+        permission = True # self.context['request'].user == instance.owner #todo implement this correctly
         data['power_action_visible'] = \
             permission and networked and instance.commissioned is not None and instance.version.id == 0
 
@@ -224,8 +241,8 @@ class AssetSerializer(serializers.ModelSerializer):
             {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
             connections.values('pdu', 'plug_number')]
         data['network_ports'] = [
-            dict(**{'label': port.pop('label__name')}, **port)
-            for port in ports.values('id', 'label__name', 'mac_address', 'connection')
+            NetworkPortSerializer(port).data
+            for port in ports
         ]
         data['decommissioned'] = not instance.commissioned
         update_asset_power(instance)

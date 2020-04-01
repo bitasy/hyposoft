@@ -19,4 +19,5 @@ class PowerPortList(views.APIView):
                     'asset_id': asset.id if asset else None
                 }
                 data.append(port)
+        data.sort(key=lambda d: d['plug'])
         return Response(data, HTTP_200_OK)

@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.validators import RegexValidator
 from django.db import models
 from equipment.models import ITModel, Asset
 from changeplan.models import ChangePlan
@@ -53,6 +53,7 @@ class NetworkPort(models.Model):
 
     class Meta:
         unique_together = ['asset', 'label', 'version']
+        ordering = 'label__order',
 
     def __str__(self):
         return '{} : {}'.format(self.asset.hostname, self.label.name)

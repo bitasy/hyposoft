@@ -113,7 +113,6 @@ export function genCrudReducer(crudActionTypes) {
 
 function probe(reducer) {
   return (s, a) => {
-    console.log(a);
     const newS = reducer(s, a);
     return newS;
   };

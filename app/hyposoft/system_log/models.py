@@ -68,10 +68,5 @@ class ActionLog(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if self.model == 'Asset':
-            asset = Asset.objects.get(id=self.instance_id)
-            iden = "#" + str(asset.asset_number) + (": " + asset.hostname) if asset.hostname is not None else ""
-            self.identifier = iden
-        else:
-            self.identifier = self.MODELS[self.model].objects.get(id=self.instance_id).__str__()
+        self.identifier = self.MODELS[self.model].objects.get(id=self.instance_id).__str__()
         super(ActionLog, self).save(*args, **kwargs)

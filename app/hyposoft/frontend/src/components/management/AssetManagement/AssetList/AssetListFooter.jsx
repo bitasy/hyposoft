@@ -8,12 +8,9 @@ import { Button } from "antd";
 function AssetListFooter({ selectedAssets }) {
   const history = useHistory();
   const { user } = useContext(AuthContext);
-  console.log(user); //testing
-
   //TODO: fix permissions
   const createDisabled = !user?.is_staff;
 
-  console.log(selectedAssets);
   const printDisabled = selectedAssets.length == 0;
 
   function onCreate() {

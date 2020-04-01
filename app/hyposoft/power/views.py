@@ -53,18 +53,19 @@ def post_asset(request):
         res = post_pdu(rack, port.pdu.position, port.plug_number, state)
         if res[1] < 400:
             old = "ON" if port.on else "OFF"
-            port.on = state == 'ON'
+            port.on = state.upper() == 'ON'
             port.save()
-            ActionLog.objects.create(
-                action=ActionLog.Action.UPDATE,
-                username=username(request.user),
-                display_name=display_name(request.user),
-                model=port.__class__.__name__,
-                instance_id=port.id,
-                field_changed="on",
-                old_value=old,
-                new_value=state
-            ).save()
+            if old != state:
+                ActionLog.objects.create(
+                    action=ActionLog.Action.UPDATE,
+                    username=username(request.user),
+                    display_name=display_name(request.user),
+                    model=port.__class__.__name__,
+                    instance_id=port.id,
+                    field_changed="state",
+                    old_value=old,
+                    new_value=state.upper()
+                )
 
     process_asset(request.data['asset_id'], process_port)
     return Response(HTTP_204_NO_CONTENT)
@@ -77,25 +78,15 @@ def cycle_asset(request):
 
     def delay_start(rack, position, port):
         time.sleep(2)
-        res = post_pdu(rack, position, port, 'on')
+        res = post_pdu(rack, position, port.plug_number, 'on')
         if res[1] < 400:
             port.on = True
             port.save()
-            ActionLog.objects.create(
-                action=ActionLog.Action.UPDATE,
-                username=username(request.user),
-                display_name=display_name(request.user),
-                model=port.__class__.__name__,
-                instance_id=port.id,
-                field_changed="on",
-                old_value="OFF",
-                new_value="ON"
-            ).save()
 
     def process_port(rack, port):
         res = post_pdu(rack, port.pdu.position, port.plug_number, 'off')
 
-        if res[1] < 400 and port.on:
+        if res[1] < 400:
             old = "ON" if port.on else "OFF"
             port.on = False
             port.save()
@@ -105,11 +96,11 @@ def cycle_asset(request):
                 display_name=display_name(request.user),
                 model=port.__class__.__name__,
                 instance_id=port.id,
-                field_changed="on",
+                field_changed="state",
                 old_value=old,
-                new_value="OFF"
-            ).save()
-        t = threading.Thread(target=delay_start, args=(rack, port.pdu.position, port.plug_number))
+                new_value="CYCLED"
+            )
+        t = threading.Thread(target=delay_start, args=(rack, port.pdu.position, port))
         threads.append(t)
         t.start()
 

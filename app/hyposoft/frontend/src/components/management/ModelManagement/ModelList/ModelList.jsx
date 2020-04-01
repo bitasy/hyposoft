@@ -107,7 +107,7 @@ function ModelList({ noCreate }) {
       network_ports_max: filterValues.network_ports[1],
       power_ports_min: filterValues.power_ports[0],
       power_ports_max: filterValues.power_ports[1],
-      ordering,
+      ordering: ordering ?? "vendor,model_number",
       direction,
     }).then(r => {
       if (t === realm.current) {

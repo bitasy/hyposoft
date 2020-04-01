@@ -5,7 +5,6 @@ from multiselectfield import MultiSelectField
 
 DATACENTER_CHOICES = [
     ('GLOBAL', 'Global'),
-    *[(dc.abbr, dc.name) for dc in Datacenter.objects.all()]
 ]
 
 class Permission(models.Model):
@@ -34,4 +33,10 @@ class Permission(models.Model):
         blank=True,
         verbose_name='Datacenter Permission',
         choices=DATACENTER_CHOICES
+    )
+
+
+def set_datacenters():
+    DATACENTER_CHOICES.append(
+        *[(dc.abbr, dc.name) for dc in Datacenter.objects.all()]
     )

@@ -74,3 +74,6 @@ class Powered(models.Model):
         unique_together = [['plug_number', 'pdu', 'version'], ['order', 'asset', 'version']]
 
     IDENTITY_FIELDS = ['pdu__' + field for field in PDU.IDENTITY_FIELDS] + ['plug_number']
+
+    def __str__(self):
+        return "Asset {} Power Port {}".format(self.asset, self.order)

@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { Typography, Row, Col } from "antd";
+import { Typography } from "antd";
 import AssetForm from "./AssetForm/AssetForm";
 
 function AssetDetailPage() {
@@ -8,7 +8,7 @@ function AssetDetailPage() {
 
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Model Details</Typography.Title>
+      <Typography.Title level={3}>Asset Details</Typography.Title>
       <AssetForm id={id} />
     </div>
   );

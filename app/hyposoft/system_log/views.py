@@ -102,9 +102,9 @@ class LogView(generics.ListAPIView):
             model = ActionLog
             fields = {
                 'username': ['iexact'],
-                'display_name': ['contains'],
+                'display_name': ['icontains'],
                 'model': ['iexact'],
-                'identifier': ['contains']
+                'identifier': ['icontains']
             }
 
     filterset_class = LogFilter

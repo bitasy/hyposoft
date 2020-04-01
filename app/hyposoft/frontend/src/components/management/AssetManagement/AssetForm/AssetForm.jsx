@@ -29,7 +29,6 @@ import NetworkGraph from "./NetworkGraph";
 import NetworkPortSelect from "./NetworkPortSelect";
 import { powerPortList } from "../../../../api/power";
 import { useHistory, useLocation } from "react-router-dom";
-import FormDebugger from "../../../utility/formik/FormDebugger";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 
 function AssetForm({ id }) {
@@ -108,8 +107,8 @@ function AssetForm({ id }) {
   }
 
   async function handleDecommission() {
-      await decommissionAsset(id);
-      history.push("/assets");
+    await decommissionAsset(id);
+    history.push("/assets");
   }
 
   return asset ? (
@@ -117,7 +116,7 @@ function AssetForm({ id }) {
       <div>
         {asset.power_state != null && (
           <div>
-            <NetworkPowerActionButtons assetID={id} displayState />
+            <NetworkPowerActionButtons assetID={asset.id} displayState />
             <VSpace height="16px" />
           </div>
         )}
@@ -172,7 +171,7 @@ function AssetForm({ id }) {
                 </ItemWithLabel>
 
                 <ItemWithLabel name="network_ports" label="Network ports" flip>
-                  <NetworkPortSelect selectedModel={selectedModel} />
+                  <NetworkPortSelect asset={asset} />
                 </ItemWithLabel>
 
                 <ItemWithLabel name="owner" label="Owner">
@@ -200,12 +199,16 @@ function AssetForm({ id }) {
                       Delete
                     </Button>
                     <VSpace height="16px" />
-                    <Button ghost type="primary" onClick={() => {
-                      if (confirm("You sure?")) {
-                        handleDecommission();
-                      }
-                    }} block>
-
+                    <Button
+                      ghost
+                      type="primary"
+                      onClick={() => {
+                        if (confirm("You sure?")) {
+                          handleDecommission();
+                        }
+                      }}
+                      block
+                    >
                       Decommission
                     </Button>
                   </>

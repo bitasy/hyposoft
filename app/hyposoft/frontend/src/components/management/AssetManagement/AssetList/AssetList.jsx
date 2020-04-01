@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination, Button, Row, Col, Checkbox } from "antd";
+import { Table, Pagination, Button } from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
@@ -17,16 +17,49 @@ const AssetTable = styled(Table)`
 
 export const assetColumns = [
   {
-    title: "Model",
-    dataIndex: "model",
-    sorter: true,
-    sortdirections: ["ascend", "descend"],
-  },
-  {
     title: "Host",
     dataIndex: "hostname",
     sorter: true,
     sortDirections: ["ascend", "descend"],
+    render: function(text, record) {
+      return (
+        <div>
+          <a href={`/#/assets/${record.id}`} style={{ marginRight: 8 }}>
+            {text}
+          </a>
+        </div>
+      );
+    },
+  },
+  {
+    title: "Asset Number",
+    dataIndex: "asset_number",
+    sorter: true,
+    sortDirections: ["ascend", "descend"],
+    render: function(text, record) {
+      return (
+        <div>
+          <a href={`/#/assets/${record.id}`} style={{ marginRight: 8 }}>
+            {text}
+          </a>
+        </div>
+      );
+    },
+  },
+  {
+    title: "Model",
+    dataIndex: "model",
+    sorter: true,
+    sortdirections: ["ascend", "descend"],
+    render: function(text, record) {
+      return (
+        <div>
+          <a href={`/#/models/${record.itmodel}`} style={{ marginRight: 8 }}>
+            {text}
+          </a>
+        </div>
+      );
+    },
   },
   {
     title: "Location",
@@ -47,10 +80,9 @@ export const assetColumns = [
     render: r => {
       return (
         <div>
-          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
-            Details
-          </a>
-          {r.power_action_visible && <NetworkPowerActionButtons asset={r.id} />}
+          {r.power_action_visible && (
+            <NetworkPowerActionButtons assetID={r.id} />
+          )}
         </div>
       );
     },

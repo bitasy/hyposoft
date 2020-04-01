@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
-from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra
 from .serializers import *
@@ -280,7 +280,7 @@ class DecommissionAsset(views.APIView):
                 port_rack = port_asset.rack
                 new_port_rack = Rack.objects.filter(version=change_plan, rack=port_rack.rack).first()
                 if new_port_rack is None:
-                    new_port_rack = add_rack(port_rack)
+                    new_port_rack = add_rack(port_rack, change_plan)
                 new_port_asset = Asset.objects.filter(version=change_plan, asset_number=port_asset.asset_number).first()
                 if new_port_asset is None:
                     new_port_asset = add_asset(port_asset, new_port_rack)

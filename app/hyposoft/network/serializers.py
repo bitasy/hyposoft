@@ -10,7 +10,7 @@ class NetworkPortLabelSerializer(serializers.ModelSerializer):
 
 
 class NetworkPortSerializer(serializers.ModelSerializer):
-    asset_str = serializers.StringRelatedField(source="asset")
+    asset_str = serializers.StringRelatedField(source="connection.asset")
     label = serializers.StringRelatedField(source="label.name")
 
     class Meta:

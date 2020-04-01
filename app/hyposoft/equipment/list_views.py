@@ -89,6 +89,7 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
     ]
     ordering_fields = [
         'id',
+        'asset_number',
         'itmodel__vendor',
         'itmodel__model_number',
         'hostname',
@@ -117,6 +118,8 @@ class AssetPickList(generics.ListAPIView):
         rack_id = self.request.query_params.get('rack_id', None)
         if rack_id is not None:
             queryset = queryset.filter(rack_id=rack_id)
+        if 'asset_id' in self.request.query_params:
+            queryset = queryset.exclude(id=self.request.query_params['asset_id'])
         return queryset
 
     serializer_class = AssetSerializer
