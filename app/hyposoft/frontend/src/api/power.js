@@ -1,5 +1,5 @@
 import Axios from "axios";
-import { getData, makeQueryString } from "./utils";
+import { getData, makeQueryString, withLoading } from "./utils";
 
 export function powerPortList(rackID) {
   return Axios.get(
@@ -15,14 +15,18 @@ export function getPowerState(assetID) {
 
 // state should be "on" or "off"
 export function updatePowerState(assetID, state) {
-  return Axios.post(`api/power/PDUNetwork/post`, {
-    asset_id: assetID,
-    state,
-  });
+  return withLoading(() =>
+    Axios.post(`api/power/PDUNetwork/post`, {
+      asset_id: assetID,
+      state,
+    }),
+  );
 }
 
 export function runPowerCycle(assetID) {
-  return Axios.post(`api/power/PDUNetwork/cycle`, {
-    asset_id: assetID,
-  });
+  return withLoading(() =>
+    Axios.post(`api/power/PDUNetwork/cycle`, {
+      asset_id: assetID,
+    }),
+  );
 }

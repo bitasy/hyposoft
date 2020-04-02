@@ -110,8 +110,8 @@ def decommission_asset(asset_id, view, user, changeplan):
         asset.decommissioned_timestamp = datetime.datetime.now()
         asset.save()
 
-        for asset in old_rack.asset_set.exclude(id=old_asset.id):
-            add_asset(asset, change_plan)
+        for a in old_rack.asset_set.exclude(id=old_asset.id):
+            add_asset(a, change_plan)
 
         for pdu in old_rack.pdu_set.filter(version=version):
             old_pdu = PDU.objects.get(id=pdu.id)

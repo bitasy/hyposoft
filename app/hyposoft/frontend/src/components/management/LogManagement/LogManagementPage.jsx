@@ -1,6 +1,7 @@
 import React from "react";
 import { Typography, Table, Input, Pagination } from "antd";
 import { getLogs } from "../../../api/log";
+import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 
 // a function to create an array of data from a JSON list object based on searchable items
 async function createLogArray(username, displayName, identifier, model, page) {
@@ -106,6 +107,11 @@ const MAPPING = {
   ITModel: "models",
   Asset: "assets",
 };
+
+function LogManagementPageWrapper() {
+  useRedirectOnCPChange();
+  return <LogManagementPage />;
+}
 
 // a class to build a table searchable by column
 class LogManagementPage extends React.Component {
@@ -219,4 +225,4 @@ class LogManagementPage extends React.Component {
   }
 }
 
-export default LogManagementPage;
+export default LogManagementPageWrapper;

@@ -1,7 +1,5 @@
 import { message } from "antd";
 import { displayError } from "../global/message";
-import { DATACENTER_ABBR_SESSION_KEY } from "../components/App";
-import { CHANGE_PLAN_SESSION_KEY } from "../components/App";
 import {
   indexToCol,
   indexToRow,
@@ -10,16 +8,16 @@ import {
 
 export const GLOBAL_ABBR = "global";
 
+export const DATACENTER_HEADER_NAME = "X-DATACENTER";
+export const CHANGEPLAN_HEADER_NAME = "X-CHANGE-PLAN";
+
 // overrides: { dcName: string, changePlanID: number }
 export function makeHeaders(overrides) {
-  const dcname =
-    overrides?.dcName ?? sessionStorage.getItem(DATACENTER_ABBR_SESSION_KEY);
-  const cpid =
-    overrides?.changePlanID ?? sessionStorage.getItem(CHANGE_PLAN_SESSION_KEY);
-
+  const dcname = overrides?.dcName;
+  const cpid = overrides?.changePlanID;
   return {
-    ...(dcname != null ? { "X-DATACENTER": dcname } : {}),
-    ...(cpid != null ? { "X-CHANGE-PLAN": cpid } : { "X-CHANGE-PLAN": 0 }),
+    ...(dcname != null ? { [DATACENTER_HEADER_NAME]: dcname } : {}),
+    ...(cpid != null ? { [CHANGEPLAN_HEADER_NAME]: cpid } : {}),
   };
 }
 

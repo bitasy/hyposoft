@@ -15,6 +15,7 @@ import {
   PlusOutlined,
   EditOutlined,
 } from "@ant-design/icons";
+import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 
 function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
@@ -35,40 +36,28 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
 
   const ExtraButtons = (
     <>
-      <CreateTooltip
-        isVisible={disabled}
-        tooltipText={"Only users with admin privileges can edit a data center"}
+      <Button
+        size="small"
+        shape="circle"
+        onClick={() => setIsEditing(!isEditing)}
+        disabled={disabled}
       >
-        <Button
-          size="small"
-          shape="circle"
-          onClick={() => setIsEditing(!isEditing)}
-          disabled={disabled}
-        >
-          {isEditing ? <CloseOutlined /> : <EditOutlined />}
-        </Button>
-      </CreateTooltip>
-      <CreateTooltip
-        isVisible={disabled}
-        tooltipText={
-          "Only users with admin privileges can delete a data center"
-        }
+        {isEditing ? <CloseOutlined /> : <EditOutlined />}
+      </Button>
+      <Button
+        style={{ marginLeft: 4 }}
+        size="small"
+        shape="circle"
+        type="danger"
+        disabled={disabled}
+        onClick={() => {
+          if (confirm("You sure?")) {
+            onRemove(dc.id, dc.abbr);
+          }
+        }}
       >
-        <Button
-          style={{ marginLeft: 4 }}
-          size="small"
-          shape="circle"
-          type="danger"
-          disabled={disabled}
-          onClick={() => {
-            if (confirm("You sure?")) {
-              onRemove(dc.id, dc.abbr);
-            }
-          }}
-        >
-          <DeleteOutlined />
-        </Button>
-      </CreateTooltip>
+        <DeleteOutlined />
+      </Button>
     </>
   );
 
@@ -107,28 +96,23 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
 
 function AddCard({ onCreate, disabled }) {
   return (
-    <CreateTooltip
-      isVisible={disabled}
-      tooltipText={"Only users with admin privileges can add a data center"}
+    <Card
+      style={{ padding: 0, height: "100px" }}
+      bodyStyle={{
+        padding: 0,
+        width: "100%",
+        height: "100%",
+      }}
     >
-      <Card
-        style={{ padding: 0, height: "100px" }}
-        bodyStyle={{
-          padding: 0,
-          width: "100%",
-          height: "100%",
-        }}
+      <Button
+        style={{ width: "100%", height: "100%" }}
+        onClick={onCreate}
+        disabled={disabled}
       >
-        <Button
-          style={{ width: "100%", height: "100%" }}
-          onClick={onCreate}
-          disabled={disabled}
-        >
-          <PlusOutlined />
-          Add Datacenter
-        </Button>
-      </Card>
-    </CreateTooltip>
+        <PlusOutlined />
+        Add Datacenter
+      </Button>
+    </Card>
   );
 }
 
@@ -180,9 +164,6 @@ function DatacenterManagementPage() {
   const showGhostCard = () => setIsAdding(true);
   const showAddCard = () => setIsAdding(false);
 
-  const { user } = useContext(AuthContext);
-  const isAdmin = user?.is_staff;
-
   const [datacenters, setDatacenters] = React.useState([]);
   const [trigger, fireTrigger] = useTrigger();
   const { datacenter, setDCByID, refresh } = useContext(DCContext);
@@ -191,6 +172,8 @@ function DatacenterManagementPage() {
     getDatacenters().then(setDatacenters);
     refresh();
   }, [trigger]);
+
+  useRedirectOnCPChange();
 
   const dcName = datacenter?.abbr;
 
@@ -237,7 +220,7 @@ function DatacenterManagementPage() {
             case "add":
               return (
                 <List.Item>
-                  <AddCard onCreate={createGhost} disabled={!isAdmin} />
+                  <AddCard onCreate={createGhost} />
                 </List.Item>
               );
             case "ghost":
@@ -253,7 +236,6 @@ function DatacenterManagementPage() {
                     dc={dc}
                     onUpdate={handleUpdate}
                     onRemove={handleDelete}
-                    disabled={!isAdmin}
                   />
                 </List.Item>
               );

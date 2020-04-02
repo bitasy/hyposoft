@@ -1,16 +1,18 @@
 import React from "react";
 import { Formik, Field } from "formik";
-import { Form, Collapse, Row, Col, Calendar } from "antd";
+import { Form, Collapse, Row, Col, Calendar, DatePicker } from "antd";
 import VSpace from "../../../utility/VSpace";
 import RangeSlider from "../../../utility/formik/RangeSlider";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import Input from "../../../utility/formik/Input";
 import FormDebugger from "../../../utility/formik/FormDebugger";
+import moment from "moment";
 
 // Props
 /*
   initialFilterValues: {
     search: string,
+    decommissioned_by: string,
     time_from: string,
     time_to: string,
   }
@@ -29,39 +31,39 @@ function DecommissionFilters({ initialFilterValues, onChange }) {
           <Form>
             <Row>
               <Col md={8}>
-                <ItemWithLabel name="search" label="Search Owners">
+                <ItemWithLabel name="search" label="Search by keyword">
                   <Input name="search" />
                 </ItemWithLabel>
 
                 <VSpace height="8px" />
 
-                <ItemWithLabel name="timestamp_from" label="Time from:">
-                  <Field>
-                    {({ form }) => (
-                      <Calendar
-                        fullscreen={false}
-                        onSelect={m => {
-                          form.setFieldValue("timestamp_from", m.toISOString());
-                        }}
-                      />
-                    )}
-                  </Field>
+                <ItemWithLabel name="search" label="Search by decommissioner">
+                  <Input name="decommissioned_by" />
                 </ItemWithLabel>
 
                 <VSpace height="8px" />
 
-                <ItemWithLabel name="timestamp_to" label="Time to:">
-                  <Field>
-                    {({ form }) => (
-                      <Calendar
-                        fullscreen={false}
-                        onSelect={m => {
-                          form.setFieldValue("timestamp_to", m.toISOString());
-                        }}
-                      />
-                    )}
-                  </Field>
-                </ItemWithLabel>
+                <p style={{ fontWeight: "bold" }}>Decommissioned time range</p>
+                <Field>
+                  {({ form }) => (
+                    <DatePicker.RangePicker
+                      onChange={r => {
+                        if (r) {
+                          const [s, e] = r;
+                          form.setValues({
+                            time_from: s.toISOString(),
+                            time_to: e.toISOString(),
+                          });
+                        } else {
+                          form.setValues({
+                            time_from: null,
+                            time_to: null,
+                          });
+                        }
+                      }}
+                    />
+                  )}
+                </Field>
 
                 <VSpace height="8px" />
               </Col>

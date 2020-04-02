@@ -154,7 +154,7 @@ class DecommissionedAssetList(generics.ListAPIView):
         user = self.request.query_params.get('username', None)
         time_from = self.request.query_params.get('timestamp_from', None)
         time_to = self.request.query_params.get('timestamp_to', None)
-        owner = self.request.query_params.get('owner', None)
+        decommissioned_by = self.request.query_params.get('decommissioned_by', None)
         datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
         version = get_version(self.request)
 
@@ -170,14 +170,11 @@ class DecommissionedAssetList(generics.ListAPIView):
 
             queryset = queryset.filter(decommissioned_timestamp__range=(dt_from, dt_to))
 
-        if owner:
+        if decommissioned_by:
             queryset = queryset.filter(
-                Q(decommissioned_by__username__icontains=owner) |
-                Q(decommissioned_by__first_name__icontains=owner) |
-                Q(decommissioned_by__last_name__icontains=owner) |
-                Q(owner__username__icontains=owner) |
-                Q(owner__first_name__icontains=owner) |
-                Q(owner__last_name__icontains=owner)
+                Q(decommissioned_by__username__icontains=decommissioned_by) |
+                Q(decommissioned_by__first_name__icontains=decommissioned_by) |
+                Q(decommissioned_by__last_name__icontains=decommissioned_by)
             )
 
         queryset = queryset.filter(version__parent_id__in=(0, version))

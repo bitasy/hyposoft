@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination, Button } from "antd";
+import { Table, Pagination, Button, message } from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
@@ -9,6 +9,7 @@ import { getAssetList } from "../../../../api/asset";
 import { DCContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 const AssetTable = styled(Table)`
   :hover {
@@ -21,45 +22,18 @@ export const assetColumns = [
     dataIndex: "hostname",
     sorter: true,
     sortDirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/assets/${record.id}`} style={{ marginRight: 8 }}>
-            {text}
-          </a>
-        </div>
-      );
-    },
   },
   {
     title: "Asset Number",
     dataIndex: "asset_number",
     sorter: true,
     sortDirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/assets/${record.id}`} style={{ marginRight: 8 }}>
-            {text}
-          </a>
-        </div>
-      );
-    },
   },
   {
     title: "Model",
     dataIndex: "model",
     sorter: true,
     sortdirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/models/${record.itmodel}`} style={{ marginRight: 8 }}>
-            {text}
-          </a>
-        </div>
-      );
-    },
   },
   {
     title: "Location",
@@ -80,6 +54,9 @@ export const assetColumns = [
     render: r => {
       return (
         <div>
+          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
+            Details
+          </a>
           {r.power_action_visible && (
             <NetworkPowerActionButtons assetID={r.id} />
           )}
@@ -110,6 +87,9 @@ function AssetList({ modelID }) {
   const [ordering, setOrdering] = React.useState(undefined);
   const [direction, setDirection] = React.useState(undefined);
   const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of selected assets
+  const isLoadingList = React.useRef(false);
+
+  useRedirectOnCPChange();
 
   const realm = React.useRef(0);
 
@@ -130,8 +110,15 @@ function AssetList({ modelID }) {
     realm.current++;
     const t = realm.current;
 
+    if (!isLoadingList.current) {
+      message.loading("Fetching the assets...");
+      isLoadingList.current = true;
+    }
+
     getAssetList(assetQuery).then(r => {
       if (t === realm.current) {
+        message.destroy();
+        isLoadingList.current = false;
         setData(r.results);
         setTotal(r.count);
       }

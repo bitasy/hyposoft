@@ -2,6 +2,7 @@ import React from "react";
 import { Typography } from "antd";
 import { Table } from "antd";
 import { getRackUsage } from "../../../api/report";
+import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 
 function processRow({ category, used, free }) {
   return {
@@ -23,6 +24,8 @@ function ReportManagementPage() {
       ),
     );
   }, []);
+
+  useRedirectOnCPChange();
 
   const columns = [
     {

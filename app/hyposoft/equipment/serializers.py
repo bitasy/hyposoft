@@ -11,6 +11,7 @@ from .models import *
 from network.models import NetworkPort, NetworkPortLabel
 from power.models import PDU, Powered
 from power.handlers import update_asset_power
+from hypo_auth.serializers import UserSerializer
 
 from rest_framework import serializers
 
@@ -283,6 +284,8 @@ class AssetDetailSerializer(AssetSerializer):
     itmodel = ITModelSerializer()
     datacenter = DatacenterSerializer()
     rack = RackSerializer()
+    decommissioned_by = UserSerializer()
+    owner = UserSerializer()
 
     class Meta:
         model = Asset
@@ -290,12 +293,14 @@ class AssetDetailSerializer(AssetSerializer):
 
     def to_representation(self, instance):
         data = super(AssetDetailSerializer, self).to_representation(instance)
+
         for i, connection in enumerate(data['power_connections']):
             pdu = PDU.objects.get(id=connection['pdu_id'])
             data['power_connections'][i]['label'] = pdu.position + str(connection['plug'])
         for i, port in enumerate(data['network_ports']):
-            data['network_ports'][i]['connection_str'] = str(instance) + " — " + port['label']
-        data['network_graph'] = net_graph(instance.id)
+            if port['connection']:
+                data['network_ports'][i]['connection_str'] = str(NetworkPort.objects.get(id=port['connection']))
+
         return data
 
 
@@ -318,7 +323,7 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
     def to_representation(self, instance):
         data = super(DecommissionedAssetSerializer, self).to_representation(instance)
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-        new_format = '%d-%m-%Y %H:%M:%S'
+        new_format = '%m-%d-%Y %H:%M:%S'
 
         data['decommissioned_timestamp'] = \
             datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)

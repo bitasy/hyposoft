@@ -7,9 +7,6 @@ from .serializers import NetworkPortSerializer
 
 class NetworkPortList(FilterByDatacenterMixin, generics.ListAPIView):
     def get_queryset(self):
-        asset = self.request.query_params.get('asset_id', None)
-        if asset:
-            return NetworkPort.objects.filter(asset_id=asset)
-        return NetworkPort.objects.all()
+        return NetworkPort.objects.filter(asset__decommissioned_timestamp=None)
 
     serializer_class = NetworkPortSerializer
