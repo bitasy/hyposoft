@@ -123,6 +123,8 @@ def add_rack(rack, change_plan):
 
 
 def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
+    if asset.rack.version != asset.version:
+        asset.rack = add_rack(asset.rack, asset.version)
     if asset.version == change_plan:
         return asset
     newer_asset = versioned_object(asset, change_plan, identity_fields)
@@ -140,6 +142,8 @@ def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
 
 
 def add_network_conn(connection, version):
+    if connection is None:
+        return None
     versioned_conn = versioned_object(connection, version, ['asset__hostname', 'label'])
     if versioned_conn is None:
         # Add connected asset to change plan
