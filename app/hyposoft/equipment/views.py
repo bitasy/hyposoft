@@ -243,18 +243,21 @@ class DecommissionAsset(views.APIView):
             # Freeze Asset - Copy all data to new change plan
             # Requires resetting of all foreign keys
 
+
             old_rack = Rack.objects.get(id=asset.rack.id)
             old_asset = Asset.objects.get(id=asset.id)
 
             asset = add_asset(asset, change_plan)
+
             rack = asset.rack
             asset.commissioned = None
             asset.decommissioned_by = user
             asset.decommissioned_timestamp = datetime.datetime.now()
             asset.save()
 
-            for asset in old_rack.asset_set.exclude(id=old_asset.id):
-                add_asset(asset, change_plan)
+            # if the loop variable name is 'asset' it overrides the 'asset' at this scope
+            for a in old_rack.asset_set.exclude(id=old_asset.id):
+                add_asset(a, change_plan)
 
             for pdu in old_rack.pdu_set.filter(version=version):
                 old_pdu = PDU.objects.get(id=pdu.id)
@@ -291,6 +294,7 @@ class DecommissionAsset(views.APIView):
 
             if old_asset.version == version:
                 old_asset.delete()
+
 
             response = DecommissionedAssetSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)

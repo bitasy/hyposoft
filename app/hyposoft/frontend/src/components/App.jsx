@@ -40,6 +40,7 @@ import useTrigger from "./utility/useTrigger";
 import ModelImportPage from "./management/Import/ModelImportPage";
 import AssetImportPage from "./management/Import/AssetImportPage";
 import NetworkImportPage from "./management/Import/NetworkImportPage";
+import AssetDetailView from "./management/DecommissionManagement/DecommissionList/AssetDetailView";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -185,6 +186,9 @@ function App() {
                       </Route>
                       <Route exact path="/assets/:id">
                         <AssetDetailPage />
+                      </Route>
+                      <Route exact path="/assets/readonly/:id">
+                        <AssetDetailView />
                       </Route>
                       <Route exact path="/datacenters">
                         <DatacenterManagementPage />

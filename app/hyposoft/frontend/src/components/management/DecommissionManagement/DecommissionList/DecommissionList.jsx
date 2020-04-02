@@ -2,9 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import { Table, Pagination } from "antd";
 import { useHistory } from "react-router-dom";
-import AssetFilters from "../../AssetManagement/AssetList/AssetFilters";
 import DecommissionFilters from "./DecommissionFilters";
-import NetworkPowerActionButtons from "../../AssetManagement/NetworkPowerActionButtons";
 import { getDecommissionedAssetList } from "../../../../api/asset";
 import { DCContext } from "../../../../contexts/contexts";
 
@@ -125,7 +123,7 @@ function DecommissionList({ modelID }) {
   }
 
   function onRow(r) {
-    const onClick = () => history.push(`/assets/${r.id}`);
+    const onClick = () => history.push(`/assets/readonly/${r.id}`);
     return { onClick };
   }
 
