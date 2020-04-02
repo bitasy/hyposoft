@@ -7,26 +7,18 @@ import { Button } from "antd";
 
 function ModelListFooter() {
   const history = useHistory();
-  const { user } = useContext(AuthContext);
-
-  const createDisabled = !user?.is_staff;
 
   function onCreate() {
     history.push("/models/create");
   }
 
-  return user ? (
+  return (
     <div>
-      <CreateTooltip
-        isVisible={createDisabled}
-        tooltipText={"Only users with admin privileges can create a new item"}
-      >
-        <Button onClick={onCreate} disabled={createDisabled}>
-          <PlusOutlined />
-        </Button>
-      </CreateTooltip>
+      <Button onClick={onCreate}>
+        <PlusOutlined />
+      </Button>
     </div>
-  ) : null;
+  );
 }
 
 export default ModelListFooter;

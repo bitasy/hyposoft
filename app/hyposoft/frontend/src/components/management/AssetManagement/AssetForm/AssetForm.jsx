@@ -6,11 +6,6 @@ import SubmitButton from "../../../utility/formik/SubmitButton";
 import InputNumber from "../../../utility/formik/InputNumber";
 import Input from "../../../utility/formik/Input";
 import TextArea from "../../../utility/formik/TextArea";
-import {
-  DisableContext,
-  AuthContext,
-  ChangePlanContext,
-} from "../../../../contexts/contexts";
 import VSpace from "../../../utility/VSpace";
 import Select from "../../../utility/formik/Select";
 import { getModel, getModelPicklist } from "../../../../api/model";
@@ -41,9 +36,6 @@ function AssetForm({ id }) {
   const query = Object.fromEntries(
     new URLSearchParams(useLocation().search).entries(),
   );
-
-  const { user } = React.useContext(AuthContext);
-  const isAdmin = user?.is_staff;
 
   const [asset, setAsset] = useState(null);
   const [modelPickList, setModelPickList] = useState([]);
@@ -119,126 +111,121 @@ function AssetForm({ id }) {
   }
 
   return asset ? (
-    <DisableContext.Provider value={!isAdmin}>
-      <div>
-        {asset.power_state != null && (
-          <div>
-            <NetworkPowerActionButtons assetID={asset.id} displayState />
-            <VSpace height="16px" />
-          </div>
-        )}
-        <Row>
-          <Col md={8}>
-            <Formik
-              validationSchema={schema}
-              initialValues={asset}
-              initialErrors={query}
-              initialTouched={query}
-              onSubmit={id ? handleUpdate : handleCreate}
-            >
-              <Form>
-                <ItemWithLabel name="asset_number" label="Asset #">
-                  <InputNumber name="asset_number" min={100000} max={999999} />
-                </ItemWithLabel>
+    <div>
+      {asset.power_state != null && (
+        <div>
+          <NetworkPowerActionButtons assetID={asset.id} displayState />
+          <VSpace height="16px" />
+        </div>
+      )}
+      <Row>
+        <Col md={8}>
+          <Formik
+            validationSchema={schema}
+            initialValues={asset}
+            initialErrors={query}
+            initialTouched={query}
+            onSubmit={id ? handleUpdate : handleCreate}
+          >
+            <Form>
+              <ItemWithLabel name="asset_number" label="Asset #">
+                <InputNumber name="asset_number" min={100000} max={999999} />
+              </ItemWithLabel>
 
-                <ItemWithLabel name="hostname" label="Hostname">
-                  <Input name="hostname" />
-                </ItemWithLabel>
+              <ItemWithLabel name="hostname" label="Hostname">
+                <Input name="hostname" />
+              </ItemWithLabel>
 
-                <ItemWithLabel name="itmodel" label="Model">
-                  <ModelSelect
-                    modelPickList={modelPickList}
-                    handleModelSelect={handleModelSelect}
-                  />
-                  {selectedModel?.id && (
-                    <a href={`/#/models/${selectedModel.id}`}>
-                      View model details
-                    </a>
-                  )}
-                </ItemWithLabel>
-
-                <ItemWithLabel name="datacenter" label="Datacenter">
-                  <DatacenterSelect
-                    dcList={dcList}
-                    handleDCSelect={handleDCSelect}
-                  />
-                </ItemWithLabel>
-
-                <ItemWithLabel name="rack" label="Rack">
-                  <RackSelect
-                    rackList={rackList}
-                    handleRackSelect={handleRackSelect}
-                  />
-                </ItemWithLabel>
-
-                <ItemWithLabel name="rack_position" label="Rack Position">
-                  <InputNumber name="rack_position" min={1} max={42} />
-                </ItemWithLabel>
-
-                <ItemWithLabel
-                  name="power_connections"
-                  label="Power connections"
-                >
-                  <PowerPortSelect powerPorts={powerPorts} />
-                </ItemWithLabel>
-
-                <ItemWithLabel name="network_ports" label="Network ports" flip>
-                  <NetworkPortSelect selectedModel={selectedModel} />
-                </ItemWithLabel>
-
-                <ItemWithLabel name="owner" label="Owner">
-                  <Select
-                    name="owner"
-                    options={users.map(({ id, username }) => {
-                      return { value: id, text: username };
-                    })}
-                  />
-                </ItemWithLabel>
-
-                <ItemWithLabel name="comment" label="Comment">
-                  <TextArea name="comment" rows={5} />
-                </ItemWithLabel>
-
-                <SubmitButton ghost type="primary" block>
-                  {id ? "Update" : "Create"}
-                  <VSpace height="16px" />
-                </SubmitButton>
-
-                {id && (
-                  <>
-                    <VSpace height="16px" />
-                    <Button ghost type="danger" onClick={handleDelete} block>
-                      Delete
-                    </Button>
-                    <VSpace height="16px" />
-                    <Button
-                      ghost
-                      type="primary"
-                      onClick={() => {
-                        if (confirm("You sure?")) {
-                          handleDecommission();
-                        }
-                      }}
-                      block
-                    >
-                      Decommission
-                    </Button>
-                  </>
+              <ItemWithLabel name="itmodel" label="Model">
+                <ModelSelect
+                  modelPickList={modelPickList}
+                  handleModelSelect={handleModelSelect}
+                />
+                {selectedModel?.id && (
+                  <a href={`/#/models/${selectedModel.id}`}>
+                    View model details
+                  </a>
                 )}
-              </Form>
-            </Formik>
-          </Col>
-        </Row>
+              </ItemWithLabel>
 
-        {id && (
-          <div>
-            <VSpace height="32px" />
-            <Typography.Title level={4}>Network graph</Typography.Title>
-            <NetworkGraph assetID={id} networkGraph={asset.network_graph} />
-          </div>
-        )}
-      </div>
-    </DisableContext.Provider>
+              <ItemWithLabel name="datacenter" label="Datacenter">
+                <DatacenterSelect
+                  dcList={dcList}
+                  handleDCSelect={handleDCSelect}
+                />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="rack" label="Rack">
+                <RackSelect
+                  rackList={rackList}
+                  handleRackSelect={handleRackSelect}
+                />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="rack_position" label="Rack Position">
+                <InputNumber name="rack_position" min={1} max={42} />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="power_connections" label="Power connections">
+                <PowerPortSelect powerPorts={powerPorts} />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="network_ports" label="Network ports" flip>
+                <NetworkPortSelect selectedModel={selectedModel} />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="owner" label="Owner">
+                <Select
+                  name="owner"
+                  options={users.map(({ id, username }) => {
+                    return { value: id, text: username };
+                  })}
+                />
+              </ItemWithLabel>
+
+              <ItemWithLabel name="comment" label="Comment">
+                <TextArea name="comment" rows={5} />
+              </ItemWithLabel>
+
+              <SubmitButton ghost type="primary" block>
+                {id ? "Update" : "Create"}
+                <VSpace height="16px" />
+              </SubmitButton>
+
+              {id && (
+                <>
+                  <VSpace height="16px" />
+                  <Button ghost type="danger" onClick={handleDelete} block>
+                    Delete
+                  </Button>
+                  <VSpace height="16px" />
+                  <Button
+                    ghost
+                    type="primary"
+                    onClick={() => {
+                      if (confirm("You sure?")) {
+                        handleDecommission();
+                      }
+                    }}
+                    block
+                  >
+                    Decommission
+                  </Button>
+                </>
+              )}
+            </Form>
+          </Formik>
+        </Col>
+      </Row>
+
+      {id && (
+        <div>
+          <VSpace height="32px" />
+          <Typography.Title level={4}>Network graph</Typography.Title>
+          <NetworkGraph assetID={id} networkGraph={asset.network_graph} />
+        </div>
+      )}
+    </div>
   ) : null;
 }
 
