@@ -108,3 +108,11 @@ class LogView(generics.ListAPIView):
             }
 
     filterset_class = LogFilter
+
+    def get(self, request):
+        if request.user.is_superuser:
+            return super(LogView, self).get(request)
+        elif not request.user.permission.audit_perm:
+            raise serializers.ValidationError("You don't have permission.")
+        else:
+            return super(LogView, self).get(request)

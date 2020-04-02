@@ -40,6 +40,9 @@ class ITModelImport(generics.CreateAPIView):
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            if not request.user.permission.model_perm:
+                raise serializers.ValidationError("You don't have permission.")
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
@@ -71,6 +74,9 @@ class AssetImport(generics.CreateAPIView):
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            if not request.user.permission.asset_perm:
+                raise serializers.ValidationError("You don't have permission.")
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
@@ -128,6 +134,9 @@ class NetworkImport(generics.CreateAPIView):
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            if not request.user.permission.asset_perm:
+                raise serializers.ValidationError("You don't have permission.")
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
