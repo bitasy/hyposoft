@@ -1,5 +1,7 @@
 from django.core.exceptions import ValidationError
 from import_export import fields
+from rest_framework import serializers
+
 from equipment.models import Asset
 from changeplan.models import ChangePlan
 from network.models import NetworkPortLabel, NetworkPort
@@ -92,6 +94,12 @@ class NetworkPortResource(VersionedResource):
         row['version'] = self.version.id
         if len(row['src_mac']) == 0:
             row['src_mac'] = None
+
+        if Asset.objects.filter(hostname=row['src_hostname']).count() == 0:
+            raise ValidationError("Asset with hostname {} not found.".format(row['src_hostname']))
+
+        if len(row['dest_hostname']) > 0 and Asset.objects.filter(hostname=row['dest_hostname']).count() == 0:
+            raise ValidationError("Asset with hostname {} not found.".format(row['dest_hostname']))
 
     def after_import_row(self, row, row_result, **kwargs):
         try:
