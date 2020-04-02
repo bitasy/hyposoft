@@ -6,7 +6,11 @@ import SubmitButton from "../../../utility/formik/SubmitButton";
 import InputNumber from "../../../utility/formik/InputNumber";
 import Input from "../../../utility/formik/Input";
 import TextArea from "../../../utility/formik/TextArea";
-import { DisableContext, AuthContext } from "../../../../contexts/contexts";
+import {
+  DisableContext,
+  AuthContext,
+  ChangePlanContext,
+} from "../../../../contexts/contexts";
 import VSpace from "../../../utility/VSpace";
 import Select from "../../../utility/formik/Select";
 import { getModel, getModelPicklist } from "../../../../api/model";
@@ -30,13 +34,14 @@ import NetworkPortSelect from "./NetworkPortSelect";
 import { powerPortList } from "../../../../api/power";
 import { useHistory, useLocation } from "react-router-dom";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
-import FormDebugger from "../../../utility/formik/FormDebugger";
 
 function AssetForm({ id }) {
   const history = useHistory();
   const query = Object.fromEntries(
     new URLSearchParams(useLocation().search).entries(),
   );
+
+  const { changePlan } = React.useContext(ChangePlanContext);
 
   const { user } = React.useContext(AuthContext);
   const isAdmin = user?.is_staff;
@@ -48,6 +53,8 @@ function AssetForm({ id }) {
   const [rackList, setRackList] = useState([]);
   const [powerPorts, setPowerPorts] = useState([]);
   const [users, setUsers] = useState([]);
+
+  const firstCPID = React.useRef(changePlan?.id);
 
   React.useEffect(() => {
     (async () => {
@@ -64,6 +71,12 @@ function AssetForm({ id }) {
       }
     })();
   }, []);
+
+  React.useEffect(() => {
+    if (firstCPID.current != changePlan?.id) {
+      history.push("/assets");
+    }
+  }, [changePlan?.id]);
 
   React.useEffect(() => {
     if (asset?.itmodel) handleModelSelect(asset.itmodel);
