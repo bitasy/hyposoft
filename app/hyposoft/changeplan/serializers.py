@@ -46,7 +46,7 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
         for diff in assetDiff:
             entry = {}
             asset = diff['new']
-            entry['live'] = AssetDetailSerializer(diff['live']).data
+            entry['live'] = AssetDetailSerializer(diff['live']).data if diff['live'] else None
             entry['cp'] = AssetDetailSerializer(asset).data
 
             conflicts = diff['conflicts']

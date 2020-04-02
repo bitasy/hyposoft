@@ -1,7 +1,6 @@
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.timezone import now
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
@@ -51,7 +50,7 @@ class ExecuteChangePlan(views.APIView):
             return Response(ChangePlanDetailSerializer(changeplan).data, status=HTTP_200_OK)
         except Exception as e:
             print(e)
-            raise ValidationError("This ChangePlan is not valid.")
+            raise serializers.ValidationError("This ChangePlan is not valid.")
 
 
 class UserChangePlansMixin():

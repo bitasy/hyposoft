@@ -4,7 +4,7 @@ from equipment.models import Asset, Rack
 from equipment.handlers import decommission_asset
 from network.models import NetworkPort
 from power.models import Powered, PDU
-from hyposoft.utils import versioned_object, add_network_conn
+from hyposoft.utils import versioned_object, add_network_conn, add_rack, add_asset
 from .models import AssetDiff, NetworkPortDiff, PoweredDiff, ChangePlan
 
 
@@ -78,15 +78,26 @@ def execute_assets(changeplan):
             if live_asset is None:
                 live_asset = versioned_object(changed_asset, live, ['hostname'])
 
-            live_asset.asset_number = changed_asset.asset_number
-            live_asset.hostname = changed_asset.hostname
-            live_asset.datacenter = changed_asset.datacenter
-            live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS)
-            live_asset.rack_position = changed_asset.rack_position
-            live_asset.itmodel = changed_asset.itmodel
-            live_asset.owner = changed_asset.owner
-            live_asset.comment = changed_asset.comment
-            live_asset.save()
+            if live_asset is None:
+                Asset.objects.create(
+                    hostname=changed_asset.hostname,
+                    datacenter=changed_asset.datacenter,
+                    rack=add_rack(changed_asset.rack, live),
+                    rack_position=changed_asset.rack_position,
+                    itmodel=changed_asset.itmodel,
+                    owner=changed_asset.owner,
+                    comment=changed_asset.comment
+                )
+            else:
+                live_asset.asset_number = changed_asset.asset_number
+                live_asset.hostname = changed_asset.hostname
+                live_asset.datacenter = changed_asset.datacenter
+                live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS)
+                live_asset.rack_position = changed_asset.rack_position
+                live_asset.itmodel = changed_asset.itmodel
+                live_asset.owner = changed_asset.owner
+                live_asset.comment = changed_asset.comment
+                live_asset.save()
         except:
             create_live_asset(changed_asset)
         changed_asset.delete()
@@ -120,18 +131,26 @@ def execute_networkports(changeplan):
             live = ChangePlan.objects.get(id=0)
             live_networkport = versioned_object(changed_networkport, live, NetworkPort.IDENTITY_FIELDS)
 
-            live_networkport.label = changed_networkport.label
-            live_networkport.mac_address = changed_networkport.mac_address
-            if changed_networkport.connection:
-                live_connection = versioned_object(changed_networkport.connection, live, NetworkPort.IDENTITY_FIELDS)
-                if live_networkport is None:
-                    live_connection = add_network_conn(changed_networkport.connection, live)
-                live_connection.connection = live_networkport
-                live_connection.save()
+            if live_networkport is None:
+                live_asset = add_asset(changed_networkport.asset, live)
+                NetworkPort.objects.create(
+                    asset=live_asset,
+                    label=changed_networkport.label,
+                    mac_address=changed_networkport.mac_address,
+                    connection=add_network_conn(changed_networkport.connection, live),
+                    version=live
+                )
+            else:
+                live_networkport.label = changed_networkport.label
+                live_networkport.mac_address = changed_networkport.mac_address
+                if changed_networkport.connection:
+                    live_networkport.connection = add_network_conn(changed_networkport.connection, live)
+                live_networkport.save()
 
-        except:
+        except Exception as e:
+            print(e)
             create_live_networkport(changed_networkport)
-        changed_networkport.destroy()
+        changed_networkport.delete()
 
 
 def create_live_powered(changed_powered):

@@ -42,7 +42,7 @@ def create_asset_extra(asset, version, power_connections, net_ports):
             if order > asset.itmodel.power_ports:
                 break
             Powered.objects.create(
-                pdu=connection['pdu_id'],
+                pdu=versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS),
                 plug_number=connection['plug'],
                 version=version,
                 asset=asset,
@@ -71,7 +71,7 @@ def create_asset_extra(asset, version, power_connections, net_ports):
                     name=port['label']
                 ),
                 mac_address=mac,
-                connection=port.get('connection'),
+                connection=add_network_conn(port.get('connection'), version),
                 version=version,
             )
             i += 1

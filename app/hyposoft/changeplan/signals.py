@@ -2,7 +2,7 @@ from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 
-from hyposoft.utils import versioned_equal
+from hyposoft.utils import versioned_equal, versioned_object
 from .models import ChangePlan, AssetDiff, NetworkPortDiff, PoweredDiff
 from equipment.models import Asset, Rack
 from power.models import Powered, PDU
@@ -56,16 +56,21 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         rack=instance.changed_asset.rack,
         rack_position__range=(instance.changed_asset.rack_position,
                               instance.changed_asset.rack_position + instance.changed_asset.itmodel.height),
-    ).exclude(id=instance.changed_asset.id)
+        datacenter=instance.changed_asset.datacenter,
+        version_id=0
+    )
     if len(blocked) > 0:
         conflicts.append({"field": "rack_position",
                           "message": 'There is already an asset in this area of the specified rack.'})
     i = instance.changed_asset.rack_position - 1
     while i > 0:
+        live_rack = versioned_object(instance.changed_asset.rack, ChangePlan.objects.get(id=0), Rack.IDENTITY_FIELDS)
         under = Asset.objects.filter(
-            rack=instance.changed_asset.rack,
-            rack_position=i
-        ).exclude(id=instance.changed_asset.id)
+            rack=live_rack,
+            rack_position=i,
+            datacenter=instance.changed_asset.datacenter,
+            version_id=0
+        )
         if len(under) > 0:
             asset = under.values_list(
                 'rack_position', 'itmodel__height')[0]
@@ -101,9 +106,9 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             instance.changed_networkport.asset,
             instance.changed_networkport.label.name,
             instance.changed_networkport.mac_address or ""
-        ) + " TO {} – {}".format(
+        ) + (" TO {} – {}".format(
             instance.changed_networkport.connection.asset,
-            instance.changed_networkport.connection.label.name
+            instance.changed_networkport.connection.label.name) if instance.changed_networkport.connection else ''
         ))
 
     if instance.changed_networkport.connection:
@@ -151,9 +156,6 @@ def powereddiff_message(sender, instance, *args, **kwargs):
                             str(instance.live_powered.pdu.position) + ' | ' +
                             'NEW PDU: ' + str(instance.changed_powered.pdu.rack.rack) + ' ' +
                             str(instance.changed_powered.pdu.position))
-        if not versioned_equal(instance.changed_powered.asset, instance.live_powered.asset, Asset.IDENTITY_FIELDS):
-            messages.append('OLD ASSET: ' + str(instance.live_powered.asset) + ' | ' +
-                            'NEW ASSET: ' + str(instance.changed_powered.asset))
     else:
         messages.append('SET POWER PLUG: ASSET {} TO PORT {}{}'.format(
             instance.changed_powered.asset.asset_number or instance.changed_powered.asset,

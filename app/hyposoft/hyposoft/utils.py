@@ -8,7 +8,7 @@ from django.db.models import Q
 from rest_framework import serializers
 
 from equipment.models import Rack, Asset
-from network.models import NetworkPort
+from power.models import PDU
 
 
 def next_char(char):
@@ -117,6 +117,8 @@ def add_rack(rack, change_plan):
     rack.id = None
     rack.version = change_plan
     rack.save()
+    PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version=change_plan)
+    PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version=change_plan)
     return rack
 
 
