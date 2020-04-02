@@ -154,7 +154,7 @@ function ChangePlanDetail() {
 
       <Divider />
 
-      <Typography.Title level={4}>Basic Info!</Typography.Title>
+      <Typography.Title level={4}>Basic Info</Typography.Title>
       <Typography.Text>Name: </Typography.Text>
       <Typography.Text editable={{ onChange: onUpdate }}>
         {changePlan?.name ?? ""}
