@@ -43,8 +43,6 @@ axios.interceptors.request.use(config => {
     sessionStorage.getItem(CHANGE_PLAN_SESSION_KEY) ??
     0;
 
-  console.log(config);
-
   return config;
 });
 
