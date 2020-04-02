@@ -3,13 +3,16 @@ import { Typography, Input, Button, Row, Col } from "antd";
 import VSpace from "../../utility/VSpace";
 import { createChangePlan } from "../../../api/changeplan";
 import { useHistory } from "react-router-dom";
+import { ChangePlanContext } from "../../../contexts/contexts";
 
 function CreateChangePlan() {
   const history = useHistory();
   const [name, setName] = React.useState("");
+  const { refresh } = React.useContext(ChangePlanContext);
 
   async function handleCreate() {
     await createChangePlan(name);
+    refresh();
     history.push("/changeplan");
   }
 

@@ -7,14 +7,14 @@ import VSpace from "../../utility/VSpace";
 function WorkOrderPage() {
   const cpID = new URLSearchParams(useLocation().search).get("cp_id");
 
-  const [actions, setActions] = React.useState();
+  const [actions, setActions] = React.useState([]);
 
   React.useEffect(() => {
     getChangePlanActions(cpID).then(setActions);
   }, []);
 
   return (
-    <div>
+    <div style={{ padding: 16 }}>
       <Typography.Title>Work Order</Typography.Title>
       {actions.map((action, idx) => (
         <div key={idx}>

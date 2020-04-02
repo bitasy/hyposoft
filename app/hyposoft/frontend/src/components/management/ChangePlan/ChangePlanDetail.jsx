@@ -10,6 +10,7 @@ import moment from "moment";
 import Diff from "../../utility/Diff";
 import Diff0 from "../../utility/Diff";
 import { ChangePlanContext } from "../../../contexts/contexts";
+import VSpace from "../../utility/VSpace";
 
 const ASSET_HEADERS = [
   {
@@ -150,7 +151,7 @@ function ChangePlanDetail() {
   });
 
   return (
-    <div>
+    <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Change Plan Details</Typography.Title>
 
       <Divider />
@@ -185,6 +186,7 @@ function ChangePlanDetail() {
         type="primary"
         onClick={execute}
         disabled={changePlan?.executed_at}
+        style={{ marginRight: 16 }}
       >
         Execute
       </Button>

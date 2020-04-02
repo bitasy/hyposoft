@@ -32,13 +32,13 @@ export const decommissionColumns = [
     sortDirections: ["ascend", "descend"],
   },
   {
-    title: "Decommission Owner",
+    title: "Decommissioned By",
     dataIndex: "decommissioned_by",
     sorter: true,
     sortDirections: ["ascend", "descend"],
   },
   {
-    title: "Timestamp",
+    title: "Decommissoned At",
     dataIndex: "decommissioned_timestamp",
     sorter: true,
     sortDirections: ["ascend", "descend"],
@@ -47,8 +47,9 @@ export const decommissionColumns = [
 
 const initialFilterValues = {
   search: "",
-  timestamp_from: undefined,
-  timestamp_to: undefined,
+  decommissioned_by: "",
+  time_from: undefined,
+  time_to: undefined,
 };
 
 // modelID?: number
@@ -76,9 +77,9 @@ function DecommissionList({ modelID }) {
       page,
       page_size: pageSize,
       itmodel: modelID,
-      timestamp_from: filterValues.timestamp_from,
-      timestamp_to: filterValues.timestamp_to,
-      owner: filterValues.decommissioned_by,
+      timestamp_from: filterValues.time_from,
+      timestamp_to: filterValues.time_to,
+      decommissioned_by: filterValues.decommissioned_by,
       decommissioned_timestamp: filterValues.decommissioned_timestamp,
       ordering,
       direction,

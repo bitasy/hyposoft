@@ -50,9 +50,11 @@ function ManagementPageFrame({ children }) {
   React.useEffect(() => {
     getChangePlanList().then(cps => {
       setChangePlans(
-        cps.map(({ id, name }) => {
-          return { id, name };
-        }),
+        cps
+          .filter(({ executed_at }) => !executed_at)
+          .map(({ id, name }) => {
+            return { id, name };
+          }),
       );
     });
   }, [cpRefreshTrigger]);
@@ -184,7 +186,7 @@ function Sidebar() {
       </Menu.Item>
 
       <Menu.Item key="/decommission">
-        <DisconnectOutlined/>
+        <DisconnectOutlined />
         <span>Decommission</span>
       </Menu.Item>
 

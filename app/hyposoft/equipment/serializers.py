@@ -323,7 +323,7 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
     def to_representation(self, instance):
         data = super(DecommissionedAssetSerializer, self).to_representation(instance)
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-        new_format = '%d-%m-%Y %H:%M:%S'
+        new_format = '%m-%d-%Y %H:%M:%S'
 
         data['decommissioned_timestamp'] = \
             datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)

@@ -1,12 +1,12 @@
 import React from "react";
 import styled from "styled-components";
-import { Table, Pagination, Button } from "antd";
+import { Table, Pagination, Button, message } from "antd";
 import { useHistory } from "react-router-dom";
 import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
-import { DCContext } from "../../../../contexts/contexts";
+import { DCContext, ChangePlanContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
 
@@ -76,6 +76,7 @@ const initialFilterValues = {
 function AssetList({ modelID }) {
   const history = useHistory();
 
+  const { changePlan } = React.useContext(ChangePlanContext);
   const { datacenter } = React.useContext(DCContext);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
@@ -86,6 +87,7 @@ function AssetList({ modelID }) {
   const [ordering, setOrdering] = React.useState(undefined);
   const [direction, setDirection] = React.useState(undefined);
   const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of selected assets
+  const isLoadingList = React.useRef(false);
 
   const realm = React.useRef(0);
 
@@ -106,13 +108,28 @@ function AssetList({ modelID }) {
     realm.current++;
     const t = realm.current;
 
+    if (!isLoadingList.current) {
+      message.loading("Fetching the assets...");
+      isLoadingList.current = true;
+    }
+
     getAssetList(assetQuery).then(r => {
       if (t === realm.current) {
+        message.destroy();
+        isLoadingList.current = false;
         setData(r.results);
         setTotal(r.count);
       }
     });
-  }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
+  }, [
+    filterValues,
+    page,
+    pageSize,
+    ordering,
+    direction,
+    datacenter?.id,
+    changePlan?.id,
+  ]);
 
   React.useEffect(() => {
     setPage(1);
