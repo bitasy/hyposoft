@@ -1,11 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from equipment.models import Datacenter
-from multiselectfield import MultiSelectField
+from rest_framework import serializers
 
-DATACENTER_CHOICES = [
-    ('GLOBAL', 'Global'),
-]
 
 class Permission(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -29,14 +26,22 @@ class Permission(models.Model):
         verbose_name='Admin Permission',
         default=False
     )
-    datacenter_perm = MultiSelectField(
+    datacenter_perm = models.CharField(
         blank=True,
-        verbose_name='Datacenter Permission',
-        choices=DATACENTER_CHOICES
+        verbose_name="Datacenter Permission (Enter existing datacenter abbreviations comma-separated. For global, enter 'Global')",
+        max_length=10000
     )
 
-
-def set_datacenters():
-    DATACENTER_CHOICES.append(
-        *[(dc.abbr, dc.name) for dc in Datacenter.objects.all()]
-    )
+    def clean(self):
+        if not self.datacenter_perm:
+            return
+        dcs = self.datacenter_perm.split(',')
+        for dc in dcs:
+            if dc == 'Global':
+                return
+            try:
+                Datacenter.objects.get(abbr=dc)
+            except:
+                raise serializers.ValidationError(
+                    "Please enter existing datacenter abbreviations comma-separated. For global permission, enter 'Global'."
+                )

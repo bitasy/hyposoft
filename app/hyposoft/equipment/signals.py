@@ -63,6 +63,8 @@ def validate_asset(sender, instance, *args, **kwargs):
         rack=instance.rack,
         rack_position__range=(instance.rack_position,
                               instance.rack_position + instance.itmodel.height),
+        datacenter=instance.datacenter,
+        version=instance.version
     ).exclude(id=instance.id)
 
     if len(blocked) > 0:
@@ -73,7 +75,9 @@ def validate_asset(sender, instance, *args, **kwargs):
     while i > 0:
         under = Asset.objects.filter(
             rack=instance.rack,
-            rack_position=i
+            rack_position=i,
+            datacenter=instance.datacenter,
+            version=instance.version
         ).exclude(id=instance.id)
         if len(under) > 0:
             asset = under.values_list(

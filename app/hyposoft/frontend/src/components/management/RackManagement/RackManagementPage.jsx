@@ -73,7 +73,6 @@ function RackManagementPage() {
   const { datacenter } = useContext(DCContext);
 
   const { user } = useContext(AuthContext);
-  const isAdmin = user?.is_staff;
 
   const [racks, setRacks] = useState([]);
   const [datacenters, setDatacenters] = useState([]);
@@ -83,13 +82,6 @@ function RackManagementPage() {
   const [errors, setErrors] = useState([]);
 
   const finalSelectedDC = datacenter ?? selectedDC;
-
-  let textCreate = isAdmin
-    ? "Select range to create racks"
-    : "Only users with admin privileges can create racks";
-  let textDelete = isAdmin
-    ? "Select range to delete racks"
-    : "Only users with admin privileges can delete racks";
 
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
@@ -212,44 +204,29 @@ function RackManagementPage() {
             range={range}
           />
           <div style={{ marginTop: 16 }}>
-            <CreateTooltip
-              isVisible={!isAdmin || !range}
-              tooltipText={textCreate}
+            <Button
+              disabled={!range}
+              type="primary"
+              style={{ marginRight: 8 }}
+              onClick={() => create(range)}
             >
-              <Button
-                disabled={!isAdmin || !range}
-                type="primary"
-                style={{ marginRight: 8 }}
-                onClick={() => create(range)}
-              >
-                Create
-              </Button>
-            </CreateTooltip>
-            <CreateTooltip
-              isVisible={!isAdmin || !range}
-              tooltipText={textDelete}
+              Create
+            </Button>
+            <Button
+              disabled={!range}
+              type="danger"
+              style={{ marginRight: 8 }}
+              onClick={() => remove(range)}
             >
-              <Button
-                disabled={!isAdmin || !range}
-                type="danger"
-                style={{ marginRight: 8 }}
-                onClick={() => remove(range)}
-              >
-                Remove
-              </Button>
-            </CreateTooltip>
-            <CreateTooltip
-              isVisible={!range}
-              tooltipText={"Select range to open printable rack view"}
+              Remove
+            </Button>
+            <Button
+              disabled={selectedRacks.length == 0}
+              type="default"
+              onClick={() => showRacks(selectedRacks)}
             >
-              <Button
-                disabled={selectedRacks.length == 0}
-                type="default"
-                onClick={() => showRacks(selectedRacks)}
-              >
-                View
-              </Button>
-            </CreateTooltip>
+              View
+            </Button>
             {warnings.length > 0 && (
               <>
                 <VSpace height="16px" />
