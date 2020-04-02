@@ -21,45 +21,18 @@ export const assetColumns = [
     dataIndex: "hostname",
     sorter: true,
     sortDirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/assets/${record.id}`} style={{ marginRight: 8 }}>
-            {text}
-          </a>
-        </div>
-      );
-    },
   },
   {
     title: "Asset Number",
     dataIndex: "asset_number",
     sorter: true,
     sortDirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/assets/${record.id}`} style={{ marginRight: 8 }}>
-            {text}
-          </a>
-        </div>
-      );
-    },
   },
   {
     title: "Model",
     dataIndex: "model",
     sorter: true,
     sortdirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/models/${record.itmodel}`} style={{ marginRight: 8 }}>
-            {text}
-          </a>
-        </div>
-      );
-    },
   },
   {
     title: "Location",
@@ -80,6 +53,9 @@ export const assetColumns = [
     render: r => {
       return (
         <div>
+          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
+            Details
+          </a>
           {r.power_action_visible && (
             <NetworkPowerActionButtons assetID={r.id} />
           )}

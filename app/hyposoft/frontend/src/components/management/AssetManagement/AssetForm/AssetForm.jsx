@@ -30,6 +30,7 @@ import NetworkPortSelect from "./NetworkPortSelect";
 import { powerPortList } from "../../../../api/power";
 import { useHistory, useLocation } from "react-router-dom";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
+import FormDebugger from "../../../utility/formik/FormDebugger";
 
 function AssetForm({ id }) {
   const history = useHistory();
@@ -143,6 +144,11 @@ function AssetForm({ id }) {
                     modelPickList={modelPickList}
                     handleModelSelect={handleModelSelect}
                   />
+                  {selectedModel?.id && (
+                    <a href={`/#/models/${selectedModel.id}`}>
+                      View model details
+                    </a>
+                  )}
                 </ItemWithLabel>
 
                 <ItemWithLabel name="datacenter" label="Datacenter">
@@ -171,7 +177,7 @@ function AssetForm({ id }) {
                 </ItemWithLabel>
 
                 <ItemWithLabel name="network_ports" label="Network ports" flip>
-                  <NetworkPortSelect asset={asset} />
+                  <NetworkPortSelect selectedModel={selectedModel} />
                 </ItemWithLabel>
 
                 <ItemWithLabel name="owner" label="Owner">
