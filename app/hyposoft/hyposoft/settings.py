@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '2y9vhvh!y-ono@msw2$l7s9h8ld_edy%9mn%sq22vs47vi=mt)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', "True").lower() == "true",
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -103,10 +103,10 @@ WSGI_APPLICATION = 'hyposoft.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'dev'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASS'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'NAME': 'prod',
+        'USER': 'vcm',
+        'PASSWORD': 'hyposoft',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
