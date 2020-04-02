@@ -245,7 +245,7 @@ class AssetSerializer(serializers.ModelSerializer):
             connections.values('pdu', 'plug_number')]
         data['network_ports'] = [
             NetworkPortSerializer(port).data
-            for port in ports
+            for port in ports.order_by('label')
         ]
         data['decommissioned'] = not instance.commissioned
         update_asset_power(instance)

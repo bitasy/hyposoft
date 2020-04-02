@@ -30,22 +30,6 @@ class ChangePlanSerializer(serializers.ModelSerializer):
         return data
 
 
-class ChangePlanDetailSerializer0(serializers.ModelSerializer):
-    class Meta:
-        model = ChangePlan
-        fields = ['id', 'name', 'executed_at']
-
-    def to_representation(self, instance):
-        target = ChangePlan.objects.get(id=0)
-        data = super(ChangePlanDetailSerializer, self).to_representation(instance)
-        data['diffs'] = {
-            'asset': get_asset(instance, target),
-            'power': get_power(instance, target),
-            'network': get_network(instance, target)
-        }
-        return data
-
-
 class ChangePlanDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChangePlan
@@ -79,4 +63,10 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
             diffs.append(entry)
 
         data['diffs'] = diffs
+
+        old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+        new_format = '%d-%m-%Y %H:%M:%S'
+
+        if data['executed_at'] is not None:
+            data['executed_at'] = datetime.datetime.strptime(data['executed_at'], old_format).strftime(new_format)
         return data

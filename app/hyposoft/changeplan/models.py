@@ -103,6 +103,8 @@ class PoweredDiff(models.Model):
     changed_powered = models.ForeignKey(
         'power.Powered',
         related_name='changed_powered',
+        null=True,
+        blank=True,
         on_delete=models.CASCADE
     )
     messages = ArrayField(

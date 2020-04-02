@@ -1,7 +1,10 @@
-from equipment.models import Asset
+from django.db import transaction
+
+from equipment.models import Asset, Rack
+from equipment.handlers import decommission_asset
 from network.models import NetworkPort
-from power.models import Powered
-from hyposoft.utils import versioned_object
+from power.models import Powered, PDU
+from hyposoft.utils import versioned_object, add_network_conn
 from .models import AssetDiff, NetworkPortDiff, PoweredDiff, ChangePlan
 
 
@@ -67,7 +70,7 @@ def create_live_asset(changed_asset):
 
 
 def execute_assets(changeplan):
-    changed_assets = Asset.objects.filter(changeplan=changeplan)
+    changed_assets = Asset.objects.filter(version=changeplan)
     for changed_asset in changed_assets:
         try:
             live = ChangePlan.objects.get(id=0)
@@ -78,19 +81,15 @@ def execute_assets(changeplan):
             live_asset.asset_number = changed_asset.asset_number
             live_asset.hostname = changed_asset.hostname
             live_asset.datacenter = changed_asset.datacenter
-            live_asset.rack = changed_asset.rack
+            live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS)
             live_asset.rack_position = changed_asset.rack_position
             live_asset.itmodel = changed_asset.itmodel
             live_asset.owner = changed_asset.owner
             live_asset.comment = changed_asset.comment
-            live_asset.commissioned = changed_asset.commissioned
-            live_asset.decommissioned_timestamp = changed_asset.decommissioned_timestamp
-            live_asset.decommissioned_by = changed_asset.decommissioned_by
             live_asset.save()
-
         except:
             create_live_asset(changed_asset)
-        changed_asset.destroy()
+        changed_asset.delete()
 
 
 def execute_decommissioned_assets(changeplan):
@@ -115,34 +114,24 @@ def create_live_networkport(changed_networkport):
 
 
 def execute_networkports(changeplan):
-    changed_networkports = NetworkPort.objects.filter(changeplan=changeplan)
+    changed_networkports = NetworkPort.objects.filter(version=changeplan)
     for changed_networkport in changed_networkports:
         try:
             live = ChangePlan.objects.get(id=0)
             live_networkport = versioned_object(changed_networkport, live, NetworkPort.IDENTITY_FIELDS)
 
-            live_networkport.asset = changed_networkport.asset
             live_networkport.label = changed_networkport.label
             live_networkport.mac_address = changed_networkport.mac_address
-            live_networkport.connection = changed_networkport.connection
-            live_networkport.save()
+            if changed_networkport.connection:
+                live_connection = versioned_object(changed_networkport.connection, live, NetworkPort.IDENTITY_FIELDS)
+                if live_networkport is None:
+                    live_connection = add_network_conn(changed_networkport.connection, live)
+                live_connection.connection = live_networkport
+                live_connection.save()
 
         except:
             create_live_networkport(changed_networkport)
         changed_networkport.destroy()
-
-
-def execute_decommissioned_networkports(changeplan):
-    changed_networkports = NetworkPort.objects.filter(changeplan=changeplan)
-    for changed_networkport in changed_networkports:
-        try:
-            live = ChangePlan.objects.get(id=0)
-            live_networkport = versioned_object(changed_networkport, live, NetworkPort.IDENTITY_FIELDS)
-
-            live_networkport.destroy()
-            create_live_networkport(changed_networkport)
-        except:
-            create_live_networkport(changed_networkport)
 
 
 def create_live_powered(changed_powered):
@@ -152,17 +141,20 @@ def create_live_powered(changed_powered):
 
 
 def execute_powereds(changeplan):
-    changed_powereds = Powered.objects.filter(changeplan=changeplan)
+    changed_powereds = Powered.objects.filter(version=changeplan)
     for changed_powered in changed_powereds:
         try:
             live = ChangePlan.objects.get(id=0)
             live_powered = versioned_object(changed_powered, live, Powered.IDENTITY_FIELDS)
 
             live_powered.plug_number = changed_powered.plug_number
-            live_powered.pdu = changed_powered.pdu
-            live_powered.asset = changed_powered.asset
+            live_powered.pdu = versioned_object(changed_powered.pdu, live, PDU.IDENTITY_FIELDS)
+            new_asset = versioned_object(changed_powered.asset, live, Asset.IDENTITY_FIELDS)
+            if new_asset is None:
+                new_asset = versioned_object(changed_powered.asset, live, ['hostname'])
+            live_powered.asset = new_asset
             live_powered.on = changed_powered.on
-            live_powered.special = changed_powered.special
+            live_powered.order = changed_powered.order
             live_powered.save()
 
         except:
@@ -170,22 +162,11 @@ def execute_powereds(changeplan):
         changed_powered.destroy()
 
 
-def execute_decommissioned_powereds(changeplan):
-    changed_powereds = Powered.objects.filter(changeplan=changeplan)
-    for changed_powered in changed_powereds:
-        try:
-            live = ChangePlan.objects.get(id=0)
-            live_powered = versioned_object(changed_powered, live, Powered.IDENTITY_FIELDS)
-
-            live_powered.destroy()
-            create_live_powered(changed_powered)
-        except:
-            create_live_powered(changed_powered)
-
-
 def get_asset(changeplan, target):
     if changeplan:
-        create_asset_diffs(changeplan, target)
+        if not changeplan.executed:
+            create_asset_diffs(changeplan, target)
+
         asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
         diffs = [
             {
@@ -197,7 +178,9 @@ def get_asset(changeplan, target):
             }
             for asset_diff in asset_diffs
         ]
-        AssetDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
+
+        if not changeplan.executed:
+            AssetDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
     else:
         return []
@@ -205,7 +188,8 @@ def get_asset(changeplan, target):
 
 def get_network(changeplan, target):
     if changeplan:
-        create_networkport_diffs(changeplan, target)
+        if not changeplan.executed:
+            create_networkport_diffs(changeplan, target)
         networkport_diffs = NetworkPortDiff.objects.filter(changeplan=changeplan)
         diffs = [
             {
@@ -218,7 +202,8 @@ def get_network(changeplan, target):
             for networkport_diff
             in networkport_diffs
         ]
-        NetworkPortDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
+        if not changeplan.executed:
+            NetworkPortDiff.objects.filter(changeplan=changeplan).delete()
         return diffs
     else:
         return []
@@ -226,7 +211,8 @@ def get_network(changeplan, target):
 
 def get_power(changeplan, target):
     if changeplan:
-        create_powered_diffs(changeplan, target)
+        if not changeplan.executed:
+            create_powered_diffs(changeplan, target)
         powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
         diffs = [
             {
@@ -239,7 +225,8 @@ def get_power(changeplan, target):
             for powered_diff
             in powered_diffs
         ]
-        PoweredDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
+        if not changeplan.executed:
+            PoweredDiff.objects.filter(changeplan=changeplan).delete()
         return diffs
     else:
         return []

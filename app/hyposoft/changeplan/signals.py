@@ -27,7 +27,7 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             messages.append('OLD HOSTNAME: ' + str(instance.live_asset.hostname) + ' | ' +
                             'NEW HOSTNAME: ' + str(instance.changed_asset.hostname))
         if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
-            messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' +
+            messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' + #todo test if new rack create in change plan breaks this
                             'NEW RACK: ' + str(instance.changed_asset.rack.rack))
         if instance.changed_asset.rack_position != instance.live_asset.rack_position:
             messages.append('OLD RACK POSITION: ' + str(instance.live_asset.rack_position) + ' | ' +
@@ -134,6 +134,15 @@ def powereddiff_message(sender, instance, *args, **kwargs):
     messages = []
     conflicts = []
     if instance.live_powered:
+        if not instance.changed_powered:
+            messages.append('UNPLUG POWER: ASSET {} FROM PORT {}{}'.format(
+                instance.live_powered.asset.asset_number or instance.changed_powered.asset,
+                instance.live_powered.pdu.position,
+                instance.live_powered.plug_number
+            ))
+            instance.messages = messages
+            instance.conflicts = conflicts
+            return
         if instance.changed_powered.plug_number != instance.live_powered.plug_number:
             messages.append('OLD PLUG NUMBER: ' + str(instance.live_powered.plug_number) + ' | ' +
                             'NEW PLUG NUMBER: ' + str(instance.changed_powered.plug_number))
@@ -146,8 +155,8 @@ def powereddiff_message(sender, instance, *args, **kwargs):
             messages.append('OLD ASSET: ' + str(instance.live_powered.asset) + ' | ' +
                             'NEW ASSET: ' + str(instance.changed_powered.asset))
     else:
-        messages.append('CREATE POWER PLUG: ASSET {} TO PORT {}{}'.format(
-            instance.changed_powered.asset,
+        messages.append('SET POWER PLUG: ASSET {} TO PORT {}{}'.format(
+            instance.changed_powered.asset.asset_number or instance.changed_powered.asset,
             instance.changed_powered.pdu.position,
             instance.changed_powered.plug_number
         ))
