@@ -9,7 +9,7 @@ from .models import Asset, Rack
 from changeplan.models import ChangePlan
 from power.models import Powered, PDU
 from network.models import NetworkPortLabel, NetworkPort
-from hyposoft.utils import versioned_object, add_asset, add_network_conn
+from hyposoft.utils import versioned_object, add_asset, add_network_conn, add_rack
 
 """
 Functions to be used by both bulk import and model serializers.
@@ -41,6 +41,9 @@ def create_asset_extra(asset, version, power_connections, net_ports):
         for connection in power_connections:
             if order > asset.itmodel.power_ports:
                 break
+            new_pdu = versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS)
+            if new_pdu is None:
+                add_rack(connection['pdu_id'].rack, version)
             Powered.objects.create(
                 pdu=versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS),
                 plug_number=connection['plug'],

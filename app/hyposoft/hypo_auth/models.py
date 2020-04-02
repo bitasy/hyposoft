@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from equipment.models import Datacenter
@@ -42,6 +43,6 @@ class Permission(models.Model):
             try:
                 Datacenter.objects.get(abbr=dc)
             except:
-                raise serializers.ValidationError(
+                raise ValidationError(
                     "Please enter existing datacenter abbreviations comma-separated. For global permission, enter 'Global'."
                 )
