@@ -17,49 +17,40 @@ def create_live(*args, **kwargs):
 
 @receiver(pre_save, sender=AssetDiff)
 def assetdiff_message(sender, instance, *args, **kwargs):
-    message = ''
+    messages = []
+    conflicts = []
     if instance.live_asset:
         if instance.changed_asset.asset_number != instance.live_asset.asset_number:
-            message += ('OLD ASSET NUMBER: ' + str(instance.live_asset.asset_number) + '\n')
-            message += ('NEW ASSET NUMBER: ' + str(instance.changed_asset.asset_number) + '\n')
+            messages.append('OLD ASSET NUMBER: ' + str(instance.live_asset.asset_number) + ' | ' +
+                            'NEW ASSET NUMBER: ' + str(instance.changed_asset.asset_number))
         if instance.changed_asset.hostname != instance.live_asset.hostname:
-            message += ('OLD HOSTNAME: ' + str(instance.live_asset.hostname) + '\n')
-            message += ('NEW HOSTNAME: ' + str(instance.changed_asset.hostname) + '\n')
+            messages.append('OLD HOSTNAME: ' + str(instance.live_asset.hostname) + ' | ' +
+                            'NEW HOSTNAME: ' + str(instance.changed_asset.hostname))
         if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
-            message += ('OLD RACK: ' + str(instance.live_asset.rack.rack) + '\n')
-            message += ('NEW RACK: ' + str(instance.changed_asset.rack.rack) + '\n')
+            messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' +
+                            'NEW RACK: ' + str(instance.changed_asset.rack.rack))
         if instance.changed_asset.rack_position != instance.live_asset.rack_position:
-            message += ('OLD RACK POSITION: ' + str(instance.live_asset.rack_position) + '\n')
-            message += ('NEW RACK POSITION: ' + str(instance.changed_asset.rack_position) + '\n')
+            messages.append('OLD RACK POSITION: ' + str(instance.live_asset.rack_position) + ' | ' +
+                            'NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
         if instance.changed_asset.itmodel != instance.live_asset.itmodel:
-            message += ('OLD ITMODEL: ' + str(instance.live_asset.itmodel.model_number) + 'by' +
-                        str(instance.live_asset.itmodel.vendor) + '\n')
-            message += ('NEW ITMODEL: ' + str(instance.changed_asset.itmodel.model_number) + 'by' +
-                        str(instance.changed_asset.itmodel.vendor) + '\n')
+            messages.append('OLD ITMODEL: ' + str(instance.live_asset.itmodel) + ' | ' +
+                            'NEW ITMODEL: ' + str(instance.changed_asset.itmodel))
         if instance.changed_asset.owner != instance.live_asset.owner:
-            message += ('OLD OWNER: ' + str(instance.live_asset.owner.username) + '\n') \
-                if instance.live_asset.owner else ''
-            message += ('NEW OWNER: ' + str(instance.changed_asset.owner.username) + '\n') \
-                if instance.changed_asset.owner else ''
-        if instance.changed_asset.comment != instance.live_asset.comment:
-            message += ('OLD COMMENT: ' + str(instance.live_asset.comment) + '\n')
-            message += ('NEW COMMENT: ' + str(instance.changed_asset.comment) + '\n')
-        if instance.live_asset.decommissioned_timestamp:
-            message += ('CONFLICT: LIVE ASSET IS DECOMMISSIONED' + '\n')
-        if len(message) > 0:
-            message = ('UPDATED ASSET' + '\n') + message
+            messages.append((('OLD OWNER: ' + str(instance.live_asset.owner.username))
+                             if instance.live_asset.owner else 'None') + ' | ' +
+                            ('NEW OWNER: ' + str(instance.changed_asset.owner.username)
+                             if instance.changed_asset.owner else 'None'))
+        if instance.live_asset.commissioned is None and instance.new_asset.commissioned is not None:
+            conflicts.append({"field": "decommissioned",
+                              "message": 'Live asset is decommissioned.'})
 
     else:
-        message += ('CREATED ASSET' + '\n')
-        message += ('ASSET NUMBER: ' + str(instance.changed_asset.asset_number) + '\n')
-        message += ('HOSTNAME: ' + str(instance.changed_asset.hostname) + '\n')
-        message += ('RACK: ' + str(instance.changed_asset.rack.rack) + '\n')
-        message += ('RACK POSITION: ' + str(instance.changed_asset.rack_position) + '\n')
-        message += ('ITMODEL: ' + str(instance.changed_asset.itmodel.model_number) + 'by' +
-                    str(instance.changed_asset.itmodel.vendor) + '\n')
-        message += ('OWNER: ' + str(instance.changed_asset.owner.username) + '\n') \
-            if instance.changed_asset.owner else ''
-        message += ('COMMENT: ' + str(instance.changed_asset.comment) + '\n')
+        changed = instance.changed_asset
+        messages.append('CREATE ASSET: {} in {}U{}'.format(
+            changed.hostname if changed.hostname else str(changed.itmodel),
+            changed.rack.rack,
+            changed.rack_position
+        ))
 
     blocked = Asset.objects.filter(
         rack=instance.changed_asset.rack,
@@ -67,7 +58,8 @@ def assetdiff_message(sender, instance, *args, **kwargs):
                               instance.changed_asset.rack_position + instance.changed_asset.itmodel.height),
     ).exclude(id=instance.changed_asset.id)
     if len(blocked) > 0:
-        message += ('CONFLICT: ' + 'There is already an asset in this area of the specified rack.' + '\n')
+        conflicts.append({"field": "rack_position",
+                          "message": 'There is already an asset in this area of the specified rack.'})
     i = instance.changed_asset.rack_position - 1
     while i > 0:
         under = Asset.objects.filter(
@@ -78,90 +70,97 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             asset = under.values_list(
                 'rack_position', 'itmodel__height')[0]
             if asset[0] + asset[1] > instance.changed_asset.rack_position:
-                message += ('CONFLICT: ' + 'There is already an asset in this area of the specified rack.' + '\n')
+                conflicts.append({"field": "rack_position",
+                                  "message": 'There is already an asset in this area of the specified rack.'})
         i -= 1
-    instance.message = message
+    instance.messages = messages
+    instance.conflicts = conflicts
 
 
 @receiver(pre_save, sender=NetworkPortDiff)
 def networkportdiff_message(sender, instance, *args, **kwargs):
-    message = ''
+    messages = []
+    conflicts = []
     if instance.live_networkport:
         if instance.changed_networkport.label != instance.live_networkport.label:
-            message += ('OLD LABEL: ' + str(instance.live_networkport.label.name) + '\n')
-            message += ('NEW LABEL: ' + str(instance.changed_networkport.label.name) + '\n')
+            messages.append('OLD LABEL: ' + str(instance.live_networkport.label.name) + ' | ' +
+                            'NEW LABEL: ' + str(instance.changed_networkport.label.name))
         if instance.changed_networkport.mac_address != instance.live_networkport.mac_address:
-            message += ('OLD MAC ADDRESS: ' + str(instance.live_networkport.mac_address) + '\n')
-            message += ('NEW MAC ADDRESS: ' + str(instance.changed_networkport.mac_address) + '\n')
+            messages.append('OLD MAC ADDRESS: ' + str(instance.live_networkport.mac_address) + ' | ' +
+                            'NEW MAC ADDRESS: ' + str(instance.changed_networkport.mac_address))
         if instance.changed_networkport.connection != instance.live_networkport.connection:
-            message += ('OLD CONNECTION: ' + (str(instance.live_networkport.connection.asset) + ' ' +
-                        str(instance.live_networkport.connection.label.name))
-                        if instance.live_networkport.connection else 'None\n')
-            message += ('NEW CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
-                        str(instance.changed_networkport.connection.label.name)
-                        if instance.changed_networkport.connection else 'None\n')
-        if len(message) > 0:
-            message = ('UPDATED NETWORKPORT' + '\n') + message
+            messages.append('OLD CONNECTION: ' + (str(instance.live_networkport.connection.asset) + ' ' +
+                                                  str(instance.live_networkport.connection.label.name)
+                                                  if instance.live_networkport.connection else 'None') + ' | ' +
+                            ('NEW CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
+                             str(instance.changed_networkport.connection.label.name)
+                             if instance.changed_networkport.connection else 'None'))
 
     else:
-        message += ('CREATED NETWORKPORT' + '\n')
-        message += ('ASSET: ' + str(instance.changed_networkport.asset) + '\n')
-        message += ('LABEL: ' + str(instance.changed_networkport.label.name) + '\n')
-        message += ('MAC ADDRESS: ' + str(instance.changed_networkport.mac_address) + '\n')
-        if instance.changed_networkport.connection:
-            message += ('CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
-                        str(instance.changed_networkport.connection.label.name) + '\n')
+        messages.append('CREATE NETWORKPORT CONNECTION: {} – {} {}'.format(
+            instance.changed_networkport.asset,
+            instance.changed_networkport.label.name,
+            instance.changed_networkport.mac_address or ""
+        ) + " TO {} – {}".format(
+            instance.changed_networkport.connection.asset,
+            instance.changed_networkport.connection.label.name
+        ))
 
     if instance.changed_networkport.connection:
         if instance.changed_networkport.connection and \
                 instance.changed_networkport.asset == instance.changed_networkport.connection.asset:
-            message += ('CONFLICT: ' + 'Connections must be between different assets.' + '\n')
+            conflicts.append({"field": "network_port",
+                              "message": 'Connections must be between different assets.'})
         if instance.changed_networkport.connection and \
                 instance.changed_networkport.connection.asset.datacenter != instance.changed_networkport.asset.datacenter:
-            message += ('CONFLICT: ' + 'Connections must be in the same datacenter.' + '\n')
+            conflicts.append({"field": "network_port",
+                              "message": 'Connections must in the same datacenter.'})
         if instance.changed_networkport.connection and \
                 instance.changed_networkport.connection.connection is not None and \
                 instance.changed_networkport.connection.connection.id != instance.changed_networkport.id:
-            message += ('CONFLICT: ' +
-                        '{} is already connected to {} on {}'.format(
-                            instance.changed_networkport.connection.asset,
-                            instance.changed_networkport.connection.connection.asset,
-                            instance.changed_networkport.connection.label.name
-                        ) + '\n')
+            conflicts.append({"field": "network_port",
+                              "message": '{} is already connected to {} on {}'.format(
+                                  instance.changed_networkport.connection.asset,
+                                  instance.changed_networkport.connection.connection.asset,
+                                  instance.changed_networkport.connection.label.name
+                              )})
 
-    instance.message = message
+    instance.messages = messages
+    instance.conflicts = conflicts
 
 
 @receiver(pre_save, sender=PoweredDiff)
 def powereddiff_message(sender, instance, *args, **kwargs):
-    message = ''
+    messages = []
+    conflicts = []
     if instance.live_powered:
         if instance.changed_powered.plug_number != instance.live_powered.plug_number:
-            message += ('OLD PLUG NUMBER: ' + str(instance.live_powered.plug_number) + '\n')
-            message += ('NEW PLUG NUMBER: ' + str(instance.changed_powered.plug_number) + '\n')
+            messages.append('OLD PLUG NUMBER: ' + str(instance.live_powered.plug_number) + ' | ' +
+                            'NEW PLUG NUMBER: ' + str(instance.changed_powered.plug_number))
         if not versioned_equal(instance.changed_powered.pdu, instance.live_powered.pdu, PDU.IDENTITY_FIELDS):
-            message += ('OLD PDU: ' + str(instance.live_powered.pdu.rack.rack) + ' ' +
-                        str(instance.live_powered.pdu.position) + '\n')
-            message += ('NEW PDU: ' + str(instance.changed_powered.pdu.rack.rack) + ' ' +
-                        str(instance.changed_powered.pdu.position) + '\n')
+            messages.append('OLD PDU: ' + str(instance.live_powered.pdu.rack.rack) + ' ' +
+                            str(instance.live_powered.pdu.position) + ' | ' +
+                            'NEW PDU: ' + str(instance.changed_powered.pdu.rack.rack) + ' ' +
+                            str(instance.changed_powered.pdu.position))
         if not versioned_equal(instance.changed_powered.asset, instance.live_powered.asset, Asset.IDENTITY_FIELDS):
-            message += ('OLD ASSET: ' + str(instance.live_powered.asset) + '\n')
-            message += ('NEW ASSET: ' + str(instance.changed_powered.asset) + '\n')
-        if len(message) > 0:
-            message = ('UPDATED POWERED' + '\n') + message
-
+            messages.append('OLD ASSET: ' + str(instance.live_powered.asset) + ' | ' +
+                            'NEW ASSET: ' + str(instance.changed_powered.asset))
     else:
-        message += ('CREATED POWERED' + '\n')
-        message += ('PLUG NUMBER: ' + str(instance.changed_powered.plug_number) + '\n')
-        message += ('PDU: ' + str(instance.changed_powered.pdu.rack.rack) + ' ' +
-                    str(instance.changed_powered.pdu.position) + '\n')
-        message += ('ASSET: ' + str(instance.changed_powered.asset) + '\n')
+        messages.append('CREATE POWER PLUG: ASSET {} TO PORT {}{}'.format(
+            instance.changed_powered.asset,
+            instance.changed_powered.pdu.position,
+            instance.changed_powered.plug_number
+        ))
 
     num_powered = len(Powered.objects.filter(asset=instance.changed_powered.asset))
     if instance.changed_powered not in Powered.objects.all() and num_powered == instance.changed_powered.asset.itmodel.power_ports:
-        message += ('CONFLICT: ' + 'All the power port connections have already been used.' + '\n')
+        conflicts.append({"field": "power_port",
+                          "message": 'All the power port connections have already been used.'})
     if instance.changed_powered.pdu.assets.count() > 24:
-        message += ('CONFLICT: ' + 'This PDU is already full.' + '\n')
+        conflicts.append({"field": "power_port",
+                          "message": 'This PDU is already full.'})
     if instance.changed_powered.pdu.rack != instance.changed_powered.asset.rack:
-        message += ('CONFLICT: ' + 'PDU must be on the same rack as the asset.' + '\n')
-    instance.message = message
+        conflicts.append({"field": "power_port",
+                          "message": 'PDU must be on the same rack as the asset.'})
+    instance.messages = messages
+    instance.conflicts = conflicts

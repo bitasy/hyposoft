@@ -273,7 +273,17 @@ class AssetSerializer(serializers.ModelSerializer):
         return None if value == "" else value
 
 
+class RackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rack
+        fields = ["id", "rack", "datacenter", "decommissioned"]
+
+
 class AssetDetailSerializer(AssetSerializer):
+    itmodel = ITModelSerializer()
+    datacenter = DatacenterSerializer()
+    rack = RackSerializer()
+
     class Meta:
         model = Asset
         exclude = ['commissioned']
@@ -314,8 +324,3 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
             datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)
         return data
 
-
-class RackSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Rack
-        fields = ["id", "rack", "datacenter", "decommissioned"]

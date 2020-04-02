@@ -112,7 +112,7 @@ function ChangePlanDetail() {
     return diffList;
   };
 
-  /*const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
+  const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
     const before =
       live != null ? ASSET_HEADERS.map(({ toText }) => toText(live)) : null;
 
@@ -147,7 +147,7 @@ function ChangePlanDetail() {
       warning: null,
       action,
     };
-  });*/
+  });
 
   return (
     <div>
@@ -155,7 +155,7 @@ function ChangePlanDetail() {
 
       <Divider />
 
-      <Typography.Title level={4}>Basic Info</Typography.Title>
+      <Typography.Title level={4}>Basic Info!</Typography.Title>
       <Typography.Text>Name: </Typography.Text>
       <Typography.Text editable={{ onChange: onUpdate }}>
         {changePlan?.name ?? ""}
@@ -166,21 +166,18 @@ function ChangePlanDetail() {
         </Typography.Paragraph>
       )}
 
-      <Input value={name} onChange={e => setName(e.target.value)} />
-      <Button onClick={onUpdate}>Update</Button>
-
       <Divider />
 
-      <Typography.Title level={4}>Change Summary?</Typography.Title>
+      <Typography.Title level={4}>Change Summary</Typography.Title>
 
-      <Diff0 messages={summaryDiff0()} />
+      {/*<Diff0 messages={summaryDiff0()} />*/}
 
-      {/*<Diff
+      <Diff
         headers={summaryHeaders}
         diff={summaryDiff}
         beforeText="Live"
         afterText="Plan"
-      />*/}
+      />
 
       <Divider />
 
