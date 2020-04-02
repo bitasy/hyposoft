@@ -104,8 +104,8 @@ function AssetForm({ id }) {
   }
 
   async function handleUpdate(fields) {
-    await updateAsset(id, fields);
-    window.location.reload();
+    const { id: newID } = await updateAsset(id, fields);
+    window.location.href = `/#/assets/${newID}`;
   }
 
   async function handleDelete() {
