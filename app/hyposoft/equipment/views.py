@@ -10,6 +10,7 @@ from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
 from .models import *
 import logging
+from hypo_auth .mixins import *
 
 
 class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
@@ -17,12 +18,12 @@ class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
     serializer_class = DatacenterSerializer
 
 
-class ITModelCreate(CreateAndLogMixin, generics.CreateAPIView):
+class ITModelCreate(ITModelPermissionCreateMixin, generics.CreateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class AssetCreate(CreateAndLogMixin, generics.CreateAPIView):
+class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -73,12 +74,12 @@ class RackRangeCreate(views.APIView):
         })
 
 
-class ITModelUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
+class ITModelUpdate(ITModelPermissionUpdateMixin, generics.UpdateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
+class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -127,7 +128,7 @@ class DestroyWithIdMixin(object):
         return Response(id, status=status.HTTP_200_OK)
 
 
-class ITModelDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
+class ITModelDestroy(ITModelPermissionDestroyMixin, ITModelDestroyWithIdMixin, generics.DestroyAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
@@ -138,7 +139,7 @@ class VendorList(views.APIView):
         return Response([v['vendor'] for v in vendors])
 
 
-class AssetDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
+class AssetDestroy(AssetPermissionDestroyMixin, AssetDestroyWithIdMixin, generics.DestroyAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -225,6 +226,9 @@ class DecommissionAsset(views.APIView):
     serializer_class = AssetDetailSerializer
 
     def post(self, request, asset_id):
+        if not request.user.is_superuser:
+            if not request.user.permission.asset_perm:
+                raise serializers.ValidationError("You don't have permission.")
         version = ChangePlan.objects.get(id=get_version(request))
         try:
             asset = decommission_asset(asset_id, self, request.user, version)
