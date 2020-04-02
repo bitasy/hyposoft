@@ -111,4 +111,4 @@ function Diff({ headers, diff, beforeText = "Before", afterText = "After" }) {
   );
 }
 
-export default Diff0;
+export default Diff;

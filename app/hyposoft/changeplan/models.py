@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField, ArrayField
 
 
 class ChangePlan(models.Model):
@@ -56,9 +57,11 @@ class AssetDiff(models.Model):
         related_name='changed_asset',
         on_delete=models.CASCADE
     )
-    message = models.CharField(
-        max_length=1000000
+    messages = ArrayField(
+        base_field=models.CharField(max_length=512),
+        null=True
     )
+    conflicts = JSONField(null=True)  # {"field": field, "message": message}[]
 
 
 class NetworkPortDiff(models.Model):
@@ -78,9 +81,11 @@ class NetworkPortDiff(models.Model):
         related_name='changed_networkport',
         on_delete=models.CASCADE
     )
-    message = models.CharField(
-        max_length=1000000
+    messages = ArrayField(
+        base_field=models.CharField(max_length=512),
+        null=True
     )
+    conflicts = JSONField(null=True)  # {"field": field, "message": message}[]
 
 
 class PoweredDiff(models.Model):
@@ -100,6 +105,8 @@ class PoweredDiff(models.Model):
         related_name='changed_powered',
         on_delete=models.CASCADE
     )
-    message = models.CharField(
-        max_length=1000000
+    messages = ArrayField(
+        base_field=models.CharField(max_length=512),
+        null=True
     )
+    conflicts = JSONField(null=True)  # {"field": field, "message": message}[]

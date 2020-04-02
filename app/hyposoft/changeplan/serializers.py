@@ -2,6 +2,7 @@ import datetime
 
 from rest_framework import serializers
 
+from equipment.serializers import AssetDetailSerializer
 from .handlers import get_asset, get_power, get_network
 from .models import ChangePlan
 
@@ -29,7 +30,7 @@ class ChangePlanSerializer(serializers.ModelSerializer):
         return data
 
 
-class ChangePlanDetailSerializer(serializers.ModelSerializer):
+class ChangePlanDetailSerializer0(serializers.ModelSerializer):
     class Meta:
         model = ChangePlan
         fields = ['id', 'name', 'executed_at']
@@ -42,4 +43,40 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
             'power': get_power(instance, target),
             'network': get_network(instance, target)
         }
+        return data
+
+
+class ChangePlanDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChangePlan
+        fields = ['id', 'name', 'executed_at']
+
+    def to_representation(self, instance):
+        data = super(ChangePlanDetailSerializer, self).to_representation(instance)
+        live = ChangePlan.objects.get(id=0)
+        diffs = []
+        assetDiff = get_asset(instance, live)
+        powerDiff = get_power(instance, live)
+        networkDiff = get_network(instance, live)
+
+        for diff in assetDiff:
+            entry = {}
+            asset = diff['new']
+            entry['live'] = AssetDetailSerializer(diff['live']).data
+            entry['cp'] = AssetDetailSerializer(asset).data
+
+            conflicts = diff['conflicts']
+
+            for power in powerDiff:
+                if power['new'].asset == asset:
+                    conflicts += power['conflicts']
+
+            for network in networkDiff:
+                if network['new'].asset == asset:
+                    conflicts += network['conflicts']
+
+            entry['conflicts'] = conflicts
+            diffs.append(entry)
+
+        data['diffs'] = diffs
         return data

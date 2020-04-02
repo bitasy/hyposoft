@@ -24,7 +24,7 @@ def add_perms(sender, instance, *args, **kwargs):
     should only be able to move assets among datacenters they have permission on.
     '''
     if instance.asset_perm or instance.admin_perm:
-        user.has_perm('equipment.add_asset')
+        user.has_perm('equipment.add_asset  ')
         user.has_perm('equipment.change_asset')
         user.has_perm('equipment.delete_asset')
 

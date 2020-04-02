@@ -190,10 +190,12 @@ def get_asset(changeplan, target):
         diffs = [
             {
                 "changeplan": asset_diff.changeplan.name,
-                "message": asset_diff.message
+                "messages": asset_diff.messages,
+                "conflicts": asset_diff.conflicts,
+                "live": asset_diff.live_asset,
+                "new": asset_diff.changed_asset
             }
-            for asset_diff
-            in asset_diffs if len(asset_diff.message) > 0
+            for asset_diff in asset_diffs
         ]
         AssetDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
@@ -208,10 +210,13 @@ def get_network(changeplan, target):
         diffs = [
             {
                 "changeplan": networkport_diff.changeplan.name,
-                "message": networkport_diff.message
+                "messages": networkport_diff.messages,
+                "conflicts": networkport_diff.conflicts,
+                "live": networkport_diff.live_networkport,
+                "new": networkport_diff.changed_networkport
             }
             for networkport_diff
-            in networkport_diffs if len(networkport_diff.message) > 0
+            in networkport_diffs
         ]
         NetworkPortDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs
@@ -226,10 +231,13 @@ def get_power(changeplan, target):
         diffs = [
             {
                 "changeplan": powered_diff.changeplan.name,
-                "message": powered_diff.message
+                "messages": powered_diff.messages,
+                "conflicts": powered_diff.conflicts,
+                "live": powered_diff.live_powered,
+                "new": powered_diff.changed_powered
             }
             for powered_diff
-            in powered_diffs if len(powered_diff.message) > 0
+            in powered_diffs
         ]
         PoweredDiff.objects.filter(changeplan=changeplan).delete()  # Make sure we recalculate diff every request
         return diffs

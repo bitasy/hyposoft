@@ -274,40 +274,19 @@ class AssetSerializer(serializers.ModelSerializer):
         return None if value == "" else value
 
 
-# The document CLEARLY says all the values are NOT IDs
-#
-#  ASSET_DETAILS {
-#   id: ASSET_ID,
-#   asset_number: number,
-#   hostname: string | null,
-#   itmodel: ITMODEL,
-#   datacenter: DATACENTER,
-#   rack: RACK,
-#   rack_position: int,
-#   decommissioned: bool,
-#   decommissioned_by: USER_ID | null, # null if asset not decommissioned -> I changed this to be USER | null
-#   decommissioned_timestamp: datetime | null, # null if asset not decommissioned
-#   power_connections: {
-#     pdu_id: PDU_ID,
-#     plug: int,
-#     label: string, # ex) L1, R2
-#   }[],
-#   network_ports: {
-#     id: int,
-#     label: string,
-#     mac_address: string | null,
-#     connection: NETWORK_PORT_ID | null,
-#     connection_str: string | null, // Some string that represents an asset + network port label
-#   }[],
-#   network_graph: NETWORK_GRAPH,
-#   comment: string | null,
-#   owner: USER | null,
-#   power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
-# }
-#
-# I'm just gonna fetch from the live data here, and not from the frontend, 
+class RackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rack
+        fields = ["id", "rack", "datacenter", "decommissioned"]
+
 
 class AssetDetailSerializer(AssetSerializer):
+    itmodel = ITModelSerializer()
+    datacenter = DatacenterSerializer()
+    rack = RackSerializer()
+    decommissioned_by = UserSerializer()
+    owner = UserSerializer()
+
     class Meta:
         model = Asset
         exclude = ['commissioned']
@@ -321,12 +300,6 @@ class AssetDetailSerializer(AssetSerializer):
         for i, port in enumerate(data['network_ports']):
             if port['connection']:
                 data['network_ports'][i]['connection_str'] = str(NetworkPort.objects.get(id=port['connection']))
-
-        data['itmodel'] = ITModelSerializer(ITModel.objects.get(id=data['itmodel'])).data
-        data['datacenter'] = DatacenterSerializer(Datacenter.objects.get(id=data['datacenter'])).data
-        data['rack'] = RackSerializer(Rack.objects.get(id=data['rack'])).data
-        data['decommissioned_by'] = data['decommissioned_by'] and UserSerializer(User.objects.get(id=data['decommissioned_by'])).data
-        data['owner'] = data['owner'] and UserSerializer(User.objects.get(id=data['owner'])).data
 
         return data
 
@@ -356,8 +329,3 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
             datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)
         return data
 
-
-class RackSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Rack
-        fields = ["id", "rack", "datacenter", "decommissioned"]
