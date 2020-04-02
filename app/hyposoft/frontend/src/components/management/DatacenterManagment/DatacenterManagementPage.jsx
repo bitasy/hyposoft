@@ -15,6 +15,7 @@ import {
   PlusOutlined,
   EditOutlined,
 } from "@ant-design/icons";
+import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 
 function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
@@ -191,6 +192,8 @@ function DatacenterManagementPage() {
     getDatacenters().then(setDatacenters);
     refresh();
   }, [trigger]);
+
+  useRedirectOnCPChange();
 
   const dcName = datacenter?.abbr;
 

@@ -34,14 +34,13 @@ import NetworkPortSelect from "./NetworkPortSelect";
 import { powerPortList } from "../../../../api/power";
 import { useHistory, useLocation } from "react-router-dom";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 function AssetForm({ id }) {
   const history = useHistory();
   const query = Object.fromEntries(
     new URLSearchParams(useLocation().search).entries(),
   );
-
-  const { changePlan } = React.useContext(ChangePlanContext);
 
   const { user } = React.useContext(AuthContext);
   const isAdmin = user?.is_staff;
@@ -54,7 +53,7 @@ function AssetForm({ id }) {
   const [powerPorts, setPowerPorts] = useState([]);
   const [users, setUsers] = useState([]);
 
-  const firstCPID = React.useRef(changePlan?.id);
+  useRedirectOnCPChange("/assets");
 
   React.useEffect(() => {
     (async () => {
@@ -71,12 +70,6 @@ function AssetForm({ id }) {
       }
     })();
   }, []);
-
-  React.useEffect(() => {
-    if (firstCPID.current != changePlan?.id) {
-      history.push("/assets");
-    }
-  }, [changePlan?.id]);
 
   React.useEffect(() => {
     if (asset?.itmodel) handleModelSelect(asset.itmodel);

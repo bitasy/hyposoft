@@ -20,6 +20,7 @@ import {
   deleteModel,
 } from "../../../../api/model";
 import { useHistory } from "react-router-dom";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 const COLOR_HEX_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/g;
 
@@ -75,6 +76,8 @@ function ModelForm({ id }) {
     }
     getVendors().then(setVendors);
   }, []);
+
+  useRedirectOnCPChange("/models");
 
   async function handleCreate(fields) {
     await createModel(fields);

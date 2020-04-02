@@ -6,9 +6,10 @@ import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
-import { DCContext, ChangePlanContext } from "../../../../contexts/contexts";
+import { DCContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 const AssetTable = styled(Table)`
   :hover {
@@ -76,7 +77,6 @@ const initialFilterValues = {
 function AssetList({ modelID }) {
   const history = useHistory();
 
-  const { changePlan } = React.useContext(ChangePlanContext);
   const { datacenter } = React.useContext(DCContext);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
@@ -88,6 +88,8 @@ function AssetList({ modelID }) {
   const [direction, setDirection] = React.useState(undefined);
   const [selectedAssets, setSelectedAssets] = React.useState([]); //holds list of selected assets
   const isLoadingList = React.useRef(false);
+
+  useRedirectOnCPChange();
 
   const realm = React.useRef(0);
 
@@ -121,15 +123,7 @@ function AssetList({ modelID }) {
         setTotal(r.count);
       }
     });
-  }, [
-    filterValues,
-    page,
-    pageSize,
-    ordering,
-    direction,
-    datacenter?.id,
-    changePlan?.id,
-  ]);
+  }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
 
   React.useEffect(() => {
     setPage(1);

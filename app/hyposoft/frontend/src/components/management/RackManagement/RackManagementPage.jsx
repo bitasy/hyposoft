@@ -7,6 +7,7 @@ import { getRackList, createRack, deleteRacks } from "../../../api/rack";
 import { DCContext, AuthContext } from "../../../contexts/contexts";
 import { getDatacenters } from "../../../api/datacenter";
 import VSpace from "../../utility/VSpace";
+import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 
 const { Option } = Select;
 
@@ -92,6 +93,8 @@ function RackManagementPage() {
 
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
+
+  useRedirectOnCPChange();
 
   React.useEffect(() => {
     getDatacenters().then(setDatacenters);

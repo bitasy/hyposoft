@@ -7,6 +7,7 @@ import { useHistory } from "react-router-dom";
 import { getModelList } from "../../../../api/model";
 import VSpace from "../../../utility/VSpace";
 import { exportModels } from "../../../../api/bulk";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 const ModelTable = styled(Table)`
   :hover {
@@ -116,6 +117,8 @@ function ModelList({ noCreate }) {
       }
     });
   }, [filterValues, page, pageSize, ordering, direction]);
+
+  useRedirectOnCPChange();
 
   React.useEffect(() => {
     setPage(1);

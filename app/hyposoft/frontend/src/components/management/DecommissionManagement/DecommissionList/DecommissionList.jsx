@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom";
 import DecommissionFilters from "./DecommissionFilters";
 import { getDecommissionedAssetList } from "../../../../api/asset";
 import { DCContext } from "../../../../contexts/contexts";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 const DecommissionTable = styled(Table)`
   :hover {
@@ -67,6 +68,8 @@ function DecommissionList({ modelID }) {
   const [direction, setDirection] = React.useState(undefined);
 
   const realm = React.useRef(0);
+
+  useRedirectOnCPChange();
 
   React.useEffect(() => {
     realm.current++;

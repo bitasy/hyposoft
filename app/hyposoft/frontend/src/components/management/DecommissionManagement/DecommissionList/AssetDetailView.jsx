@@ -5,6 +5,7 @@ import { getAssetDetail } from "../../../../api/asset";
 import { useParams } from "react-router-dom";
 import VSpace from "../../../utility/VSpace";
 import NetworkGraph from "../../AssetManagement/AssetForm/NetworkGraph";
+import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 // ASSET_DETAILS {
 //   id: ASSET_ID,
@@ -52,6 +53,8 @@ function AssetDetailView() {
   React.useEffect(() => {
     getAssetDetail(id).then(setAsset);
   }, [id]);
+
+  useRedirectOnCPChange("/decommission");
 
   if (!asset) return null;
 
