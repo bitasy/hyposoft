@@ -1,10 +1,3 @@
-variables:
-  DB_HOST: database-1.clf9gopmww58.us-east-1.rds.amazonaws.com
-  DB_USER: postgres
-  DB_PASS: hyposoft
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-
-
 cache:
   key: ${CI_COMMIT_REF_SLUG} # Each branch has its own node_modules in the cache
   paths:
@@ -46,7 +39,7 @@ django_test:
 stage_dev:
   stage: staging
   variables:
-    DB_NAME: dev
+    DB_NAME: devdb
   script:
   - cd /home/gitlab-runner/
   - git clone git@gitlab.oit.duke.edu:ban20/hyposoft-group-8.git "$CI_COMMIT_SHORT_SHA-staging"
@@ -65,7 +58,7 @@ stage_dev:
 deploy_dev:
   stage: deploy
   variables:
-    DB_NAME: dev
+    DB_NAME: devdb
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
   - cp -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
