@@ -41,7 +41,7 @@ stage_dev:
   variables:
     DB_HOST: localhost
     DB_USER: runner
-    DB_PASS: hyposoft
+    DB_PASS: qwerty
     DB_NAME: devdb
   script:
   - cd /home/gitlab-runner/
@@ -61,6 +61,9 @@ stage_dev:
 deploy_dev:
   stage: deploy
   variables:
+    DB_HOST: localhost
+    DB_USER: runner
+    DB_PASS: qwerty
     DB_NAME: devdb
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
