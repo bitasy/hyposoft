@@ -39,6 +39,9 @@ django_test:
 stage_dev:
   stage: staging
   variables:
+    DB_HOST: localhost
+    DB_USER: runner
+    DB_PASS: hyposoft
     DB_NAME: devdb
   script:
   - cd /home/gitlab-runner/
