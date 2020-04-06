@@ -42,7 +42,7 @@ function NetworkImportPage() {
     });
   }
 
-  const displayForce = !errors && formData.current;
+  const displayForce = errors.length == 0 && formData.current;
 
   return (
     <div style={{ padding: "16px" }}>
