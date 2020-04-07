@@ -66,6 +66,7 @@ deploy_dev:
   script:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
   - cp -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
+  - source /home/gitlab-runner/.bashrc
   - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py migrate
   - kill `cat uwsgi.pid`
   - rm /home/gitlab-runner/uwsgi.pid
