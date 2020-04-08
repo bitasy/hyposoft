@@ -24,18 +24,21 @@
 
 - Non-transactional APIs should always return 2XX, as warnings and failures are an expected part of the API.
 
-- APIs that are indicated "Datacenter-dependent" in the notes should look for datacenter header and act accordingly.
+- APIs that are indicated "Site-dependent" in the notes should look for site header and act accordingly. + **X-DATACENTER is changed to X-SITE that has the SITE_ID**.
 
 # Types
 
 ```
 ITMODEL {
   id: ITMODEL_ID,
+
+  + type: "regular" | "chassis" | "blade",
+
   vendor: string,
   model_number: string,
-  height: int,
-  power_ports: int,
-  network_port_labels: string[]
+  height: int, // if blade, ignored
+  power_ports: int, // if blade, ignored
+  network_port_labels: string[] // if blade, ignored
 
   display_color: string | null,
   cpu: string | null,
@@ -44,14 +47,33 @@ ITMODEL {
   comment: string | null,
 }
 
++ ITMODEL_OVERRIDES {
+  dislay_color?: string,
+  cpu?: string,
+  memory?: int | null,
+  storage?: string | null,
+}
+
 ASSET {
   id: ASSET_ID,
   asset_number: number,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  datacenter: DATACENTER_ID,
-  rack: RACK_ID,
-  rack_position: int,
+  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + location: {
+    tag: "rack-mount",
+    site: SITE_ID,
+    rack: RACK_ID,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE_ID,
+    asset: ASSET_ID, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE_ID
+  },
   decommissioned: bool,
   power_connections: {
     pdu_id: PDU_ID,
@@ -64,7 +86,7 @@ ASSET {
   }[],
   comment: string | null,
   owner: USER_ID | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
+  power_state: "On" | "Off" | null, # null for assets that don't have networked pdus connected to it
 }
 
 // For decommissioned assets, these info has to be frozen in time,
@@ -75,9 +97,21 @@ ASSET_DETAILS {
   asset_number: number,
   hostname: string | null,
   itmodel: ITMODEL,
-  datacenter: DATACENTER,
-  rack: RACK,
-  rack_position: int,
+  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + location: {
+    tag: "rack-mount",
+    site: SITE,
+    rack: RACK,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE,
+    asset: ASSET, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE
+  },
   decommissioned: bool,
   decommissioned_by: USER_ID | null, # null if asset not decommissioned
   decommissioned_timestamp: datetime | null, # null if asset not decommissioned
@@ -96,25 +130,26 @@ ASSET_DETAILS {
   network_graph: NETWORK_GRAPH,
   comment: string | null,
   owner: USER | null,
-  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it
+  power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
 }
 
 RACK {
   id: RACK_ID,
   rack: string,
-  datacenter: DATACENTER_ID,
+  site: SITE_ID, # must be of type "datacenter"
   decommissioned: bool
 }
 
-DATACENTER {
-  id: DATACENTER_ID,
+SITE {
+  id: SITE_ID,
+  type: "datacenter" | "offline-storage",
   name: string,
   abbr: string,
 }
 
 NETWORK_PORT {
   id: NETWORK_PORT_ID,
-  asset_str: ASSET_STR, 
+  asset_str: ASSET_STR,
   label: string,
   mac_address: string | null,
   connection: NETWORK_PORT_ID | null
@@ -163,7 +198,7 @@ Permission {
   power_perm: boolean,
   audit_perm: boolean,
   admin_perm: boolean
-  datacenter_perm: MultiSelectField
+  datacenter_perm: str
 }
 
 ```
@@ -177,10 +212,13 @@ Permission {
 ```
 {
   vendor: string,
+
+  + type: "regular" | "chassis" | "blade",
+
   model_number: string,
-  height: int,
-  power_ports: int,
-  network_port_labels: string[],
+  height: int, // if blade, ignored
+  power_ports: int, // if blade, ignored
+  network_port_labels: string[], // if blade, ignored
 
   display_color: string | null,
   cpu: string | null,
@@ -209,9 +247,21 @@ ITModel
   asset_number: number | null,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  datacenter: DATACENTER_ID,
-  rack: RACK_ID,
-  rack_position: int,
+  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + location: {
+    tag: "rack-mount",
+    site: SITE_ID,
+    rack: RACK_ID,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE_ID,
+    asset: ASSET_ID, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE_ID
+  },
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -244,7 +294,7 @@ Asset
 
 ```
 {
-  datacenter: DATACENTER_ID,
+  site: SITE_ID,
   r1: string,
   r2: string,
   c1: int,
@@ -269,12 +319,13 @@ The necessary `PDU`s should be created.
 }
 ```
 
-### `[POST] api/equipment/DatacenterCreate`
+### `[POST] api/equipment/SiteCreate`
 
 #### Request Body
 
 ```
 {
+  + type: "datacenter" | "offline-storage"
   abbr: string,
   name: string
 }
@@ -283,7 +334,7 @@ The necessary `PDU`s should be created.
 #### Response Body
 
 ```
-Datacenter
+Site
 ```
 
 ### `[POST] auth/PermissionCreate`
@@ -298,7 +349,7 @@ Datacenter
   power_perm: boolean,
   audit_perm: boolean,
   admin_perm: boolean
-  datacenter_perm: MultiSelectField
+  datacenter_perm: str
 }
 ```
 
@@ -320,11 +371,14 @@ Permission
 
 ```
 {
+  + type: "regular" | "chassis" | "blade",
+
   vendor: string,
   model_number: string,
-  height: int,
-  power_ports: int,
-  network_port_labels: string[],
+
+  height: int, // if blade, ignored
+  power_ports: int, // if blade, ignored
+  network_port_labels: string[], // if blade, ignored
 
   display_color: string | null,
   cpu: string | null,
@@ -353,7 +407,21 @@ ITModel # updated one
   asset_number: number | null,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  datacenter: DATACENTER_ID,
+  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + location: {
+    tag: "rack-mount",
+    site: SITE_ID,
+    rack: RACK_ID,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE_ID,
+    asset: ASSET_ID, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE_ID
+  },
   rack: RACK_ID,
   rack_position: int,
   power_connections: {
@@ -376,7 +444,7 @@ ITModel # updated one
 Asset # updated one
 ```
 
-### `[PATCH] api/equipment/DatacenterUpdate/:datacenter_id`
+### `[PATCH] api/equipment/SiteUpdate/:site_id`
 
 #### Request Body
 
@@ -390,7 +458,7 @@ Asset # updated one
 #### Response Body
 
 ```
-Datacenter # updated one
+Site # updated one
 ```
 
 ### `[POST] auth/PermissionUpdate`
@@ -405,7 +473,7 @@ Datacenter # updated one
   power_perm: boolean,
   audit_perm: boolean,
   admin_perm: boolean
-  datacenter_perm: MultiSelectField
+  datacenter_perm: str
 }
 ```
 
@@ -443,7 +511,7 @@ ASSET_ID
 
 ```
 {
-  datacenter: DATACENTER_ID,
+  site: SITE_ID,
   r1: string,
   r2: string,
   c1: int,
@@ -472,12 +540,12 @@ c1 and c2 refer to column numbers, currently 1 through 99.
 
 ####
 
-### `[DELETE] api/equipment/DatacenterDestory/:datacenter_id`
+### `[DELETE] api/equipment/SiteDestory/:site_id`
 
 #### Response Body
 
 ```
-DATACENTER_ID
+SITE_ID
 ```
 
 ### `[DELETE] auth/PermissionDestroy/:permission_id`
@@ -577,12 +645,13 @@ where
 
 ITModelEntry {
   id: ITMODEL_ID,
+  + type: "regular" | "chassis" | "blade",
   vendor: string,
   model_number: string,
-  height: int,
+  height: int, // if blade, ignoredd
   display_color: string | null,
-  network_ports: int,
-  power_ports: int,
+  network_ports: int, // if blade, ignoredd
+  power_ports: int, // if blade, ignoredd
   cpu: string | null,
   memory: int | null,
   storage: string | null,
@@ -594,7 +663,6 @@ ITModelEntry {
 Ordering can take multiple values, separated by commas. The returned list will be sorted primarily by the first value, and ties will be broken by each consecutive value.
 
 Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
-
 
 ### `[GET] api/equipment/AssetList`
 
@@ -610,13 +678,13 @@ Each value uses ascending order by default. To use descending order, an optional
   r2: string | undefined,
   c1: int | undefined,
   c2: int | undefined,
-  rack_position_min: int | undefined
-  rack_position_max: int | undefined
+  - rack_position_min: int | undefined # Not used
+  - rack_position_max: int | undefined # Not used
   ordering:
     | '[-]itmodel__vendor',
     | '[-]itmodel__model_number',
     | '[-]hostname',
-    | '[-]datacenter__abbr',
+    | '[-]site__abbr',
     | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
     | '[-]rack_position',
     | '[-]owner',
@@ -626,7 +694,7 @@ Each value uses ascending order by default. To use descending order, an optional
 
 #### Notes
 
-> Datacenter-dependent
+> Site-dependent
 
 r1, r2, c1, and c2 must all be defined if any of them is defined. They filter based on a rack range.
 
@@ -675,7 +743,7 @@ AssetEntry {
       | '[-]itmodel__vendor',
       | '[-]itmodel__model_number',
       | '[-]hostname',
-      | '[-]datacenter__abbr',
+      | '[-]site__abbr',
       | '[-]rack__rack', # Note: The order is lexographic so you will get A, AA, B and this bug is not worth fixing
       | '[-]rack_position',
       | '[-]owner',
@@ -715,7 +783,7 @@ Each value uses ascending order by default. To use descending order, an optional
 
 ```
 {
-  datacenter_id: DATACENTER_ID | undefined,
+  site_id: SITE_ID | undefined,
   rack_id: RACK_ID | undefined,
 }
 ```
@@ -734,7 +802,7 @@ Asset[]
 
 #### Notes
 
-> Datacenter-dependent
+> Site-dependent
 
 #### Response body
 
@@ -742,12 +810,12 @@ Asset[]
 Rack[]
 ```
 
-### `[GET] api/equipment/DatacenterList`
+### `[GET] api/equipment/SiteList`
 
 #### Response body
 
 ```
-Datacenter[]
+Site[]
 ```
 
 ### `[GET] api/power/PowerPortList`
@@ -770,7 +838,13 @@ PowerPort[]
 
 #### Notes
 
-> Datacenter-dependent
+> Site-dependent
+
+```
+{
+  asset_id: ASSET_ID | undefined
+}
+```
 
 #### Response body
 
@@ -997,7 +1071,7 @@ ASSET_DETAILS
 Every request that a user makes while in a change plan will include a header `X-CHANGE-PLAN` (`HTTP_X_CHANGE_PLAN` in django), with id of the change plan on it.
 If not present, it means that the user is working on live data.
 
-Any updates to live data other than assets should be rejected when the header is present. (Creating/Updating/Deleting ITModels/Racks/Datacenters, network power management), although such action should be prevented from the UI as well.
+Any updates to live data other than assets should be rejected when the header is present. (Creating/Updating/Deleting ITModels/Racks/Sites, network power management), although such action should be prevented from the UI as well.
 
 All asset-related APIs (
 AssetRetrieve,
@@ -1105,7 +1179,7 @@ CHANGE_PLAN
 
 ### `[GET] api/equipment/report`
 
-> Datacenter Dependent
+> Site-Dependent
 > ... change plan dependent? (I don't think this is necessary tho)
 > It would be best if the list could be sorted in descending order of used
 
@@ -1133,6 +1207,7 @@ DataRow {
 ### `[POST] api/equipment/rack_view`
 
 #### Request body
+
 ```
 {
     rack_ids: RACK_ID[]
@@ -1140,6 +1215,7 @@ DataRow {
 ```
 
 #### Response body
+
 ```
 {
     rack_id1: RackDesc,
@@ -1148,7 +1224,7 @@ DataRow {
     ...
 }
 
-where 
+where
 
 RackDesc {
     rack: RACK,
@@ -1162,5 +1238,3 @@ AssetDesc {
     model: MODEL,
 }
 ```
-
-
