@@ -133,11 +133,9 @@ function ChangePlanDetail() {
         : {
             name: "Fix it",
             onClick: () => {
-              const id = before.id && after.id;
+              //const id = before.id && after.id;
               setGlobalChangePlan({ id: changePlan.id, name: changePlan.name });
-              history.push(
-                `/assets/${id}?${conflicts.map({ field, message }).join("&")}`,
-              );
+              history.push(`/assets/${cp.id}`);
             },
           };
 
@@ -156,7 +154,7 @@ function ChangePlanDetail() {
 
       <Divider />
 
-      <Typography.Title level={4}>Basic Info!</Typography.Title>
+      <Typography.Title level={4}>Basic Info</Typography.Title>
       <Typography.Text>Name: </Typography.Text>
       <Typography.Text editable={{ onChange: onUpdate }}>
         {changePlan?.name ?? ""}

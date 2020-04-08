@@ -22,8 +22,10 @@ function AssetImportPage() {
 
     importAssets(fd, false).then(({ status, asset, power, errors }) => {
       if (status === "diff") {
-        setAsset(asset.map(({ message }) => message));
-        setPower(power.map(({ message }) => message));
+        setAsset(asset);
+        setPower(power);
+        console.log("ASSET ", asset);
+        console.log("POWER ", power);
       } else if (status === "error") {
         setErrors(errors.map(({ errors }) => errors));
       } else {

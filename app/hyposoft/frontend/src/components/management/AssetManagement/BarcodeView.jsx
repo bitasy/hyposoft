@@ -27,25 +27,23 @@ function partition(arr, nPerArr) {
 
 //function to create one barcode label
 function CreateBarcodeLabel({ assetNumber }) {
-  return (
-    <Card style={{ textAlign: "center", border:true }}>
+  return assetNumber ? (
+    <Card style={{ textAlign: "center", border: true }}>
       <p>
-          <Barcode
-            value={assetNumber.toString()}
-            format={"CODE128C"}
-            displayValue={false}
-            height={28}
-            marginTop={0}
-            marginBottom={0}
-            marginLeft={12}
-            marginRight={12}
-          />
+        <Barcode
+          value={assetNumber.toString()}
+          format={"CODE128C"}
+          displayValue={false}
+          height={28}
+          marginTop={0}
+          marginBottom={0}
+          marginLeft={12}
+          marginRight={12}
+        />
       </p>
-      <p>
-          HypoSoft {assetNumber}
-      </p>
+      <p>HypoSoft {assetNumber}</p>
     </Card>
-  );
+  ) : null;
 }
 
 //function to add multiple barcodes to a page
@@ -66,7 +64,8 @@ function BarcodeView({ r }) {
       const { results } = await getAssetList({ pageSize: 1000000000 });
       const selectedAssets = assetIDs
         .map(id => results.find(({ id: rid }) => id == rid))
-        .filter(b => !!b);
+        .filter(b => !!b)
+        .filter(asset => asset.asset_number != null);
       setAssets(selectedAssets);
     })();
   }, []);

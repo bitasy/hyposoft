@@ -1,9 +1,8 @@
 django
 djangorestframework
-tablib==1.0.0
-django-import-export==2.0.2
+tablib==0.14.0
+django-import-export
 django-filter
 requests
-django-multiselectfield
 --no-binary=psycopg2
 psycopg2

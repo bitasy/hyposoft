@@ -3,6 +3,7 @@ from rest_framework import generics, serializers, filters, renderers
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from tablib import Dataset
+from changeplan.handlers import get_asset, get_power, get_network
 
 import io
 
@@ -40,6 +41,9 @@ class ITModelImport(generics.CreateAPIView):
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            if not request.user.permission.model_perm:
+                raise serializers.ValidationError("You don't have permission.")
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
@@ -71,13 +75,16 @@ class AssetImport(generics.CreateAPIView):
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            if not request.user.permission.asset_perm:
+                raise serializers.ValidationError("You don't have permission.")
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
-        dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
-        if not dataset.headers == ['asset_number', 'datacenter', 'hostname', 'rack', 'rack_position',
+        dataset = Dataset().load(str(file.read(), 'utf-8'), format="csv")
+        if not set(dataset.headers) == {'asset_number', 'datacenter', 'hostname', 'rack', 'rack_position',
                                    'vendor', 'model_number', 'owner', 'comment',
-                                   'power_port_connection_1', 'power_port_connection_2']:
+                                   'power_port_connection_1', 'power_port_connection_2'}:
             raise serializers.ValidationError("Improperly formatted CSV")
 
         result = AssetResource(
@@ -107,10 +114,29 @@ class AssetImport(generics.CreateAPIView):
             except ChangePlan.DoesNotExist:
                 return Response({"status": "skip"}, status=HTTP_200_OK)
 
+            live = ChangePlan.objects.get(id=0)
+            asset_messages = []
+            power_messages = []
+
+            asset_diff = get_asset(changeplan, live)
+            power_diff = get_power(changeplan, live)
+
+            for diff in asset_diff:
+                if diff['live']:
+                    asset_messages += ["#{}: {}".format(diff['live'].asset_number, message) for message in diff['messages']]
+                else:
+                    asset_messages += ['{}: {}'.format(diff['new'], message) for message in diff['messages']]
+
+            for diff in power_diff:
+                if diff['live']:
+                    power_messages += ["#{}: {}".format(diff['live'].asset.asset_number, message) for message in diff['messages']]
+                else:
+                    power_messages += diff['messages']
+
             response = {
                 'status': "diff",
-                'asset': AssetChangePlanDiff.get(None, changeplan, get_version(request)),
-                'power': PoweredChangePlanDiff.get(None, changeplan, get_version(request)),
+                'asset': asset_messages,
+                'power': power_messages,
             }
 
             for model in (Powered, NetworkPort, Asset, PDU, Rack):
@@ -128,6 +154,9 @@ class NetworkImport(generics.CreateAPIView):
     serializer_class = FileSerializer
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            if not request.user.permission.asset_perm:
+                raise serializers.ValidationError("You don't have permission.")
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
@@ -161,9 +190,21 @@ class NetworkImport(generics.CreateAPIView):
             except ChangePlan.DoesNotExist:
                 return Response({"status": "skip"}, status=HTTP_200_OK)
 
+            live = ChangePlan.objects.get(id=0)
+            messages = []
+
+            network_diff = get_network(changeplan, live)
+
+            for diff in network_diff:
+                if diff['live']:
+                    messages += ["#{} – {}: {}".format(
+                        diff['live'].asset.asset_number, diff['live'].label.name, message) for message in diff['messages']]
+                else:
+                    messages += diff['messages']
+
             response = {
                 'status': "diff",
-                'network': NetworkPortChangePlanDiff.get(None, changeplan, get_version(request)),
+                'network': messages,
             }
 
             for model in (Powered, NetworkPort, Asset, PDU, Rack):

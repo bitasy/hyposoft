@@ -21,7 +21,7 @@ function NetworkImportPage() {
 
     importNetwork(fd, false).then(({ status, network, errors }) => {
       if (status === "diff") {
-        setNetwork(network.map(({ message }) => message));
+        setNetwork(network);
       } else if (status === "error") {
         setErrors(errors.map(({ errors }) => errors));
       } else {
@@ -42,7 +42,7 @@ function NetworkImportPage() {
     });
   }
 
-  const displayForce = !errors && formData.current;
+  const displayForce = errors.length == 0 && formData.current;
 
   return (
     <div style={{ padding: "16px" }}>

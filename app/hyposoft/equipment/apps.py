@@ -6,5 +6,3 @@ class EquipmentConfig(AppConfig):
 
     def ready(self):
         from . import signals
-        from hypo_auth.models import set_datacenters
-        #set_datacenters()

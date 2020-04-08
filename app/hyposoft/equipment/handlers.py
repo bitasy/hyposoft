@@ -1,8 +1,15 @@
-from django.db.models import Max
+import datetime
 
+from django.db import transaction
+from django.db.models import Max
+from rest_framework import serializers
+
+from system_log.views import log_decommission
+from .models import Asset, Rack
+from changeplan.models import ChangePlan
 from power.models import Powered, PDU
 from network.models import NetworkPortLabel, NetworkPort
-from hyposoft.utils import versioned_object, add_asset, add_network_conn
+from hyposoft.utils import versioned_object, add_asset, add_network_conn, add_rack
 
 """
 Functions to be used by both bulk import and model serializers.
@@ -34,8 +41,11 @@ def create_asset_extra(asset, version, power_connections, net_ports):
         for connection in power_connections:
             if order > asset.itmodel.power_ports:
                 break
+            new_pdu = versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS)
+            if new_pdu is None:
+                add_rack(connection['pdu_id'].rack, version)
             Powered.objects.create(
-                pdu=connection['pdu_id'],
+                pdu=versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS),
                 plug_number=connection['plug'],
                 version=version,
                 asset=asset,
@@ -64,7 +74,7 @@ def create_asset_extra(asset, version, power_connections, net_ports):
                     name=port['label']
                 ),
                 mac_address=mac,
-                connection=port.get('connection'),
+                connection=add_network_conn(port.get('connection'), version),
                 version=version,
             )
             i += 1
@@ -73,3 +83,82 @@ def create_asset_extra(asset, version, power_connections, net_ports):
 def create_rack_extra(rack, version):
     PDU.objects.create(rack=rack, position=PDU.Position.LEFT, version=version)
     PDU.objects.create(rack=rack, position=PDU.Position.RIGHT, version=version)
+
+
+@transaction.atomic()
+def decommission_asset(asset_id, view, user, changeplan):
+    try:
+        asset = Asset.objects.get(id=asset_id)
+        version = ChangePlan.objects.get(id=changeplan.id)
+
+        change_plan = ChangePlan.objects.create(
+            owner=user,
+            name='_DECOMMISSION_' + str(asset.id),
+            executed=version.executed,
+            executed_at=version.executed_at,
+            auto_created=True,
+            parent=version
+        )
+
+        # Freeze Asset - Copy all data to new change plan
+        # Requires resetting of all foreign keys
+
+        old_rack = Rack.objects.get(id=asset.rack.id)
+        old_asset = Asset.objects.get(id=asset.id)
+
+        asset = add_asset(asset, change_plan)
+        rack = asset.rack
+        asset.commissioned = None
+        asset.decommissioned_by = user
+        asset.decommissioned_timestamp = datetime.datetime.now()
+        asset.save()
+
+        for a in old_rack.asset_set.exclude(id=old_asset.id):
+            add_asset(a, change_plan)
+
+        for pdu in old_rack.pdu_set.filter(version=version):
+            old_pdu = PDU.objects.get(id=pdu.id)
+            pdu.id = None
+            pdu.rack = rack
+            pdu.networked = False
+            pdu.version = change_plan
+            pdu.save()
+
+            for power in old_pdu.powered_set.filter(version=version):
+                power.id = None
+                power.pdu = pdu
+                power.asset = asset
+                power.version = change_plan
+                power.save()
+
+        def loop_ports(old_asset, recurse):
+            for port in old_asset.networkport_set.all():
+                old_port = NetworkPort.objects.get(id=port.id)
+                other = old_port.connection
+                port = add_network_conn(port, change_plan)
+                if other:
+                    if recurse:
+                        loop_ports(other.asset, False)
+                    other = add_network_conn(other, change_plan)
+                    other.connection = port
+                    port.connection = other
+                    other.save()
+                    port.save()
+
+        loop_ports(old_asset, True)
+
+        log_decommission(view, old_asset)
+
+        if old_asset.version == version:
+            old_asset.delete()
+
+        return asset
+
+    except Asset.DoesNotExist:
+        raise serializers.ValidationError(
+            'Asset does not exist.'
+        )
+    except ChangePlan.DoesNotExist:
+        raise serializers.ValidationError(
+            'Change Plan does not exist.'
+        )

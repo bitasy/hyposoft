@@ -6,10 +6,11 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
-from .handlers import create_rack_extra
+from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
 from .models import *
 import logging
+from hypo_auth .mixins import *
 
 
 class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
@@ -17,12 +18,12 @@ class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
     serializer_class = DatacenterSerializer
 
 
-class ITModelCreate(CreateAndLogMixin, generics.CreateAPIView):
+class ITModelCreate(ITModelPermissionCreateMixin, generics.CreateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class AssetCreate(CreateAndLogMixin, generics.CreateAPIView):
+class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -73,12 +74,12 @@ class RackRangeCreate(views.APIView):
         })
 
 
-class ITModelUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
+class ITModelUpdate(ITModelPermissionUpdateMixin, generics.UpdateAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
 
-class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
+class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -99,7 +100,7 @@ class AssetUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
                         for port in rack.pdu_set.order_by('position').values('id', 'position')}
             data['rack'] = rack.id
             for i, port in enumerate(request.data['power_connections']):
-               data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[port['pdu_id']]]
+               data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
 
             for i, port in enumerate(request.data['network_ports']):
                 if port['connection'] is not None:
@@ -127,7 +128,7 @@ class DestroyWithIdMixin(object):
         return Response(id, status=status.HTTP_200_OK)
 
 
-class ITModelDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
+class ITModelDestroy(ITModelPermissionDestroyMixin, ITModelDestroyWithIdMixin, generics.DestroyAPIView):
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
@@ -138,7 +139,7 @@ class VendorList(views.APIView):
         return Response([v['vendor'] for v in vendors])
 
 
-class AssetDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
+class AssetDestroy(AssetPermissionDestroyMixin, AssetDestroyWithIdMixin, generics.DestroyAPIView):
     queryset = Asset.objects.all()
     serializer_class = AssetSerializer
 
@@ -224,77 +225,13 @@ class RackView(views.APIView):
 class DecommissionAsset(views.APIView):
     serializer_class = AssetDetailSerializer
 
-    @transaction.atomic()
     def post(self, request, asset_id):
+        if not request.user.is_superuser:
+            if not request.user.permission.asset_perm:
+                raise serializers.ValidationError("You don't have permission.")
+        version = ChangePlan.objects.get(id=get_version(request))
         try:
-            asset = Asset.objects.get(id=asset_id)
-            user = request.user
-            version = ChangePlan.objects.get(id=get_version(request))
-
-            change_plan = ChangePlan.objects.create(
-                owner=user,
-                name='_DECOMMISSION_' + str(asset.id),
-                executed=version.executed,
-                executed_at=version.executed_at,
-                auto_created=True,
-                parent=version
-            )
-
-            # Freeze Asset - Copy all data to new change plan
-            # Requires resetting of all foreign keys
-
-
-            old_rack = Rack.objects.get(id=asset.rack.id)
-            old_asset = Asset.objects.get(id=asset.id)
-
-            asset = add_asset(asset, change_plan)
-
-            rack = asset.rack
-            asset.commissioned = None
-            asset.decommissioned_by = user
-            asset.decommissioned_timestamp = datetime.datetime.now()
-            asset.save()
-
-            # if the loop variable name is 'asset' it overrides the 'asset' at this scope
-            for a in old_rack.asset_set.exclude(id=old_asset.id):
-                add_asset(a, change_plan)
-
-            for pdu in old_rack.pdu_set.filter(version=version):
-                old_pdu = PDU.objects.get(id=pdu.id)
-                pdu.id = None
-                pdu.rack = rack
-                pdu.networked = False
-                pdu.version = change_plan
-                pdu.save()
-
-                for power in old_pdu.powered_set.filter(version=version):
-                    power.id = None
-                    power.pdu = pdu
-                    power.asset = asset
-                    power.version = change_plan
-                    power.save()
-
-            def loop_ports(old_asset, recurse):
-                for port in old_asset.networkport_set.all():
-                    old_port = NetworkPort.objects.get(id=port.id)
-                    other = old_port.connection
-                    port = add_network_conn(port, change_plan)
-                    if other:
-                        if recurse:
-                            loop_ports(other.asset, False)
-                        other = add_network_conn(other, change_plan)
-                        other.connection = port
-                        port.connection = other
-                        other.save()
-                        port.save()
-
-            loop_ports(old_asset, True)
-
-            log_decommission(self, old_asset)
-
-            if old_asset.version == version:
-                old_asset.delete()
-
+            asset = decommission_asset(asset_id, self, request.user, version)
 
             response = DecommissionedAssetSerializer(asset, context={'request': request, 'version': version.id})
             return Response(response.data, status=status.HTTP_202_ACCEPTED)
