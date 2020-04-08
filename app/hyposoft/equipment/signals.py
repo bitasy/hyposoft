@@ -51,13 +51,19 @@ def validate_asset(sender, instance, *args, **kwargs):
             raise serializers.ValidationError(
                 "The asset number is too small. Please try manually setting it to be 6 digits.")
 
-    if 42 < instance.rack_position + instance.itmodel.height - 1:
-        raise serializers.ValidationError(
-            "The asset does not fit on the specified rack from the given position.")
+    if instance.rack is None or instance.rack_position is None:
+        if not instance.site.offline:
+            raise serializers.ValidationError(
+                "If asset is being placed in a datacenter, rack and rack position must be specified."
+            )
+    else:
+        if 42 < instance.rack_position + instance.itmodel.height - 1:
+            raise serializers.ValidationError(
+                "The asset does not fit on the specified rack from the given position.")
 
-    if instance.rack.decommissioned:
-        raise serializers.ValidationError(
-            "The rack does not exist, please create it first.")
+        if instance.rack.decommissioned:
+            raise serializers.ValidationError(
+                "The rack does not exist, please create it first.")
 
     blocked = Asset.objects.filter(
         rack=instance.rack,

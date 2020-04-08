@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from equipment.models import ITModel
+from equipment.models import ITModel, Asset
 
 
 # Create your models here.
@@ -16,7 +16,7 @@ class BladeChassis(ITModel):
 
 class Blade(models.Model):
     chassis = models.ForeignKey(
-        BladeChassis,
+        Asset,
         on_delete=models.PROTECT
     )
 

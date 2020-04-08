@@ -12,7 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name='permission',
-            name='site_perm',
+            name='datacenter_perm',
             field=models.CharField(blank=True, max_length=10000, verbose_name="Site Permission (Enter existing site abbreviations comma-separated. For global, enter 'Global')"),
+        ),
+        migrations.RenameField(
+            model_name='permission',
+            old_name='datacenter_perm',
+            new_name='site_perm',
         ),
     ]

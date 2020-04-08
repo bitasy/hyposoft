@@ -145,13 +145,15 @@ class Asset(models.Model):
     )
     rack = models.ForeignKey(
         Rack,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        null=True
     )
     rack_position = models.IntegerField(
         validators=[
             MinValueValidator(1,
                               message="Rack position must be at least 1.")
-        ]
+        ],
+        null=True
     )
     itmodel = models.ForeignKey(
         ITModel,
