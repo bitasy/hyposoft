@@ -87,6 +87,7 @@ ASSET_DETAILS {
     label: string, # ex) L1, R2
   }[],
   network_ports: {
+    id: int,
     label: string,
     mac_address: string | null,
     connection: NETWORK_PORT_ID | null,
@@ -153,6 +154,16 @@ CHANGE_PLAN {
       message: string
     }[]
   }[]
+}
+
+Permission {
+  user: User,
+  model_perm: boolean,    
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: MultiSelectField
 }
 
 ```
@@ -275,6 +286,32 @@ The necessary `PDU`s should be created.
 Datacenter
 ```
 
+### `[POST] auth/PermissionCreate`
+
+#### Request Body
+
+```
+{
+  user: User,
+  model_perm: boolean,    
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: MultiSelectField
+}
+```
+
+#### Notes
+
+The datacenter_perm contains global permission and a field for each datacenter.
+
+#### Response Body
+
+```
+Permission
+```
+
 # Update APIs
 
 ### `[PATCH] api/equipment/ITModelUpdate/:itmodel_id`
@@ -356,6 +393,28 @@ Asset # updated one
 Datacenter # updated one
 ```
 
+### `[POST] auth/PermissionUpdate`
+
+#### Request Body
+
+```
+{
+  user: User,
+  model_perm: boolean,    
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: MultiSelectField
+}
+```
+
+#### Response Body
+
+```
+Permission
+```
+
 # Destroy APIs
 
 ### `[DELETE] api/equipment/ITModelDestroy/:itmodel_id`
@@ -421,6 +480,18 @@ c1 and c2 refer to column numbers, currently 1 through 99.
 DATACENTER_ID
 ```
 
+### `[DELETE] auth/PermissionDestroy/:permission_id`
+
+#### Notes
+
+The request should fail if the user has no asset permission.
+
+#### Response Body
+
+```
+PERMISSION_ID
+```
+
 # Retrieve APIs
 
 ### `[GET] api/equipment/ITModelRetrieve/:itmodel_id`
@@ -445,6 +516,14 @@ ASSET
 
 ```
 ASSET_DETAILS
+```
+
+### `[GET] auth/PermissionRetrieve/:permission_id`
+
+#### Response Body
+
+```
+Permission
 ```
 
 # List APIs
@@ -630,7 +709,7 @@ Ordering can take multiple values, separated by commas. The returned list will b
 
 Each value uses ascending order by default. To use descending order, an optional "-" mark should be included in front of the value. For example: -height,-cpu
 
-### `[GET] prefix/AssetPickList`
+### `[GET] api/equipment/AssetPickList`
 
 #### QueryParams
 
@@ -651,7 +730,7 @@ Obviously, they're both filters.
 Asset[]
 ```
 
-### `[GET] prefix/RackList`
+### `[GET] api/equipment/RackList`
 
 #### Notes
 
@@ -663,7 +742,7 @@ Asset[]
 Rack[]
 ```
 
-### `[GET] prefix/DatacenterList`
+### `[GET] api/equipment/DatacenterList`
 
 #### Response body
 
@@ -671,7 +750,7 @@ Rack[]
 Datacenter[]
 ```
 
-### `[GET] prefix/PowerPortList`
+### `[GET] api/power/PowerPortList`
 
 #### Query params
 
@@ -687,15 +766,11 @@ Datacenter[]
 PowerPort[]
 ```
 
-### `[GET] prefix/NetworkPortList`
+### `[GET] api/network/NetworkPortList`
 
-#### Query params
+#### Notes
 
-```
-{
-  asset_id: ASSET_ID | undefined
-}
-```
+> Datacenter-dependent
 
 #### Response body
 
@@ -703,7 +778,7 @@ PowerPort[]
 NetworkPort[]
 ```
 
-### `[GET] api/UserList`
+### `[GET] auth/api/UserList`
 
 #### Response body
 
@@ -711,13 +786,21 @@ NetworkPort[]
 User[]
 ```
 
-### `[GET] prefix/ITModelPickList`
+### `[GET] api/equipment/ITModelPickList`
 
 ```
 {
   id: MODEL_ID,
   str: MODEL_STR,
 }
+```
+
+### `[GET] auth/PermissionList`
+
+#### Response body
+
+```
+Permission[]
 ```
 
 # Log APIs
@@ -746,7 +829,7 @@ User[]
 
 # Power Management APIs
 
-### `[GET] prefix/PDUNetwork/get/:asset_id`
+### `[GET] api/network/PDUNetwork/get/:asset_id`
 
 #### Notes
 
@@ -758,7 +841,7 @@ It's guaranteed that this api will be called only on assets that had `power_stat
 "On" | "Off" | "Unavailable"
 ```
 
-### `[POST] prefix/PDUNetwork/post`
+### `[POST] api/network/PDUNetwork/post`
 
 #### Request body
 
@@ -775,7 +858,7 @@ It's guaranteed that this api will be called only on assets that had `power_stat
 (empty)
 ```
 
-### `[POST] prefix/PDUNetwork/cycle`
+### `[POST] api/network/PDUNetwork/cycle`
 
 #### Request body
 
@@ -878,11 +961,11 @@ This request should always "succeed" with status code 2XX.
 }
 ```
 
-### `[GET] api/export/ITModel`
+### `[GET] api/export/ITModel.csv`
 
-### `[GET] api/export/Asset`
+### `[GET] api/export/Asset.csv`
 
-### `[GET] api/export/Network`
+### `[GET] api/export/Network.csv`
 
 #### Query params
 
@@ -929,7 +1012,7 @@ DecommissionAsset,
 Logs
 ) should behave differently when the header is present.
 
-### `[GET] prefix/ChangePlanList`
+### `[GET] api/changeplan/ChangePlanList`
 
 #### Notes
 
@@ -950,7 +1033,7 @@ ChangePlanEntry {
 }
 ```
 
-### `[GET] prefix/ChangePlanDetails/:change_plan_id`
+### `[GET] api/changeplan/ChangePlanDetails/:change_plan_id`
 
 #### Response body
 
@@ -958,7 +1041,7 @@ ChangePlanEntry {
 CHANGE_PLAN
 ```
 
-### `[GET] prefix/ChangePlanActions/:change_plan_id`
+### `[GET] api/changeplan/ChangePlanActions/:change_plan_id`
 
 #### Response body
 
@@ -966,7 +1049,7 @@ CHANGE_PLAN
 string[] // See 10.7
 ```
 
-### `[POST] prefix/ChangePlanCreate`
+### `[POST] api/changeplan/ChangePlanCreate`
 
 #### Request body
 
@@ -982,7 +1065,7 @@ string[] // See 10.7
 CHANGE_PLAN_ID
 ```
 
-### `[POST] prefix/ChangePlanExecute/:change_plan_id`
+### `[POST] api/changeplan/ChangePlanExecute/:change_plan_id`
 
 #### Notes
 
@@ -994,7 +1077,7 @@ Reject if there are conflicts
 CHANGE_PLAN
 ```
 
-### `[PATCH] prefix/ChangePlanUpdate/:change_plan_id`
+### `[PATCH] api/changeplan/ChangePlanUpdate/:change_plan_id`
 
 #### Request body
 
@@ -1010,10 +1093,74 @@ CHANGE_PLAN
 (Empty)
 ```
 
-### `[DELETE] prefix/ChangePlanDestroy/:change_plan_id`
+### `[DELETE] api/changeplan/ChangePlanDestroy/:change_plan_id`
 
 #### Response body
 
 ```
 (Empty)
 ```
+
+# Rack usage report API
+
+### `[GET] api/equipment/report`
+
+> Datacenter Dependent
+> ... change plan dependent? (I don't think this is necessary tho)
+> It would be best if the list could be sorted in descending order of used
+
+#### Response body
+
+```
+{
+    total: DataRow[],
+    by_model: DataRow[],
+    by_owner: DataRow[],
+    by_vendor: DataRow[],
+}
+
+where
+
+DataRow {
+    category: string, # (for total, it'd be just "total" and for model, a string representing a single model, and so on)
+    used: number, # a number in [0, 1]
+    free: number, # a number in [0, 1]
+}
+```
+
+# Rack view API
+
+### `[POST] api/equipment/rack_view`
+
+#### Request body
+```
+{
+    rack_ids: RACK_ID[]
+}
+```
+
+#### Response body
+```
+{
+    rack_id1: RackDesc,
+    rack_id2: RackDesc,
+    rack_id3: RackDesc,
+    ...
+}
+
+where 
+
+RackDesc {
+    rack: RACK,
+    assets: AssetDesc[],
+}
+
+where
+
+AssetDesc {
+    asset: ASSET,
+    model: MODEL,
+}
+```
+
+
