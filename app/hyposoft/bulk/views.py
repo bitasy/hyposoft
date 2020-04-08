@@ -82,7 +82,7 @@ class AssetImport(generics.CreateAPIView):
         force = bool(request.query_params['force'])
         file = data.get('file')
         dataset = Dataset().load(str(file.read(), 'utf-8'), format="csv")
-        if not set(dataset.headers) == {'asset_number', 'datacenter', 'hostname', 'rack', 'rack_position',
+        if not set(dataset.headers) == {'asset_number', 'site', 'hostname', 'rack', 'rack_position',
                                    'vendor', 'model_number', 'owner', 'comment',
                                    'power_port_connection_1', 'power_port_connection_2'}:
             raise serializers.ValidationError("Improperly formatted CSV")

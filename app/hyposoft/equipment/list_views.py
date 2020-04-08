@@ -5,21 +5,21 @@ from rest_framework import filters, generics, serializers
 from rest_framework.pagination import PageNumberPagination
 from hyposoft.utils import get_version, versioned_queryset
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
-    AssetSerializer, RackSerializer, DatacenterSerializer, ITModelPickSerializer
+    AssetSerializer, RackSerializer, SiteSerializer, ITModelPickSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter
 from .models import *
 
 
-# Filters the Rack and Asset ListAPIViews based on the datacenter in the request
-class FilterByDatacenterMixin(object):
+# Filters the Rack and Asset ListAPIViews based on the site in the request
+class FilterBySiteMixin(object):
     def get_queryset(self):
         datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
         model = self.get_serializer_class().Meta.model
         queryset = model.objects.all()
         if datacenter:
-            if not Datacenter.objects.filter(abbr=datacenter).exists():
+            if not Site.objects.filter(abbr=datacenter).exists():
                 raise serializers.ValidationError("Datacenter does not exist")
-            return queryset.filter(datacenter__abbr=datacenter)
+            return queryset.filter(site__abbr=datacenter)
         return queryset
 
 
@@ -66,7 +66,7 @@ class ITModelPickList(generics.ListAPIView):
     serializer_class = ITModelPickSerializer
 
 
-class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
+class AssetList(FilterBySiteMixin, generics.ListAPIView):
     """
     Class for returning Assets after filtering criteria.
     """
@@ -94,7 +94,7 @@ class AssetList(FilterByDatacenterMixin, generics.ListAPIView):
         'itmodel__vendor',
         'itmodel__model_number',
         'hostname',
-        'datacenter__abbr',
+        'site__abbr', # todo fix in frontend (pending api changes)
         'rack__rack',
         'rack_position',
         'owner'
@@ -115,7 +115,7 @@ class AssetPickList(generics.ListAPIView):
         queryset = Asset.objects.all()
         datacenter_id = self.request.query_params.get('datacenter_id', None)
         if datacenter_id is not None:
-            queryset = queryset.filter(datacenter_id=datacenter_id)
+            queryset = queryset.filter(site_id=datacenter_id)
         rack_id = self.request.query_params.get('rack_id', None)
         if rack_id is not None:
             rack = Rack.objects.filter(id=rack_id).first()
@@ -140,7 +140,7 @@ class DecommissionedAssetList(generics.ListAPIView):
         'itmodel__vendor',
         'itmodel__model_number',
         'hostname',
-        'datacenter__abbr',
+        'site__abbr',
         'rack__rack',
         'rack_position',
         'owner',
@@ -159,7 +159,7 @@ class DecommissionedAssetList(generics.ListAPIView):
         version = get_version(self.request)
 
         if datacenter:
-            queryset = queryset.filter(datacenter__abbr=datacenter)
+            queryset = queryset.filter(site__abbr=datacenter)
 
         if user:
             queryset = queryset.filter(owner__username=user)
@@ -185,12 +185,12 @@ class DecommissionedAssetList(generics.ListAPIView):
     pagination_class = PageSizePagination
 
 
-class RackList(FilterByDatacenterMixin, generics.ListAPIView):
+class RackList(FilterBySiteMixin, generics.ListAPIView):
     queryset = Rack.objects.all()
     serializer_class = RackSerializer
     filter_backends = [ChangePlanFilter]
 
 
-class DatacenterList(generics.ListAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteList(generics.ListAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer

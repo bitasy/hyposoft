@@ -2,7 +2,7 @@ from import_export.admin import ImportExportActionModelAdmin
 from .resources import ITModelResource, AssetResource
 from django.contrib import admin
 from import_export.formats import base_formats
-from .models import ITModel, Asset, Rack, Datacenter
+from .models import ITModel, Asset, Rack, Site
 
 
 class ITModelAdmin(ImportExportActionModelAdmin):
@@ -22,4 +22,4 @@ class AssetAdmin(ImportExportActionModelAdmin):
 admin.site.register(ITModel, ITModelAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(Rack)
-admin.site.register(Datacenter)
+admin.site.register(Site)

@@ -1,4 +1,4 @@
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from .models import ITModel, Asset
 
@@ -38,7 +38,7 @@ def check_deployed_assets(sender, instance, *args, **kwargs):
 @receiver(pre_save, sender=Asset)
 def validate_asset(sender, instance, *args, **kwargs):
     # Fields
-    if instance.datacenter is not None and instance.datacenter != instance.rack.datacenter:
+    if instance.site is not None and instance.site != instance.rack.site:
         raise serializers.ValidationError(
             "Asset datacenter cannot be different from rack datacenter.")
 
@@ -63,7 +63,7 @@ def validate_asset(sender, instance, *args, **kwargs):
         rack=instance.rack,
         rack_position__range=(instance.rack_position,
                               instance.rack_position + instance.itmodel.height),
-        datacenter=instance.datacenter,
+        site=instance.site,
         version=instance.version
     ).exclude(id=instance.id)
 
@@ -76,7 +76,7 @@ def validate_asset(sender, instance, *args, **kwargs):
         under = Asset.objects.filter(
             rack=instance.rack,
             rack_position=i,
-            datacenter=instance.datacenter,
+            site=instance.site,
             version=instance.version
         ).exclude(id=instance.id)
         if len(under) > 0:
@@ -91,3 +91,12 @@ def validate_asset(sender, instance, *args, **kwargs):
 
     if instance.hostname is not None and len(instance.hostname) == 0:
         instance.hostname = None
+
+
+@receiver(post_save, sender=Asset)
+def set_asset_defaults(instance, created, *args, **kwargs):
+    if created:
+        instance.display_color = instance.itmodel.display_color
+        instance.storage = instance.itmodel.storage
+        instance.memory = instance.itmodel.memory
+        instance.cpu = instance.itmodel.cpu

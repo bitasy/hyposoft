@@ -13,9 +13,9 @@ import logging
 from hypo_auth .mixins import *
 
 
-class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteCreate(CreateAndLogMixin, generics.CreateAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
 
 
 class ITModelCreate(ITModelPermissionCreateMixin, generics.CreateAPIView):
@@ -55,7 +55,7 @@ class RackRangeCreate(views.APIView):
         for rack in racks:
             try:
                 new = Rack(
-                    datacenter=Datacenter.objects.get(id=request.data['datacenter']),
+                    site=Site.objects.get(id=request.data['datacenter']),
                     version=version,
                     rack=rack
                 )
@@ -116,9 +116,9 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
             return super(AssetUpdate, self).update(request, *args, **kwargs)
 
 
-class DatacenterUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
 
 
 class DestroyWithIdMixin(object):
@@ -161,7 +161,7 @@ class RackRangeDestroy(views.APIView):
 
         for rackname in racks:
             try:
-                rack = Rack.objects.get(rack=rackname, datacenter_id=datacenter, version=version)
+                rack = Rack.objects.get(rack=rackname, site_id=datacenter, version=version)
                 rack_id = rack.id
                 rack.delete()
                 removed.append(rack_id)
@@ -190,9 +190,9 @@ class RackRangeDestroy(views.APIView):
         })
 
 
-class DatacenterDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
 
 
 class ITModelRetrieve(generics.RetrieveAPIView):

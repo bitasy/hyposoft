@@ -7,7 +7,7 @@ from import_export.resources import ModelResource
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
 from hyposoft.utils import versioned_object, add_asset, add_rack
-from .models import ITModel, Asset, Rack, Datacenter
+from .models import ITModel, Asset, Rack, Site
 from network.models import NetworkPortLabel
 from power.models import Powered, PDU
 from import_export.widgets import ForeignKeyWidget
@@ -128,8 +128,8 @@ class AssetResource(VersionedResource):
     class RackForeignKeyWidget(ForeignKeyWidget):
         def clean(self, value, row):
             my_rack = row['rack']
-            my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
-            rack = Rack.objects.filter(rack=my_rack, datacenter=my_datacenter)\
+            my_datacenter = Site.objects.get(abbr=row['datacenter'])
+            rack = Rack.objects.filter(rack=my_rack, site=my_datacenter)\
                 .order_by("-version__id").first()
             return add_rack(rack, ChangePlan.objects.get(id=row['version']))
 
@@ -150,8 +150,8 @@ class AssetResource(VersionedResource):
 
     datacenter = fields.Field(
         column_name='datacenter',
-        attribute='datacenter',
-        widget=ForeignKeyWidget(Datacenter, 'abbr')
+        attribute='site',
+        widget=ForeignKeyWidget(Site, 'abbr')
     )
     rack = fields.Field(
         column_name='rack',
@@ -253,7 +253,6 @@ class AssetResource(VersionedResource):
             my_asset = Asset.objects.get(id=row_result.object_id)
         except:
             return  # skip
-        my_datacenter = Datacenter.objects.get(abbr=row['datacenter'])
 
         my_asset = add_asset(my_asset, self.version)
         my_rack = my_asset.rack

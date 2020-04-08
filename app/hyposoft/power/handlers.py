@@ -48,7 +48,7 @@ def post_pdu(rack, position, port, state):
 
 
 def update_asset_power(asset):
-    if asset.datacenter.abbr == 'rtp1':
+    if asset.site.abbr == 'rtp1':
         pdus = asset.pdu_set.all()
         for pdu in pdus:
             states, status_code = get_pdu(pdu.rack.rack, pdu.position)

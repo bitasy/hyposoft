@@ -2,7 +2,7 @@ from rest_framework import serializers
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin
 from rest_framework.response import Response
 from rest_framework import status
-from equipment.models import Datacenter
+from equipment.models import Site
 
 
 class ITModelPermissionCreateMixin(CreateAndLogMixin):
@@ -53,7 +53,7 @@ class AssetPermissionCreateMixin(CreateAndLogMixin):
     def perform_create(self, serializer):
         if self.request.user.is_superuser:
             super(AssetPermissionCreateMixin, self).perform_create(serializer)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.datacenter_perm):
+        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
             raise serializers.ValidationError("You don't have permission.")
         else:
             super(AssetPermissionCreateMixin, self).perform_create(serializer)
@@ -63,7 +63,7 @@ class AssetPermissionUpdateMixin(UpdateAndLogMixin):
     def perform_update(self, serializer):
         if self.request.user.is_superuser:
             super(AssetPermissionUpdateMixin, self).perform_update(serializer)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.datacenter_perm):
+        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
             raise serializers.ValidationError("You don't have permission.")
         else:
             super(AssetPermissionUpdateMixin, self).perform_update(serializer)
@@ -73,7 +73,7 @@ class AssetPermissionDestroyMixin(DeleteAndLogMixin):
     def perform_destroy(self, instance):
         if self.request.user.is_superuser:
             super(AssetPermissionDestroyMixin, self).perform_destroy(instance)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.datacenter_perm):
+        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
             raise serializers.ValidationError("You don't have permission.")
         else:
             super(AssetPermissionDestroyMixin, self).perform_destroy(instance)
@@ -85,7 +85,7 @@ class AssetDestroyWithIdMixin(object):
             id = self.get_object().id
             super().destroy(*args, **kwargs)
             return Response(id, status=status.HTTP_200_OK)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.datacenter_perm):
+        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
             raise serializers.ValidationError("You don't have permission.")
         else:
             id = self.get_object().id

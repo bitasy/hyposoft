@@ -18,10 +18,10 @@ def add_perms(sender, instance, *args, **kwargs):
 
     ''' 
     Asset management permission: Allows creation, modification, decommissioning,
-    and deletion of assets. May be conferred globally or per-datacenter. Naturally, if a user
-    has a per-datacenter asset management permission, then they should only be able to
-    affect assets in that datacenter. When moving assets between datacenters, such users
-    should only be able to move assets among datacenters they have permission on.
+    and deletion of assets. May be conferred globally or per-site. Naturally, if a user
+    has a per-site asset management permission, then they should only be able to
+    affect assets in that site. When moving assets between sites, such users
+    should only be able to move assets among sites they have permission on.
     '''
     if instance.asset_perm or instance.admin_perm:
         user.has_perm('equipment.add_asset  ')

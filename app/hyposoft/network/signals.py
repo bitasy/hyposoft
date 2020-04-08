@@ -16,7 +16,7 @@ def check_connection(sender, instance, *args, **kwargs):
             raise serializers.ValidationError(
                 "Connections must be between different assets.")
 
-        if instance.connection.asset.datacenter != instance.asset.datacenter:
+        if instance.connection.asset.site != instance.asset.site:
             raise serializers.ValidationError(
                 "Connections must be in the same datacenter.")
 

@@ -16,9 +16,9 @@ from hypo_auth.serializers import UserSerializer
 from rest_framework import serializers
 
 
-class DatacenterSerializer(serializers.ModelSerializer):
+class SiteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Datacenter
+        model = Site
         fields = '__all__'
 
 
@@ -156,7 +156,7 @@ class AssetEntrySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super(AssetEntrySerializer, self).to_representation(instance)
 
-        data['location'] = "{}: Rack {}U{}".format(instance.datacenter.abbr, instance.rack.rack, instance.rack_position)
+        data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
 
         networked = False
         for pdu in instance.pdu_set.all():
@@ -277,12 +277,12 @@ class AssetSerializer(serializers.ModelSerializer):
 class RackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rack
-        fields = ["id", "rack", "datacenter", "decommissioned"]
+        fields = ["id", "rack", "site", "decommissioned"]
 
 
 class AssetDetailSerializer(AssetSerializer):
     itmodel = ITModelSerializer()
-    datacenter = DatacenterSerializer()
+    site = SiteSerializer()
     rack = RackSerializer()
     decommissioned_by = UserSerializer()
     owner = UserSerializer()

@@ -56,7 +56,7 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         rack=instance.changed_asset.rack,
         rack_position__range=(instance.changed_asset.rack_position,
                               instance.changed_asset.rack_position + instance.changed_asset.itmodel.height),
-        datacenter=instance.changed_asset.datacenter,
+        site=instance.changed_asset.site,
         version_id=0
     )
     if len(blocked) > 0:
@@ -68,7 +68,7 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         under = Asset.objects.filter(
             rack=live_rack,
             rack_position=i,
-            datacenter=instance.changed_asset.datacenter,
+            site=instance.changed_asset.site,
             version_id=0
         )
         if len(under) > 0:
@@ -117,7 +117,7 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             conflicts.append({"field": "network_port",
                               "message": 'Connections must be between different assets.'})
         if instance.changed_networkport.connection and \
-                instance.changed_networkport.connection.asset.datacenter != instance.changed_networkport.asset.datacenter:
+                instance.changed_networkport.connection.asset.site != instance.changed_networkport.asset.site:
             conflicts.append({"field": "network_port",
                               "message": 'Connections must in the same datacenter.'})
         if instance.changed_networkport.connection and \

@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('power_perm', models.BooleanField(default=False, verbose_name='Power Permission')),
                 ('audit_perm', models.BooleanField(default=False, verbose_name='Audit Permission')),
                 ('admin_perm', models.BooleanField(default=False, verbose_name='Admin Permission')),
-                ('datacenter_perm', multiselectfield.db.fields.MultiSelectField(blank=True, choices=[('GLOBAL', 'Global')], max_length=6, verbose_name='Datacenter Permission')),
+                ('site_perm', multiselectfield.db.fields.MultiSelectField(blank=True, choices=[('GLOBAL', 'Global')], max_length=6, verbose_name='Datacenter Permission')),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),

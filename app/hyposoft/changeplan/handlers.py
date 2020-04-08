@@ -81,7 +81,7 @@ def execute_assets(changeplan):
             if live_asset is None:
                 Asset.objects.create(
                     hostname=changed_asset.hostname,
-                    datacenter=changed_asset.datacenter,
+                    site=changed_asset.site,
                     rack=add_rack(changed_asset.rack, live),
                     rack_position=changed_asset.rack_position,
                     itmodel=changed_asset.itmodel,
@@ -91,7 +91,7 @@ def execute_assets(changeplan):
             else:
                 live_asset.asset_number = changed_asset.asset_number
                 live_asset.hostname = changed_asset.hostname
-                live_asset.datacenter = changed_asset.datacenter
+                live_asset.site = changed_asset.site
                 live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS)
                 live_asset.rack_position = changed_asset.rack_position
                 live_asset.itmodel = changed_asset.itmodel
