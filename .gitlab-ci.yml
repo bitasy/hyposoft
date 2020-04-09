@@ -41,7 +41,6 @@ stage_dev:
   variables:
     DB_HOST: localhost
     DB_USER: runner
-    DB_PASS: qwerty
     DB_NAME: devdb
   script:
   - cd /home/gitlab-runner/
@@ -69,7 +68,10 @@ deploy_dev:
   - rm -rf /home/gitlab-runner/hyposoft-deployed
   - cp -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging" /home/gitlab-runner/hyposoft-deployed
   - python3 /home/gitlab-runner/hyposoft-deployed/app/hyposoft/manage.py migrate
-  - sudo uwsgi --reload /home/gitlab-runner/uwsgi.pid
+  - kill `cat /home/gitlab-runner/uwsgi.pid`
+  - rm /home/gitlab-runner/uwsgi.pid
+  - rm /home/gitlab-runner/uwsgi.log
+  - nohup sudo uwsgi --ini /etc/uwsgi/vassals/uwsgi.ini --uid 999 > /home/gitlab-runner/uwsgi.log 2>&1 &
   - rm -rf /home/gitlab-runner/"$CI_COMMIT_SHORT_SHA-staging"
   only:
   - dev

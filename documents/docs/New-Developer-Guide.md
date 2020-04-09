@@ -2,22 +2,17 @@
 
 ## Overall Architecture
 
-Simply put, it's a standard **React**, **Redux** single page app utilizing **ant design** for the UI elements.
-
-There are various ways to use redux with react - at the extreme, we could've put every single state into the store.
-But to have minimal boilerplate and ease the learning curve for the devs, we have chose to store only the "big" states - `model`, `rack`, `instance`, `user`. Since they're probably the ones that would eventually require some optimizations.
+Simply put, it's a standard **React** single page app utilizing **ant design** for the UI elements.
 
 ## Codebase
 
 Starting from `src`,
 
-`api/API.js` contains all the methods to interact with the server, so that the rest of the codebase is unaware of the actual implementation.
+`api` directory contains all the files that contain methods to interact with the server, so that the rest of the codebase is unaware of the actual implementation.
 
 `components` has the usual React elements. _Hooks_ _Hooks_ _Hooks_
 
 `global` has all the global side effects.
-
-`redux` has the standard action/reducer/store - we don't necessarily colocate them with the components, just because we're storing only the "big" states inside the redux store, which don't really belong to a specific component.
 
 ## Dev Tools
 
@@ -33,29 +28,33 @@ Running `npm run format` / using `eslint` extension with VS code will lint-beaut
 
 - https://reacttraining.com/react-router/web/api/HashRouter
 
-- https://redux.js.org/
-
 - https://react-redux.js.org/introduction/quick-start
 
 - https://ant.design/docs/react/introduce
-
-- https://immerjs.github.io/immer/docs/introduction
 
 # Backend Dev Guide
 
 ## Overall Architecture
 
-The backend uses Django Rest Framework to manage routes, views, models, users, auth, and everything else. Bulk formatting is done with Django Import Export.
+The backend uses Django Rest Framework to manage routes, views, models, users, auth, and everything else.
 
 ## Directory Structure
 
-There are 6 Django apps: the default app (hyposoft), equipment, frontend, hypo_auth, system_log, and auth.
+The functionalities of this server are partitioned into various Django apps: the default app (hyposoft), equipment, bulk, changeplan, frontend, hypo_auth, network, power, system_log.
 
-equipment: contains various python files for managing the models used throughout the application. The important files are described below
+equipment: Deals with the core models of the app.
+
+bulk: Has APIs to import/export models, assets and network connections via csv.
+
+changeplan: Contains logic to deal with changeplan-related functionality.
 
 frontend: contains all of the frontend resources / source files.
 
 hypo_auth: contains all the authentication-related files, including the shibboleth REMOTE_USER integration
+
+network: Deals with network connections between the assets.
+
+power: Deals with power-related logic, including the interface between PDU Networkx 98 Pro.
 
 system_log: contains all the files related to audit logs.
 
@@ -68,6 +67,8 @@ There are various tests in `tests.py`. They are automatically run upon pushing c
 The model schemas, which describes exactly how data models should be mapped out in a sql databse, are specified in `models.py`.
 
 ## API sets
+
+> All APIs are based on the `apis.md` at the parent directory of this file.
 
 The API sets are defined on `urls.py` on each of the "apps". Alternatively, you can run the server locally and point to `localhost:${PORT}/api/` and it'll list out the available API sets.
 

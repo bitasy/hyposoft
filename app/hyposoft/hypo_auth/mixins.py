@@ -9,6 +9,7 @@ class ITModelPermissionCreateMixin(CreateAndLogMixin):
     def perform_create(self, serializer):
         if self.request.user.is_superuser:
             super(ITModelPermissionCreateMixin, self).perform_create(serializer)
+            return
         elif not self.request.user.permission.model_perm:
             raise serializers.ValidationError("You don't have permission.")
         else:
@@ -19,6 +20,7 @@ class ITModelPermissionUpdateMixin(UpdateAndLogMixin):
     def perform_update(self, serializer):
         if self.request.user.is_superuser:
             super(ITModelPermissionUpdateMixin, self).perform_update(serializer)
+            return
         elif not self.request.user.permission.model_perm:
             raise serializers.ValidationError("You don't have permission.")
         else:
@@ -29,6 +31,7 @@ class ITModelPermissionDestroyMixin(DeleteAndLogMixin):
     def perform_destroy(self, instance):
         if self.request.user.is_superuser:
             super(ITModelPermissionDestroyMixin, self).perform_destroy(instance)
+            return
         if not self.request.user.permission.model_perm:
             raise serializers.ValidationError("You don't have permission.")
         else:
@@ -51,43 +54,54 @@ class ITModelDestroyWithIdMixin(object):
 
 class AssetPermissionCreateMixin(CreateAndLogMixin):
     def perform_create(self, serializer):
+        abbr = self.get_object().site.abbr
         if self.request.user.is_superuser:
             super(AssetPermissionCreateMixin, self).perform_create(serializer)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
-            raise serializers.ValidationError("You don't have permission.")
+            return
         else:
-            super(AssetPermissionCreateMixin, self).perform_create(serializer)
+            site_perm = self.request.user.permission.site_perm
+            if not self.request.user.permission.asset_perm or ('Global' not in site_perm and abbr not in site_perm):
+                raise serializers.ValidationError("You don't have permission.")
+        super(AssetPermissionCreateMixin, self).perform_create(serializer)
 
 
 class AssetPermissionUpdateMixin(UpdateAndLogMixin):
     def perform_update(self, serializer):
+        abbr = self.get_object().site.abbr
         if self.request.user.is_superuser:
             super(AssetPermissionUpdateMixin, self).perform_update(serializer)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
-            raise serializers.ValidationError("You don't have permission.")
+            return
         else:
-            super(AssetPermissionUpdateMixin, self).perform_update(serializer)
+            site_perm = self.request.user.permission.site_perm
+            if not self.request.user.permission.asset_perm or ('Global' not in site_perm and abbr not in site_perm):
+                raise serializers.ValidationError("You don't have permission.")
+        super(AssetPermissionUpdateMixin, self).perform_update(serializer)
 
 
 class AssetPermissionDestroyMixin(DeleteAndLogMixin):
     def perform_destroy(self, instance):
+        abbr = instance.site.abbr
         if self.request.user.is_superuser:
             super(AssetPermissionDestroyMixin, self).perform_destroy(instance)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
-            raise serializers.ValidationError("You don't have permission.")
+            return
         else:
-            super(AssetPermissionDestroyMixin, self).perform_destroy(instance)
+            site_perm = self.request.user.permission.site_perm
+            if not self.request.user.permission.asset_perm or ('Global' not in site_perm and abbr not in site_perm):
+                raise serializers.ValidationError("You don't have permission.")
+        super(AssetPermissionDestroyMixin, self).perform_destroy(instance)
 
 
 class AssetDestroyWithIdMixin(object):
     def destroy(self, *args, **kwargs):
+        abbr = self.get_object().site.abbr
         if self.request.user.is_superuser:
             id = self.get_object().id
             super().destroy(*args, **kwargs)
             return Response(id, status=status.HTTP_200_OK)
-        elif (not self.request.user.permission.asset_perm) or ('Global' not in self.request.user.permission.site_perm):
-            raise serializers.ValidationError("You don't have permission.")
         else:
-            id = self.get_object().id
-            super().destroy(*args, **kwargs)
-            return Response(id, status=status.HTTP_200_OK)
+            site_perm = self.request.user.permission.site_perm
+            if not self.request.user.permission.asset_perm or ('Global' not in site_perm and abbr not in site_perm):
+                raise serializers.ValidationError("You don't have permission.")
+        id = self.get_object().id
+        super().destroy(*args, **kwargs)
+        return Response(id, status=status.HTTP_200_OK)
