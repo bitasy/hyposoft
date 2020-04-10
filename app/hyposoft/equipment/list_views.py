@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import dateparse
 from rest_framework import filters, generics, serializers
 from rest_framework.pagination import PageNumberPagination
-from hyposoft.utils import get_version, versioned_queryset
+from hyposoft.utils import get_version, versioned_queryset, get_site
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
     AssetSerializer, RackSerializer, SiteSerializer, ITModelPickSerializer
 from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter
@@ -13,13 +13,13 @@ from .models import *
 # Filters the Rack and Asset ListAPIViews based on the site in the request
 class FilterBySiteMixin(object):
     def get_queryset(self):
-        datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
+        site = get_site(self.request)
         model = self.get_serializer_class().Meta.model
         queryset = model.objects.all()
-        if datacenter:
-            if not Site.objects.filter(abbr=datacenter).exists():
+        if site:
+            if not Site.objects.filter(abbr=site).exists():
                 raise serializers.ValidationError("Datacenter does not exist")
-            return queryset.filter(site__abbr=datacenter)
+            return queryset.filter(site__abbr=site)
         return queryset
 
 
@@ -155,11 +155,11 @@ class DecommissionedAssetList(generics.ListAPIView):
         time_from = self.request.query_params.get('timestamp_from', None)
         time_to = self.request.query_params.get('timestamp_to', None)
         decommissioned_by = self.request.query_params.get('decommissioned_by', None)
-        datacenter = self.request.META.get('HTTP_X_DATACENTER', None)
+        site = get_site(self.request)
         version = get_version(self.request)
 
-        if datacenter:
-            queryset = queryset.filter(site__abbr=datacenter)
+        if site:
+            queryset = queryset.filter(site__abbr=site)
 
         if user:
             queryset = queryset.filter(owner__username=user)

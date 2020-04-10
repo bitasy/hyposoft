@@ -3,7 +3,8 @@ from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
-from equipment.models import ITModel, Site, Rack, Asset
+from equipment.models import ITModel, Site, Rack
+from hyposoft.utils import get_site
 
 
 class Report(views.APIView):
@@ -108,7 +109,7 @@ class Report(views.APIView):
 
     def get(self, request):
         try:
-            site = Site.objects.get(abbr=self.request.META.get('HTTP_X_DATACENTER'))
+            site = Site.objects.get(abbr=get_site(request))
         except:
             site = None
         models = [self.get_model(model, site) for model in ITModel.objects.all()]

@@ -64,6 +64,10 @@ def get_version(request):
         return 0
 
 
+def get_site(request):
+    return request.META.get('HTTP_X_SITE', None)
+
+
 def versioned_object(obj, version, identity_fields):
     if obj.version == version:
         return obj

@@ -645,13 +645,13 @@ where
 
 ITModelEntry {
   id: ITMODEL_ID,
-  + type: "regular" | "chassis" | "blade",
+  + type: "regular" | "chassis",
   vendor: string,
   model_number: string,
-  height: int, // if blade, ignoredd
+  height: int, 
   display_color: string | null,
-  network_ports: int, // if blade, ignoredd
-  power_ports: int, // if blade, ignoredd
+  network_ports: int, 
+  power_ports: int, 
   cpu: string | null,
   memory: int | null,
   storage: string | null,
