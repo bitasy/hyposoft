@@ -47,33 +47,18 @@ ITMODEL {
   comment: string | null,
 }
 
-+ ITMODEL_OVERRIDES {
-  dislay_color?: string,
-  cpu?: string,
-  memory?: int | null,
-  storage?: string | null,
-}
-
 ASSET {
   id: ASSET_ID,
   asset_number: number,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
-  + location: {
-    tag: "rack-mount",
-    site: SITE_ID,
-    rack: RACK_ID,
-    rack_position: int,
-  } | {
-    tag: "chassis-mount",
-    site: SITE_ID,
-    asset: ASSET_ID, # must be a chassis,
-    slot: int,
-  } | {
-    tag: "offline",
-    site: SITE_ID
-  },
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
+  + site: SITE, // shows whether this asset is in offline storage or not
+  + rack: RACK | null, // null for offline storage
+  + rack_position: int | null, // null for offline storage
   decommissioned: bool,
   power_connections: {
     pdu_id: PDU_ID,
@@ -97,21 +82,13 @@ ASSET_DETAILS {
   asset_number: number,
   hostname: string | null,
   itmodel: ITMODEL,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
-  + location: {
-    tag: "rack-mount",
-    site: SITE,
-    rack: RACK,
-    rack_position: int,
-  } | {
-    tag: "chassis-mount",
-    site: SITE,
-    asset: ASSET, # must be a chassis,
-    slot: int,
-  } | {
-    tag: "offline",
-    site: SITE
-  },
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
+  + site: SITE, // shows whether this asset is in offline storage or not
+  + rack: RACK | null, // null for offline storage
+  + rack_position: int | null, // null for offline storage
   decommissioned: bool,
   decommissioned_by: USER_ID | null, # null if asset not decommissioned
   decommissioned_timestamp: datetime | null, # null if asset not decommissioned
@@ -128,6 +105,7 @@ ASSET_DETAILS {
     connection_str: string | null, // Some string that represents an asset + network port label
   }[],
   network_graph: NETWORK_GRAPH,
+  blades: CHASSIS_SLOTS | null, // non-null for blade chassis only
   comment: string | null,
   owner: USER | null,
   power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
@@ -171,10 +149,10 @@ USER {
 
 NETWORK_GRAPH {
   verticies: {
-    id: ASSET_ID,
-    label: ASSET_STR,
+    label: ASSET_STR | BLADE_STR, // guaranteed to be unique
+    url: .../#/assets/{ASSET_ID} | .../#/blades/{BLADE_ID} (should just work without modification)
   }[],
-  edges: [ASSET_ID, ASSET_ID][],
+  edges: [STR, STR][], // str matches labels exactly
 }
 
 CHANGE_PLAN {
@@ -201,6 +179,13 @@ Permission {
   datacenter_perm: str
 }
 
+CHASSIS_SLOTS {
+    {
+        chassis: CHASSIS_ID, // this is an asset id
+        slot: int //1 to 14
+    }[]
+}
+
 ```
 
 # Create APIs
@@ -212,13 +197,10 @@ Permission {
 ```
 {
   vendor: string,
-
-  + type: "regular" | "chassis" | "blade",
-
   model_number: string,
-  height: int, // if blade, ignored
-  power_ports: int, // if blade, ignored
-  network_port_labels: string[], // if blade, ignored
+  height: int,
+  power_ports: int,
+  network_port_labels: string[]
 
   display_color: string | null,
   cpu: string | null,
@@ -247,21 +229,13 @@ ITModel
   asset_number: number | null,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
-  + location: {
-    tag: "rack-mount",
-    site: SITE_ID,
-    rack: RACK_ID,
-    rack_position: int,
-  } | {
-    tag: "chassis-mount",
-    site: SITE_ID,
-    asset: ASSET_ID, # must be a chassis,
-    slot: int,
-  } | {
-    tag: "offline",
-    site: SITE_ID
-  },
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
+  + site: SITE,
+  + rack: RACK | null, // null for offline storage
+  + rack_position: int | null, // null for offline storage
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -349,13 +323,13 @@ Site
   power_perm: boolean,
   audit_perm: boolean,
   admin_perm: boolean
-  datacenter_perm: str
+  site_perm: str
 }
 ```
 
 #### Notes
 
-The datacenter_perm contains global permission and a field for each datacenter.
+The site_perm contains global permission and a field for each datacenter. (?)
 
 #### Response Body
 
@@ -376,9 +350,9 @@ Permission
   vendor: string,
   model_number: string,
 
-  height: int, // if blade, ignored
-  power_ports: int, // if blade, ignored
-  network_port_labels: string[], // if blade, ignored
+  height: int,
+  power_ports: int,
+  network_port_labels: string[],
 
   display_color: string | null,
   cpu: string | null,
@@ -407,23 +381,13 @@ ITModel # updated one
   asset_number: number | null,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
-  + location: {
-    tag: "rack-mount",
-    site: SITE_ID,
-    rack: RACK_ID,
-    rack_position: int,
-  } | {
-    tag: "chassis-mount",
-    site: SITE_ID,
-    asset: ASSET_ID, # must be a chassis,
-    slot: int,
-  } | {
-    tag: "offline",
-    site: SITE_ID
-  },
-  rack: RACK_ID,
-  rack_position: int,
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
+  + site: SITE_ID,
+  + rack: RACK_ID | null, // null for offline storage
+  + rack_position: int | null, // null for offline storage
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -645,13 +609,12 @@ where
 
 ITModelEntry {
   id: ITMODEL_ID,
-  + type: "regular" | "chassis" | "blade",
   vendor: string,
   model_number: string,
-  height: int, // if blade, ignoredd
+  height: int,
   display_color: string | null,
-  network_ports: int, // if blade, ignoredd
-  power_ports: int, // if blade, ignoredd
+  network_ports: int,
+  power_ports: int,
   cpu: string | null,
   memory: int | null,
   storage: string | null,
