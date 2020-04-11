@@ -46,3 +46,6 @@ class Permission(models.Model):
                 raise ValidationError(
                     "Please enter existing datacenter abbreviations comma-separated. For global permission, enter 'Global'."
                 )
+
+    def __str__(self):
+        return self.user.username + ' Permissions'
