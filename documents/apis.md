@@ -56,9 +56,20 @@ ASSET {
   + cpu: string | null,
   + memory: int | null,
   + storage: string | null,
-  + site: SITE, // shows whether this asset is in offline storage or not
-  + rack: RACK | null, // null for offline storage
-  + rack_position: int | null, // null for offline storage
+  + location: {
+    tag: "rack-mount",
+    site: SITE_ID,
+    rack: RACK_ID,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE_ID,
+    asset: ASSET_ID, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE_ID
+  },
   decommissioned: bool,
   power_connections: {
     pdu_id: PDU_ID,
@@ -86,9 +97,20 @@ ASSET_DETAILS {
   + cpu: string | null,
   + memory: int | null,
   + storage: string | null,
-  + site: SITE, // shows whether this asset is in offline storage or not
-  + rack: RACK | null, // null for offline storage
-  + rack_position: int | null, // null for offline storage
+  + location: {
+    tag: "rack-mount",
+    site: SITE,
+    rack: RACK,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE,
+    asset: ASSET, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE
+  },
   decommissioned: bool,
   decommissioned_by: USER_ID | null, # null if asset not decommissioned
   decommissioned_timestamp: datetime | null, # null if asset not decommissioned
@@ -105,7 +127,6 @@ ASSET_DETAILS {
     connection_str: string | null, // Some string that represents an asset + network port label
   }[],
   network_graph: NETWORK_GRAPH,
-  blades: CHASSIS_SLOTS | null, // non-null for blade chassis only
   comment: string | null,
   owner: USER | null,
   power_state: "On" | "Off" | null # null for assets that don't have networked pdus connected to it,
@@ -144,7 +165,16 @@ USER {
   username: string,
   first_name: string,
   last_name: string,
-  is_staff: bool # may be replaced in favor of roles
+  permission: Permission,
+}
+
+Permission {
+  model_perm: boolean,
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  datacenter_perm: string, # Comma separated list of datacenter abbrs
 }
 
 NETWORK_GRAPH {
@@ -169,22 +199,6 @@ CHANGE_PLAN {
   }[]
 }
 
-Permission {
-  user: User,
-  model_perm: boolean,    
-  asset_perm: boolean,
-  power_perm: boolean,
-  audit_perm: boolean,
-  admin_perm: boolean
-  datacenter_perm: str
-}
-
-CHASSIS_SLOTS {
-    {
-        chassis: CHASSIS_ID, // this is an asset id
-        slot: int //1 to 14
-    }[]
-}
 
 ```
 
@@ -233,9 +247,20 @@ ITModel
   + cpu: string | null,
   + memory: int | null,
   + storage: string | null,
-  + site: SITE,
-  + rack: RACK | null, // null for offline storage
-  + rack_position: int | null, // null for offline storage
+  + location: {
+    tag: "rack-mount",
+    site: SITE_ID,
+    rack: RACK_ID,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE_ID,
+    asset: ASSET_ID, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE_ID
+  },
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -311,32 +336,6 @@ The necessary `PDU`s should be created.
 Site
 ```
 
-### `[POST] auth/PermissionCreate`
-
-#### Request Body
-
-```
-{
-  user: User,
-  model_perm: boolean,    
-  asset_perm: boolean,
-  power_perm: boolean,
-  audit_perm: boolean,
-  admin_perm: boolean
-  site_perm: str
-}
-```
-
-#### Notes
-
-The site_perm contains global permission and a field for each datacenter. (?)
-
-#### Response Body
-
-```
-Permission
-```
-
 # Update APIs
 
 ### `[PATCH] api/equipment/ITModelUpdate/:itmodel_id`
@@ -385,9 +384,20 @@ ITModel # updated one
   + cpu: string | null,
   + memory: int | null,
   + storage: string | null,
-  + site: SITE_ID,
-  + rack: RACK_ID | null, // null for offline storage
-  + rack_position: int | null, // null for offline storage
+  + location: {
+    tag: "rack-mount",
+    site: SITE_ID,
+    rack: RACK_ID,
+    rack_position: int,
+  } | {
+    tag: "chassis-mount",
+    site: SITE_ID,
+    asset: ASSET_ID, # must be a chassis,
+    slot: int,
+  } | {
+    tag: "offline",
+    site: SITE_ID
+  },
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -423,28 +433,6 @@ Asset # updated one
 
 ```
 Site # updated one
-```
-
-### `[POST] auth/PermissionUpdate`
-
-#### Request Body
-
-```
-{
-  user: User,
-  model_perm: boolean,    
-  asset_perm: boolean,
-  power_perm: boolean,
-  audit_perm: boolean,
-  admin_perm: boolean
-  datacenter_perm: str
-}
-```
-
-#### Response Body
-
-```
-Permission
 ```
 
 # Destroy APIs
@@ -512,18 +500,6 @@ c1 and c2 refer to column numbers, currently 1 through 99.
 SITE_ID
 ```
 
-### `[DELETE] auth/PermissionDestroy/:permission_id`
-
-#### Notes
-
-The request should fail if the user has no asset permission.
-
-#### Response Body
-
-```
-PERMISSION_ID
-```
-
 # Retrieve APIs
 
 ### `[GET] api/equipment/ITModelRetrieve/:itmodel_id`
@@ -548,14 +524,6 @@ ASSET
 
 ```
 ASSET_DETAILS
-```
-
-### `[GET] auth/PermissionRetrieve/:permission_id`
-
-#### Response Body
-
-```
-Permission
 ```
 
 # List APIs
@@ -815,14 +783,6 @@ PowerPort[]
 NetworkPort[]
 ```
 
-### `[GET] auth/api/UserList`
-
-#### Response body
-
-```
-User[]
-```
-
 ### `[GET] api/equipment/ITModelPickList`
 
 ```
@@ -830,14 +790,6 @@ User[]
   id: MODEL_ID,
   str: MODEL_STR,
 }
-```
-
-### `[GET] auth/PermissionList`
-
-#### Response body
-
-```
-Permission[]
 ```
 
 # Log APIs
@@ -1201,3 +1153,54 @@ AssetDesc {
     model: MODEL,
 }
 ```
+
+# User API
+
+### `[POST] auth/UserCreate`
+
+#### Request Body
+
+```
+{
+  user: User,
+  password: string,
+}
+```
+
+#### Response Body
+
+```
+User
+```
+
+### `[GET] auth/UserRetrieve/:user_id`
+
+#### Response Body
+
+```
+User
+```
+
+### `[GET] auth/api/UserList`
+
+#### Response body
+
+```
+User[]
+```
+
+### `[POST] auth/UserUpdate`
+
+#### Request Body
+
+```
+User
+```
+
+#### Response Body
+
+```
+User
+```
+
+### `[DELETE] auth/UserDestroy/:user_id`
