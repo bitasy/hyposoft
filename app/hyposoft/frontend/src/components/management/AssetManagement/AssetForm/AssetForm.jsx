@@ -11,7 +11,6 @@ import Select from "../../../utility/formik/Select";
 import { getModel, getModelPicklist } from "../../../../api/model";
 import { getSites } from "../../../../api/site";
 import { getUserList } from "../../../../api/auth";
-import { getRackList } from "../../../../api/rack";
 import {
   getAsset,
   createAsset,
@@ -19,18 +18,15 @@ import {
   deleteAsset,
   decommissionAsset,
 } from "../../../../api/asset";
-import PowerPortSelect from "./PowerPortSelect";
 import { schema } from "./AssetSchema";
-import ModelSelect from "./ModelSelect";
-import SiteSelect from "./SiteSelect";
-import RackSelect from "./RackSelect";
 import NetworkGraph from "./NetworkGraph";
-import NetworkPortSelect from "./NetworkPortSelect";
-import LocationSelect from "./LocationSelect";
-import { powerPortList } from "../../../../api/power";
+import LocationTypeSelect from "./LocationTypeSelect";
 import { useHistory, useLocation } from "react-router-dom";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import RackMounts from "./RackMounts";
+import ChassisMounts from "./ChassisMounts";
+import Offline from "./Offline";
 
 function AssetForm({ id }) {
   const history = useHistory();
@@ -42,50 +38,30 @@ function AssetForm({ id }) {
   const [modelPickList, setModelPickList] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
   const [siteList, setSiteList] = useState([]);
-  const [rackList, setRackList] = useState([]);
-  const [powerPorts, setPowerPorts] = useState([]);
   const [users, setUsers] = useState([]);
 
   useRedirectOnCPChange("/assets");
 
   React.useEffect(() => {
-    (async () => {
-      await Promise.all([
-        getModelPicklist().then(setModelPickList),
-        getSites().then(setSiteList),
-        getUserList().then(setUsers),
-      ]);
+    getModelPicklist().then(setModelPickList);
+    getSites().then(setSiteList);
+    getUserList().then(setUsers);
 
-      if (id) {
-        getAsset(id).then(setAsset);
-      } else {
-        setAsset(schema.default());
-      }
-    })();
+    if (id) {
+      getAsset(id).then(setAsset);
+    } else {
+      setAsset(schema.default());
+    }
   }, []);
 
   React.useEffect(() => {
     if (asset?.itmodel) handleModelSelect(asset.itmodel);
-    if (asset?.location?.site) handleSiteSelect(asset.location.site);
-    if (asset?.rack) handleRackSelect(asset.rack);
-  }, [asset]);
+  }, [asset?.itmodel]);
 
   async function handleModelSelect(id) {
     const model = await getModel(id);
     setSelectedModel(model);
     return model;
-  }
-
-  function handleSiteSelect(id) {
-    if (id) {
-      return getRackList(id).then(setRackList);
-    } else {
-      return Promise.resolve();
-    }
-  }
-
-  function handleRackSelect(id) {
-    return powerPortList(id).then(setPowerPorts);
   }
 
   // submit
@@ -138,9 +114,12 @@ function AssetForm({ id }) {
                 </ItemWithLabel>
 
                 <ItemWithLabel name="itmodel" label="Model">
-                  <ModelSelect
-                    modelPickList={modelPickList}
-                    handleModelSelect={handleModelSelect}
+                  <Select
+                    name="itmodel"
+                    options={modelPickList.map(({ id, str }) => {
+                      return { value: id, text: str };
+                    })}
+                    onChange={handleModelSelect}
                   />
                   {selectedModel?.id && (
                     <a href={`/#/models/${selectedModel.id}`}>
@@ -150,59 +129,16 @@ function AssetForm({ id }) {
                 </ItemWithLabel>
 
                 <ItemWithLabel name="location.tag" label="Location">
-                  <LocationSelect name="location.tag" />
+                  <LocationTypeSelect model={selectedModel} />
                 </ItemWithLabel>
 
                 {props.values.location.tag === "rack-mount" ? (
-                  <div>
-                    <ItemWithLabel name="site" label="Site">
-                      <SiteSelect
-                        siteList={siteList}
-                        handleSiteSelect={handleSiteSelect}
-                      />
-                    </ItemWithLabel>
-
-                    <ItemWithLabel name="rack" label="Rack">
-                      <RackSelect
-                        rackList={rackList}
-                        handleRackSelect={handleRackSelect}
-                      />
-                    </ItemWithLabel>
-
-                    <ItemWithLabel name="rack_position" label="Rack Position">
-                      <InputNumber name="rack_position" min={1} max={42} />
-                    </ItemWithLabel>
-                  </div>
+                  <RackMounts siteList={siteList} model={selectedModel} />
                 ) : props.values.location.tag === "chassis-mount" ? (
-                  <div>
-                    <ItemWithLabel name="location.site" label="Site">
-                      <SiteSelect
-                        siteList={siteList}
-                        handleSiteSelect={handleSiteSelect}
-                      />
-                    </ItemWithLabel>
-                  </div>
+                  <ChassisMounts siteList={siteList} />
                 ) : props.values.location.tag === "offline" ? (
-                  <div>
-                    <ItemWithLabel name="location.site" label="Site">
-                      <SiteSelect
-                        siteList={siteList}
-                        handleSiteSelect={handleSiteSelect}
-                      />
-                    </ItemWithLabel>
-                  </div>
+                  <Offline siteList={siteList} />
                 ) : null}
-
-                <ItemWithLabel
-                  name="power_connections"
-                  label="Power connections"
-                >
-                  <PowerPortSelect powerPorts={powerPorts} />
-                </ItemWithLabel>
-
-                <ItemWithLabel name="network_ports" label="Network ports" flip>
-                  <NetworkPortSelect selectedModel={selectedModel} />
-                </ItemWithLabel>
 
                 <ItemWithLabel name="owner" label="Owner">
                   <Select

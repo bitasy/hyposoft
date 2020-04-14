@@ -25,6 +25,7 @@ export const schema = Yup.object()
         ? Yup.object({
             tag: Yup.string().matches(/^chassis-mount$/),
             site: Yup.number().required(),
+            rack: Yup.number().required(),
             asset: Yup.number().required(),
             slot: Yup.number()
               .typeError("Should be a number!")
@@ -45,14 +46,14 @@ export const schema = Yup.object()
         pdu_id: Yup.number().required(),
         plug: Yup.number().required(),
       }),
-    ),
+    ).nullable(),
     network_ports: Yup.array(
       Yup.object({
         label: Yup.string().required(),
         mac_address: Yup.string().nullable(),
         connection: Yup.number().nullable(),
       }),
-    ),
+    ).nullable(),
     comment: Yup.string().nullable(),
     owner: Yup.number().nullable(),
   })
@@ -66,8 +67,8 @@ export const schema = Yup.object()
       rack: null,
       rack_position: null,
     },
-    power_connections: [],
-    network_ports: [],
+    power_connections: null,
+    network_ports: null,
     comment: "",
     owner: null,
   });
