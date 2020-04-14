@@ -1,5 +1,7 @@
 import * as Yup from "yup";
 
+const COLOR_HEX_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/g;
+
 export const schema = Yup.object()
   .shape({
     asset_number: Yup.number()
@@ -8,6 +10,14 @@ export const schema = Yup.object()
       .nullable(),
     hostname: Yup.string(),
     itmodel: Yup.number().required(),
+
+    display_color: Yup.string()
+      .matches(COLOR_HEX_REGEX)
+      .nullable(),
+    cpu: Yup.string().nullable(),
+    memory: Yup.number().nullable(),
+    storage: Yup.string().nullable(),
+
     location: Yup.lazy(({ tag }) =>
       tag === "rack-mount"
         ? Yup.object({
@@ -61,6 +71,10 @@ export const schema = Yup.object()
     asset_number: null,
     hostname: "",
     itmodel: null,
+    display_color: null,
+    cpu: null,
+    memory: null,
+    storage: null,
     location: {
       tag: "rack-mount",
       site: null,

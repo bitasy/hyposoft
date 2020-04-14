@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Formik } from "formik";
-import { Form, Button, Typography, Row, Col } from "antd";
+import { Form, Button, Typography, Row, Col, Divider } from "antd";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import SubmitButton from "../../../utility/formik/SubmitButton";
 import InputNumber from "../../../utility/formik/InputNumber";
@@ -27,6 +27,7 @@ import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 import RackMounts from "./RackMounts";
 import ChassisMounts from "./ChassisMounts";
 import Offline from "./Offline";
+import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 
 function AssetForm({ id }) {
   const history = useHistory();
@@ -128,6 +129,28 @@ function AssetForm({ id }) {
                   )}
                 </ItemWithLabel>
 
+                <Divider />
+
+                <p>Model Overrides</p>
+
+                <ItemWithLabel name="display_color" label="Display Color">
+                  <ColorPicker name="display_color" nullable />
+                </ItemWithLabel>
+
+                <ItemWithLabel name="cpu" label="CPU">
+                  <Input name="cpu" />
+                </ItemWithLabel>
+
+                <ItemWithLabel name="memory" label="Memory">
+                  <InputNumber name="memory" />
+                </ItemWithLabel>
+
+                <ItemWithLabel name="storage" label="Storage">
+                  <Input name="storage" />
+                </ItemWithLabel>
+
+                <Divider />
+
                 <ItemWithLabel name="location.tag" label="Location">
                   <LocationTypeSelect model={selectedModel} />
                 </ItemWithLabel>
@@ -139,6 +162,8 @@ function AssetForm({ id }) {
                 ) : props.values.location.tag === "offline" ? (
                   <Offline siteList={siteList} />
                 ) : null}
+
+                <Divider />
 
                 <ItemWithLabel name="owner" label="Owner">
                   <Select
