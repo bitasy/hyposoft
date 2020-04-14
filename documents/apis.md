@@ -47,19 +47,15 @@ ITMODEL {
   comment: string | null,
 }
 
-+ ITMODEL_OVERRIDES {
-  dislay_color?: string,
-  cpu?: string,
-  memory?: int | null,
-  storage?: string | null,
-}
-
 ASSET {
   id: ASSET_ID,
   asset_number: number,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
   + location: {
     tag: "rack-mount",
     site: SITE_ID,
@@ -97,7 +93,10 @@ ASSET_DETAILS {
   asset_number: number,
   hostname: string | null,
   itmodel: ITMODEL,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
   + location: {
     tag: "rack-mount",
     site: SITE,
@@ -166,15 +165,25 @@ USER {
   username: string,
   first_name: string,
   last_name: string,
-  is_staff: bool # may be replaced in favor of roles
+  email: string,
+  permission: Permission,
+}
+
+Permission {
+  model_perm: boolean,
+  asset_perm: boolean,
+  power_perm: boolean,
+  audit_perm: boolean,
+  admin_perm: boolean
+  site_perm: string, # Comma separated list of site abbrs
 }
 
 NETWORK_GRAPH {
   verticies: {
-    id: ASSET_ID,
-    label: ASSET_STR,
+    label: ASSET_STR | BLADE_STR, // guaranteed to be unique
+    url: .../#/assets/{ASSET_ID} | .../#/blades/{BLADE_ID} (should just work without modification)
   }[],
-  edges: [ASSET_ID, ASSET_ID][],
+  edges: [STR, STR][], // str matches labels exactly
 }
 
 CHANGE_PLAN {
@@ -191,15 +200,6 @@ CHANGE_PLAN {
   }[]
 }
 
-Permission {
-  user: User,
-  model_perm: boolean,    
-  asset_perm: boolean,
-  power_perm: boolean,
-  audit_perm: boolean,
-  admin_perm: boolean
-  datacenter_perm: str
-}
 
 ```
 
@@ -212,13 +212,10 @@ Permission {
 ```
 {
   vendor: string,
-
-  + type: "regular" | "chassis" | "blade",
-
   model_number: string,
-  height: int, // if blade, ignored
-  power_ports: int, // if blade, ignored
-  network_port_labels: string[], // if blade, ignored
+  height: int,
+  power_ports: int,
+  network_port_labels: string[]
 
   display_color: string | null,
   cpu: string | null,
@@ -247,7 +244,10 @@ ITModel
   asset_number: number | null,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
   + location: {
     tag: "rack-mount",
     site: SITE_ID,
@@ -337,32 +337,6 @@ The necessary `PDU`s should be created.
 Site
 ```
 
-### `[POST] auth/PermissionCreate`
-
-#### Request Body
-
-```
-{
-  user: User,
-  model_perm: boolean,    
-  asset_perm: boolean,
-  power_perm: boolean,
-  audit_perm: boolean,
-  admin_perm: boolean
-  datacenter_perm: str
-}
-```
-
-#### Notes
-
-The datacenter_perm contains global permission and a field for each datacenter.
-
-#### Response Body
-
-```
-Permission
-```
-
 # Update APIs
 
 ### `[PATCH] api/equipment/ITModelUpdate/:itmodel_id`
@@ -376,9 +350,9 @@ Permission
   vendor: string,
   model_number: string,
 
-  height: int, // if blade, ignored
-  power_ports: int, // if blade, ignored
-  network_port_labels: string[], // if blade, ignored
+  height: int,
+  power_ports: int,
+  network_port_labels: string[],
 
   display_color: string | null,
   cpu: string | null,
@@ -407,7 +381,10 @@ ITModel # updated one
   asset_number: number | null,
   hostname: string | null,
   itmodel: ITMODEL_ID,
-  + itmodel_overrides: ITMODEL_OVERRIDES,
+  + dislay_color: string | null,
+  + cpu: string | null,
+  + memory: int | null,
+  + storage: string | null,
   + location: {
     tag: "rack-mount",
     site: SITE_ID,
@@ -422,8 +399,6 @@ ITModel # updated one
     tag: "offline",
     site: SITE_ID
   },
-  rack: RACK_ID,
-  rack_position: int,
   power_connections: {
     pdu_id: PDU_ID,
     plug: int,
@@ -459,28 +434,6 @@ Asset # updated one
 
 ```
 Site # updated one
-```
-
-### `[POST] auth/PermissionUpdate`
-
-#### Request Body
-
-```
-{
-  user: User,
-  model_perm: boolean,    
-  asset_perm: boolean,
-  power_perm: boolean,
-  audit_perm: boolean,
-  admin_perm: boolean
-  datacenter_perm: str
-}
-```
-
-#### Response Body
-
-```
-Permission
 ```
 
 # Destroy APIs
@@ -548,18 +501,6 @@ c1 and c2 refer to column numbers, currently 1 through 99.
 SITE_ID
 ```
 
-### `[DELETE] auth/PermissionDestroy/:permission_id`
-
-#### Notes
-
-The request should fail if the user has no asset permission.
-
-#### Response Body
-
-```
-PERMISSION_ID
-```
-
 # Retrieve APIs
 
 ### `[GET] api/equipment/ITModelRetrieve/:itmodel_id`
@@ -584,14 +525,6 @@ ASSET
 
 ```
 ASSET_DETAILS
-```
-
-### `[GET] auth/PermissionRetrieve/:permission_id`
-
-#### Response Body
-
-```
-Permission
 ```
 
 # List APIs
@@ -645,13 +578,12 @@ where
 
 ITModelEntry {
   id: ITMODEL_ID,
-  + type: "regular" | "chassis",
   vendor: string,
   model_number: string,
-  height: int, 
+  height: int,
   display_color: string | null,
-  network_ports: int, 
-  power_ports: int, 
+  network_ports: int,
+  power_ports: int,
   cpu: string | null,
   memory: int | null,
   storage: string | null,
@@ -852,14 +784,6 @@ PowerPort[]
 NetworkPort[]
 ```
 
-### `[GET] auth/api/UserList`
-
-#### Response body
-
-```
-User[]
-```
-
 ### `[GET] api/equipment/ITModelPickList`
 
 ```
@@ -867,14 +791,6 @@ User[]
   id: MODEL_ID,
   str: MODEL_STR,
 }
-```
-
-### `[GET] auth/PermissionList`
-
-#### Response body
-
-```
-Permission[]
 ```
 
 # Log APIs
@@ -1238,3 +1154,54 @@ AssetDesc {
     model: MODEL,
 }
 ```
+
+# User API
+
+### `[POST] auth/UserCreate`
+
+#### Request Body
+
+```
+{
+  user: User,
+  password: string,
+}
+```
+
+#### Response Body
+
+```
+User
+```
+
+### `[GET] auth/UserRetrieve/:user_id`
+
+#### Response Body
+
+```
+User
+```
+
+### `[GET] auth/api/UserList`
+
+#### Response body
+
+```
+User[]
+```
+
+### `[POST] auth/UserUpdate`
+
+#### Request Body
+
+```
+User
+```
+
+#### Response Body
+
+```
+User
+```
+
+### `[DELETE] auth/UserDestroy/:user_id`

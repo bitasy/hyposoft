@@ -3,7 +3,8 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib import auth
 from rest_framework import views, generics
 from hyposoft.users import UserSerializer
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, UserPermSerializer
+from .models import Permission
 
 from django.conf import settings
 from django.shortcuts import redirect
@@ -102,6 +103,42 @@ class ShibbolethLogoutView(TemplateView):
         #Get target url in order of preference.
 
 
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        perms = data['user'].pop('permission')
+        user = User.objects.create(
+            username=data['user']['username'],
+            first_name=data['user']['first_name'],
+            last_name=data['user']['last_name'],
+            password=data['password'],
+            email=data['user']['email']
+        )
+        Permission.objects.create(
+            user=user,
+            model_perm=perms['model_perm'],
+            asset_perm=perms['asset_perm'],
+            power_perm=perms['power_perm'],
+            audit_perm=perms['audit_perm'],
+            admin_perm=perms['admin_perm'],
+            site_perm=perms['site_perm']
+        )
+        return UserPermSerializer(user).data
+
+
+class UserUpdate(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
+
+
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserPermSerializer
+
+
+class UserDestroy(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
