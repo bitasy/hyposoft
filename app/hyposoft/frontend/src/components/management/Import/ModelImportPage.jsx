@@ -18,6 +18,7 @@ function ModelImportPage() {
     setErrors([]);
     importModels(fd, true).then(({ status, errors }) => {
       if (status === "success") {
+        setErrors([]);
         message.success("success!");
       } else {
         message.error("error");

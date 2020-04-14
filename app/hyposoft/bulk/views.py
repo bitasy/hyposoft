@@ -51,13 +51,21 @@ class ITModelImport(generics.CreateAPIView):
         if not dataset.headers == ['vendor', 'model_number', 'height', 'display_color', 'network_ports',
                                    'power_ports', 'cpu', 'memory', 'storage', 'comment', 'network_port_name_1',
                                    'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
-            raise serializers.ValidationError("Improperly formatted CSV")
+            return Response({"status": "error", "errors": [{"errors": "Improperly Formatted CSV"}]}, HTTP_200_OK)
 
         print(dataset)
         result = ITModelResource().import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+            {"row": row.errors[0].row, "errors": [
+                "{} {}: {}".format(
+                    row.errors[0].row['vendor'],
+                    row.errors[0].row['model_number'],
+                    str(error.error.detail[0]
+                        if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
+                )
+                for error in row.errors
+            ]}
             for row in result.rows if len(row.errors) > 0
         ]
 
@@ -85,13 +93,21 @@ class AssetImport(generics.CreateAPIView):
         if not set(dataset.headers) == {'asset_number', 'datacenter', 'hostname', 'rack', 'rack_position',
                                    'vendor', 'model_number', 'owner', 'comment',
                                    'power_port_connection_1', 'power_port_connection_2'}:
-            raise serializers.ValidationError("Improperly formatted CSV")
+            return Response({"status": "error", "errors": [{"errors": "Improperly Formatted CSV"}]}, HTTP_200_OK)
 
         result = AssetResource(
             get_version(request), request.user, True).import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+            {"row": row.errors[0].row, "errors": [
+                "{} {}: {}".format(
+                    row.errors[0].row['asset_number'],
+                    row.errors[0].row['hostname'],
+                    str(error.error.detail[0]
+                        if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
+                )
+                for error in row.errors
+            ]}
             for row in result.rows if len(row.errors) > 0
         ]
 
@@ -102,7 +118,15 @@ class AssetImport(generics.CreateAPIView):
             result = resource.import_data(dataset)
 
             errors = [
-                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+                {"row": row.errors[0].row, "errors": [
+                    "{} {}: {}".format(
+                        row.errors[0].row['asset_number'],
+                        row.errors[0].row['hostname'],
+                        str(error.error.detail[0]
+                            if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
+                    )
+                    for error in row.errors
+                ]}
                 for row in result.rows if len(row.errors) > 0
             ]
 
@@ -112,7 +136,7 @@ class AssetImport(generics.CreateAPIView):
             try:
                 changeplan = ChangePlan.objects.get(owner=request.user, name="_BULK_IMPORT_" + str(id(resource)))
             except ChangePlan.DoesNotExist:
-                return Response({"status": "skip"}, status=HTTP_200_OK)
+                return Response({"status": "diff", "asset": ["No Changes"], "power": []}, status=HTTP_200_OK)
 
             live = ChangePlan.objects.get(id=0)
             asset_messages = []
@@ -162,12 +186,20 @@ class NetworkImport(generics.CreateAPIView):
         file = data.get('file')
         dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
         if not dataset.headers == ['src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port']:
-            raise serializers.ValidationError("Improperly formatted CSV")
+            return Response({"status": "error", "errors": [{"errors": "Improperly Formatted CSV"}]}, HTTP_200_OK)
         result = NetworkPortResource(
             get_version(request), request.user, True).import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
+            {"row": row.errors[0].row, "errors": [
+                "{} {}: {}".format(
+                    row.errors[0].row['src_hostname'],
+                    row.errors[0].row['src_port'],
+                    str(error.error.detail[0]
+                        if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
+                )
+                for error in row.errors
+            ]}
             for row in result.rows if len(row.errors) > 0
         ]
 

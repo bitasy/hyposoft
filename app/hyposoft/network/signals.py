@@ -1,8 +1,16 @@
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from rest_framework import serializers
 
-from .models import NetworkPort
+from .models import NetworkPort, NetworkPortLabel
+
+
+@receiver(pre_save, sender=NetworkPortLabel)
+def check_deployed_assets(instance, *args, **kwargs):
+    if instance.itmodel.asset_set.all().count() > 0:
+        raise serializers.ValidationError(
+            "Cannot modify interconnected ITModel attributes while assets are deployed."
+        )
 
 
 @receiver(pre_save, sender=NetworkPort)
