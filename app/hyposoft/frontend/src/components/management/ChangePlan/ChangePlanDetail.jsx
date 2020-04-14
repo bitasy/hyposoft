@@ -6,11 +6,8 @@ import {
   updateChangePlan,
   getChangePlanDetail,
 } from "../../../api/changeplan";
-import moment from "moment";
 import Diff from "../../utility/Diff";
-import Diff0 from "../../utility/Diff";
 import { ChangePlanContext } from "../../../contexts/contexts";
-import VSpace from "../../utility/VSpace";
 
 const ASSET_HEADERS = [
   {
@@ -30,8 +27,7 @@ const ASSET_HEADERS = [
   },
   {
     name: "location",
-    toText: ad =>
-      `${ad.datacenter.abbr}: Rack ${ad.rack.rack}U${ad.rack_position}`,
+    toText: ad => `${ad.site.abbr}: Rack ${ad.rack.rack}U${ad.rack_position}`,
   },
   {
     name: "power conn.",
@@ -96,22 +92,6 @@ function ChangePlanDetail() {
   }
 
   const summaryHeaders = ASSET_HEADERS.map(({ name }) => name);
-
-  const summaryDiff0 = function() {
-    let diffList = [];
-    let diffType;
-    for (diffType in changePlan.diffs) {
-      let diff;
-      for (diff in changePlan.diffs[diffType]) {
-        diffList.push({
-          diffType: diffType,
-          message: changePlan.diffs[diffType][diff]["message"],
-        });
-      }
-    }
-
-    return diffList;
-  };
 
   const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
     const before =

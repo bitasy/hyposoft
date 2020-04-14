@@ -1,11 +1,10 @@
 import React, { useContext, useState } from "react";
 import Grid from "../RackManagement/Grid";
-import { Typography, Button, Select, message, Alert } from "antd";
+import { Typography, Button, Select, Alert } from "antd";
 import { toIndex, indexToRow } from "./GridUtils";
-import CreateTooltip from "../../utility/CreateTooltip";
 import { getRackList, createRack, deleteRacks } from "../../../api/rack";
-import { DCContext, AuthContext } from "../../../contexts/contexts";
-import { getDatacenters } from "../../../api/datacenter";
+import { SiteContext } from "../../../contexts/contexts";
+import { getSites } from "../../../api/site";
 import VSpace from "../../utility/VSpace";
 import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 
@@ -70,18 +69,16 @@ function Legend() {
 }
 
 function RackManagementPage() {
-  const { datacenter } = useContext(DCContext);
-
-  const { user } = useContext(AuthContext);
+  const { site } = useContext(SiteContext);
 
   const [racks, setRacks] = useState([]);
-  const [datacenters, setDatacenters] = useState([]);
-  const [selectedDC, setSelectedDC] = useState(null);
+  const [sites, setSites] = useState([]);
+  const [selectedSite, setSelectedSite] = useState(null);
 
   const [warnings, setWarnings] = useState([]);
   const [errors, setErrors] = useState([]);
 
-  const finalSelectedDC = datacenter ?? selectedDC;
+  const finalSelectedSite = site ?? selectedSite;
 
   const [range, setRange] = React.useState(null);
   const clear = () => setRange(null);
@@ -89,7 +86,9 @@ function RackManagementPage() {
   useRedirectOnCPChange();
 
   React.useEffect(() => {
-    getDatacenters().then(setDatacenters);
+    getSites().then(sites =>
+      setSites(sites.filter(s => s.type === "datacenter")),
+    );
     rehydrate();
     const listener = ({ keyCode }) => {
       if (keyCode === 27) {
@@ -103,21 +102,21 @@ function RackManagementPage() {
 
   React.useEffect(() => {
     rehydrate();
-  }, [finalSelectedDC]);
+  }, [finalSelectedSite]);
 
   function rehydrate() {
-    const abbr = finalSelectedDC?.abbr;
-    if (abbr) {
-      getRackList(abbr).then(setRacks);
+    const id = finalSelectedSite?.id;
+    if (id) {
+      getRackList(id).then(setRacks);
     } else {
       setRacks([]);
     }
   }
 
   function create([r1, r2, c1, c2]) {
-    const dcID = finalSelectedDC?.id;
-    if (dcID) {
-      createRack(dcID, r1, r2, c1, c2)
+    const id = finalSelectedSite?.id;
+    if (id) {
+      createRack(id, r1, r2, c1, c2)
         .then(({ warn, err }) => {
           setWarnings(warn);
           setErrors(err);
@@ -128,9 +127,9 @@ function RackManagementPage() {
   }
 
   function remove([r1, r2, c1, c2]) {
-    const dcID = finalSelectedDC?.id;
-    if (dcID && confirm(`Are you sure about this?`)) {
-      deleteRacks(dcID, r1, r2, c1, c2)
+    const id = finalSelectedSite?.id;
+    if (id && confirm(`Are you sure about this?`)) {
+      deleteRacks(id, r1, r2, c1, c2)
         .then(({ warn, err }) => {
           setWarnings(warn);
           setErrors(err);
@@ -175,25 +174,25 @@ function RackManagementPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Racks</Typography.Title>
-      <span>Datacenter: </span>
-      {!datacenter ? (
+      <span>Site: </span>
+      {!site ? (
         <Select
-          value={selectedDC?.abbr}
-          onChange={abbr => {
-            setSelectedDC(datacenters.find(dc => dc.abbr === abbr) ?? null);
+          value={selectedSite?.id}
+          onChange={id => {
+            setSelectedSite(sites.find(s => s.id == id) ?? null);
           }}
           style={{ width: 300 }}
         >
-          {Object.values(datacenters).map((ds, idx) => (
-            <Option key={idx} value={ds.abbr}>
+          {Object.values(sites).map((ds, idx) => (
+            <Option key={idx} value={ds.id}>
               {`${ds.name} (${ds.abbr})`}
             </Option>
           ))}
         </Select>
       ) : (
-        <span>{datacenter.abbr}</span>
+        <span>{site.abbr}</span>
       )}
-      {finalSelectedDC && (
+      {finalSelectedSite && (
         <>
           <Legend />
           <Grid

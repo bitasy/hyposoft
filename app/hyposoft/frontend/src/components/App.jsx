@@ -16,21 +16,20 @@ import RackManagementPage from "./management/RackManagement/RackManagementPage";
 import RackView from "./management/RackManagement/RackView";
 import LogManagementPage from "./management/LogManagement/LogManagementPage";
 import DecommissionManagementPage from "./management/DecommissionManagement/DecommissionManagementPage";
-import DatacenterManagementPage from "./management/DatacenterManagment/DatacenterManagementPage";
+import SiteManagementPage from "./management/SiteManagment/SiteManagementPage";
 import {
   AuthContext,
-  DCContext,
+  SiteContext,
   ChangePlanContext,
 } from "../contexts/contexts";
 
-export const DATACENTER_SESSION_KEY = "DATACENTER";
-export const DATACENTER_ABBR_SESSION_KEY = "DATACENTER_ABBR";
+export const SITE_SESSION_KEY = "SITE";
 
 export const CHANGE_PLAN_SESSION_KEY = "CHANGE_PLAN";
 export const CHANGE_PLAN_NAME_SESSION_KEY = "CHANGE_PLAN_NAME";
 
 import { getCurrentUser } from "../api/auth";
-import { getDatacenters } from "../api/datacenter";
+import { getSites } from "../api/site";
 import Testing from "./utility/Testing";
 import WorkOrderPage from "./management/ChangePlan/WorkOrderPage";
 import ChangePlanList from "./management/ChangePlan/ChangePlanList";
@@ -45,8 +44,8 @@ import AssetDetailView from "./management/DecommissionManagement/DecommissionLis
 function App() {
   const [loading, setLoading] = React.useState(true);
   const [currentUser, setCurrentUser] = React.useState(null);
-  const [datacenter, setDatacenter] = React.useState(null);
-  const [dcTrigger, fireDCTrigger] = useTrigger();
+  const [site, setSite] = React.useState(null);
+  const [siteTrigger, fireSiteTrigger] = useTrigger();
   const [changePlan, setChangePlan] = React.useState(null);
   const [cpTrigger, fireCPTrigger] = useTrigger();
 
@@ -63,12 +62,12 @@ function App() {
 
   React.useEffect(() => {
     (async () => {
-      const dcID = parseInt(sessionStorage.getItem(DATACENTER_SESSION_KEY));
-      if (!isNaN(dcID)) {
-        const dc = await getDatacenters().then(
-          dcs => dcs.find(dc => dc.id == dcID) ?? null,
+      const siteID = parseInt(sessionStorage.getItem(SITE_SESSION_KEY));
+      if (!isNaN(siteID)) {
+        const site = await getSites().then(
+          sites => sites.find(site => site.id == siteID) ?? null,
         );
-        setDatacenter(dc);
+        setSite(site);
       }
     })();
   }, []);
@@ -89,44 +88,25 @@ function App() {
     setUser: setCurrentUser,
   };
 
-  const dcContextValue = {
-    datacenter,
-    setDCName: async dcName => {
-      if (dcName) {
-        const dc = await getDatacenters().then(
-          dcs => dcs.find(dc => dc.abbr == dcName) ?? null,
+  const siteContextValue = {
+    site,
+    setSiteByID: async siteID => {
+      if (siteID) {
+        const site = await getSites().then(
+          sites => sites.find(site => site.id == siteID) ?? null,
         );
-        if (dc) {
-          sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
-          sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
-          setDatacenter(dc);
+        if (site) {
+          sessionStorage.setItem(SITE_SESSION_KEY, site.id);
+          setSite(site);
           return;
         }
       }
 
-      sessionStorage.removeItem(DATACENTER_SESSION_KEY);
-      sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
-      setDatacenter(null);
+      sessionStorage.removeItem(SITE_SESSION_KEY);
+      setSite(null);
     },
-    setDCByID: async dcID => {
-      if (dcID) {
-        const dc = await getDatacenters().then(
-          dcs => dcs.find(dc => dc.id == dcID) ?? null,
-        );
-        if (dc) {
-          sessionStorage.setItem(DATACENTER_SESSION_KEY, dc?.id);
-          sessionStorage.setItem(DATACENTER_ABBR_SESSION_KEY, dc?.abbr);
-          setDatacenter(dc);
-          return;
-        }
-      }
-
-      sessionStorage.removeItem(DATACENTER_SESSION_KEY);
-      sessionStorage.removeItem(DATACENTER_ABBR_SESSION_KEY);
-      setDatacenter(null);
-    },
-    refreshTrigger: dcTrigger,
-    refresh: fireDCTrigger,
+    refreshTrigger: siteTrigger,
+    refresh: fireSiteTrigger,
   };
 
   const cpContextValue = {
@@ -149,7 +129,7 @@ function App() {
 
   return (
     <AuthContext.Provider value={authContextValue}>
-      <DCContext.Provider value={dcContextValue}>
+      <SiteContext.Provider value={siteContextValue}>
         <ChangePlanContext.Provider value={cpContextValue}>
           {currentUser ? (
             <Router>
@@ -190,8 +170,8 @@ function App() {
                       <Route exact path="/assets/readonly/:id">
                         <AssetDetailView />
                       </Route>
-                      <Route exact path="/datacenters">
-                        <DatacenterManagementPage />
+                      <Route exact path="/sites">
+                        <SiteManagementPage />
                       </Route>
                       <Route exact path="/racks">
                         <RackManagementPage />
@@ -235,7 +215,7 @@ function App() {
             <LoginPage />
           )}
         </ChangePlanContext.Provider>
-      </DCContext.Provider>
+      </SiteContext.Provider>
     </AuthContext.Provider>
   );
 }

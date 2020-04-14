@@ -6,7 +6,7 @@ import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
-import { DCContext } from "../../../../contexts/contexts";
+import { SiteContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
@@ -77,7 +77,7 @@ const initialFilterValues = {
 function AssetList({ modelID }) {
   const history = useHistory();
 
-  const { datacenter } = React.useContext(DCContext);
+  const { site } = React.useContext(SiteContext);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
@@ -123,7 +123,7 @@ function AssetList({ modelID }) {
         setTotal(r.count);
       }
     });
-  }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
+  }, [filterValues, page, pageSize, ordering, direction, site?.id]);
 
   React.useEffect(() => {
     setPage(1);
