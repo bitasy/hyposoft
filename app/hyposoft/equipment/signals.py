@@ -38,9 +38,15 @@ def check_deployed_assets(sender, instance, *args, **kwargs):
 @receiver(pre_save, sender=Asset)
 def validate_asset(sender, instance, *args, **kwargs):
     # Fields
-    if instance.site is not None and instance.site != instance.rack.site:
+    if instance.site is not None and instance.rack is not None and instance.site != instance.rack.site:
         raise serializers.ValidationError(
             "Asset datacenter cannot be different from rack datacenter.")
+
+    if instance.itmodel.type == ITModel.Type.BLADE and instance.blade_chassis is not None\
+            and instance.blade_chassis.itmodel.type != ITModel.Type.CHASSIS:
+        raise serializers.ValidationError(
+            "Blade must reference Blade Chassis asset."
+        )
 
     if instance.asset_number is not None:
         if instance.asset_number > 999999:

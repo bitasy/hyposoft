@@ -39,7 +39,7 @@ class AssetFilter(filters.FilterSet):
 
     class Meta:
         model = Asset
-        fields = ['itmodel', 'rack_position', 'asset_number']
+        fields = ['itmodel', 'rack_position', 'asset_number', 'site__offline']
 
 
 class ChangePlanFilter(BaseFilterBackend):

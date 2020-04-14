@@ -31,9 +31,7 @@ class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
         version = ChangePlan.objects.get(id=get_version(request))
         if version.id != 0:
             rack = Rack.objects.get(id=request.data['rack'])
-            versioned_rack = versioned_object(rack, version, Rack.IDENTITY_FIELDS)
-            if not versioned_rack:
-                versioned_rack = add_rack(rack, version)
+            versioned_rack = add_rack(rack, version)
             request.data['rack'] = versioned_rack.id
         return super(AssetCreate, self).create(request, *args, **kwargs)
 

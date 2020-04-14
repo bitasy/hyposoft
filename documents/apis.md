@@ -211,11 +211,12 @@ CHANGE_PLAN {
 
 ```
 {
+  + type: "regular" | "chassis" | "blade",
   vendor: string,
   model_number: string,
-  height: int,
-  power_ports: int,
-  network_port_labels: string[]
+  height: int, // ignored if chassis or blade
+  power_ports: int, // ignored if blade
+  network_port_labels: string[] // ignored if blade
 
   display_color: string | null,
   cpu: string | null,

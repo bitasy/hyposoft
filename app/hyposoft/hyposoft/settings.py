@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'django_filters',
     'hyposoft',
     'equipment',
-    'blade',
     'import_export',
     'frontend',
     'changeplan',

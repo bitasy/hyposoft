@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from equipment.models import *
 from network.models import *
 from power.models import *
-from blade.models import *
 
 
 def username(user):
@@ -26,8 +25,6 @@ class ActionLog(models.Model):
         'NetworkPortLabel': NetworkPortLabel,
         'NetworkPort': NetworkPort,
         'Powered': Powered,
-        'BladeChassis': BladeChassis,
-        'Blade': Blade
     }
 
     class Action(models.TextChoices):

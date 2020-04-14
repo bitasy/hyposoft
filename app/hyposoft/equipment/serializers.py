@@ -19,7 +19,16 @@ from hyposoft.users import UserSerializer
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
-        fields = '__all__'
+        fields = ['abbr', 'name', 'offline']
+
+    def to_internal_value(self, data):
+        data['offline'] = data.pop('type') == 'offline-storage'
+        return super(SiteSerializer, self).to_internal_value(data)
+
+    def to_representation(self, instance):
+        data = super(SiteSerializer, self).to_representation(instance)
+        data['type'] = 'offline-storage' if data.pop('offline') else 'datacenter'
+        return data
 
 
 class ITModelEntrySerializer(serializers.ModelSerializer):
@@ -76,13 +85,17 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def update(self, instance, validated_data):
+        if instance.type != validated_data['type']:
+            raise serializers.ValidationError(
+                "You cannot change the type of a Model."
+            )
         ports = instance.networkportlabel_set.all()
         old_ports = [name for name in ports.values_list('name', flat=True).order_by('order')]
         new_ports = validated_data['network_port_labels']
         if instance.asset_set.exists():
             def throw():
                 raise serializers.ValidationError(
-                    "Cannot modify physical fields if assets are deployed"
+                    "Cannot modify interconnected ITModel attributes while assets are deployed."
                 )
             if instance.height != validated_data['height']:
                 throw()
@@ -205,6 +218,24 @@ class AssetSerializer(serializers.ModelSerializer):
         version = get_version(req)
         data['version'] = self.context.get('version') or version
 
+        location = data.pop('location')
+        data['site'] = location['site']
+        if location['tag'] == 'rack-mount':
+            data['rack'] = location['rack']
+            data['rack_position'] = location['position']
+        elif location['tag'] == 'chassis-mount':
+            data['blade_chassis'] = location['asset']
+            data['slot'] = location['slot']
+            data['rack'] = Asset.objects.get(id=location['asset']).rack
+            data['rack_position'] = None
+        elif location['tag'] == 'offline':
+            data['rack'] = None
+            data['rack_position'] = None
+        else:
+            raise serializers.ValidationError(
+                "Invalid location given for this asset."
+            )
+
         return super(AssetSerializer, self).to_internal_value(data)
 
     @transaction.atomic
@@ -260,6 +291,29 @@ class AssetSerializer(serializers.ModelSerializer):
             data['power_state'] = "Off"
         else:
             data['power_state'] = None
+
+        location = {"site": instance.site}
+        if instance.rack_position is not None:
+            location['tag'] = 'rack-mount'
+            location['rack'] = instance.rack.id
+            location['rack_position'] = instance.rack_position
+        elif instance.slot is not None:
+            location['tag'] = 'chassis-mount'
+            location['asset'] = instance.blade_chassis.id
+            location['slot'] = instance.slot
+        elif instance.site.offline:
+            location['tag'] = 'offline'
+        else:
+            raise serializers.ValidationError(
+                "Location of this asset is inconsistent."
+            )
+
+        del data['site']
+        del data['rack']
+        del data['rack_position']
+        del data['blade_chassis']
+        del data['slot']
+
         return data
 
     def validate_asset_number(self, value):
@@ -300,6 +354,13 @@ class AssetDetailSerializer(AssetSerializer):
         for i, port in enumerate(data['network_ports']):
             if port['connection']:
                 data['network_ports'][i]['connection_str'] = str(NetworkPort.objects.get(id=port['connection']))
+
+        data['location']['site'] = SiteSerializer(Site.objects.get(id=data['location']['site'])).data
+        if data['location']['tag'] == 'rack-mount':
+            data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
+        if data['location']['tag'] == 'chassis-mount':
+            data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
+            data['location']['asset'] = AssetSerializer(Asset.objects.get(id=data['location']['asset'])).data
 
         return data
 

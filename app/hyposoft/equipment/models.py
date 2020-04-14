@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
 
 from changeplan.models import ChangePlan
@@ -82,6 +82,16 @@ class ITModel(models.Model):
             RegexValidator("(?m)""(?![ \t]*(,|$))",
                            message="Comments must be enclosed by double quotes if comment contains line breaks.")
         ]
+    )
+
+    class Type(models.TextChoices):
+        REGULAR = ('regular', 'regular')
+        CHASSIS = ('chassis', 'chassis')
+        BLADE = ('blade', 'blade')
+
+    type = models.CharField(
+        max_length=16,
+        choices=Type.choices
     )
 
     class Meta:
@@ -225,6 +235,25 @@ class Asset(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='decommissioned_assets'
+    )
+    blade_chassis = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT,
+        related_name="blade"
+    )
+    slot = models.IntegerField(
+        null=True,
+        blank=True,
+        default=None,
+        validators=[
+            MinValueValidator(1,
+                              message="Chassis slot position must be at least 1."),
+            MaxValueValidator(14,
+                              message="Chassis slot position must be at most 14."),
+        ]
     )
 
     class Meta:
