@@ -165,6 +165,7 @@ USER {
   username: string,
   first_name: string,
   last_name: string,
+  email: string,
   permission: Permission,
 }
 
@@ -174,7 +175,7 @@ Permission {
   power_perm: boolean,
   audit_perm: boolean,
   admin_perm: boolean
-  datacenter_perm: string, # Comma separated list of datacenter abbrs
+  site_perm: string, # Comma separated list of site abbrs
 }
 
 NETWORK_GRAPH {

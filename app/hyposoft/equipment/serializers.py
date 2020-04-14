@@ -11,9 +11,9 @@ from .models import *
 from network.models import NetworkPort, NetworkPortLabel
 from power.models import PDU, Powered
 from power.handlers import update_asset_power
-from hypo_auth.serializers import UserSerializer
 
 from rest_framework import serializers
+from hyposoft.users import UserSerializer
 
 
 class SiteSerializer(serializers.ModelSerializer):
