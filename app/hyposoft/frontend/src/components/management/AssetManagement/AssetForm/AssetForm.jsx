@@ -28,6 +28,7 @@ import RackMounts from "./RackMounts";
 import ChassisMounts from "./ChassisMounts";
 import Offline from "./Offline";
 import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
+import ChassisView from "../ChassisView";
 
 function AssetForm({ id }) {
   const history = useHistory();
@@ -212,9 +213,15 @@ function AssetForm({ id }) {
 
       {id && (
         <div>
-          <VSpace height="32px" />
-          <Typography.Title level={4}>Network graph</Typography.Title>
-          <NetworkGraph assetID={id} networkGraph={asset.network_graph} />
+          <div>
+            <VSpace height="32px" />
+            <Typography.Title level={4}>Network graph</Typography.Title>
+            <NetworkGraph assetID={id} networkGraph={asset.network_graph} />
+          </div>
+          <div>
+            <VSpace height="32px" />
+            <ChassisView assetID={id} />
+          </div>
         </div>
       )}
     </div>
