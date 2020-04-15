@@ -41,6 +41,7 @@ import AssetImportPage from "./management/Import/AssetImportPage";
 import NetworkImportPage from "./management/Import/NetworkImportPage";
 import AssetDetailView from "./management/DecommissionManagement/DecommissionList/AssetDetailView";
 import OfflineAssetManagementPage from "./management/OfflineAssetManagement/OfflineAssetManagementPage";
+import Scanner from "./mobile/Scanner";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -146,6 +147,12 @@ function App() {
                 </Route>
                 <Route exact path="/assets/print_view">
                   <BarcodeView />
+                </Route>
+                <Route exact path="/scanner">
+                  <Scanner />
+                </Route>
+                <Route exact path="/scanner/assets/:id">
+                  <AssetDetailView />
                 </Route>
                 <Route>
                   <ManagementPageFrame>

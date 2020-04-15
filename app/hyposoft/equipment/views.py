@@ -243,3 +243,12 @@ class DecommissionAsset(views.APIView):
             raise serializers.ValidationError(
                 'Change Plan does not exist.'
             )
+
+class AssetIDForAssetNumber(views.APIView):
+    def get(self, request, asset_number): 
+        try:
+            asset = Asset.objects.get(asset_number=asset_number)
+            return Response(asset.id)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
