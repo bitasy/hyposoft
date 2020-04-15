@@ -14,6 +14,7 @@ import {
   UserOutlined,
   InboxOutlined,
   PullRequestOutlined,
+  DeliveredProcedureOutlined,
 } from "@ant-design/icons";
 import {
   AuthContext,
@@ -186,6 +187,11 @@ function Sidebar() {
       <Menu.Item key="/decommission">
         <DisconnectOutlined />
         <span>Decommission</span>
+      </Menu.Item>
+
+      <Menu.Item key="/offline_assets">
+        <DeliveredProcedureOutlined />
+        <span>Offline</span>
       </Menu.Item>
 
       <Menu.Item key="/sites">

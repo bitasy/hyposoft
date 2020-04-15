@@ -74,7 +74,7 @@ const initialFilterValues = {
 };
 
 // modelID?: number
-function AssetList({ modelID }) {
+function AssetList({ modelID, forOffline }) {
   const history = useHistory();
 
   const { site } = React.useContext(SiteContext);
@@ -102,6 +102,7 @@ function AssetList({ modelID }) {
     rack_to: filterValues.rack_to,
     rack_position_min: filterValues.rack_position[0],
     rack_position_max: filterValues.rack_position[1],
+    site__offline: forOffline ? "True" : "False",
     ordering,
     direction,
   };

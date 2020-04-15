@@ -40,6 +40,7 @@ import ModelImportPage from "./management/Import/ModelImportPage";
 import AssetImportPage from "./management/Import/AssetImportPage";
 import NetworkImportPage from "./management/Import/NetworkImportPage";
 import AssetDetailView from "./management/DecommissionManagement/DecommissionList/AssetDetailView";
+import OfflineAssetManagementPage from "./management/OfflineAssetManagement/OfflineAssetManagementPage";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -169,6 +170,9 @@ function App() {
                       </Route>
                       <Route exact path="/assets/readonly/:id">
                         <AssetDetailView />
+                      </Route>
+                      <Route exact path="/offline_assets">
+                        <OfflineAssetManagementPage />
                       </Route>
                       <Route exact path="/sites">
                         <SiteManagementPage />
