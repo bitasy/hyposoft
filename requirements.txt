@@ -7,3 +7,4 @@ requests
 django-multiselectfield
 --no-binary=psycopg2
 psycopg2
+pexpect

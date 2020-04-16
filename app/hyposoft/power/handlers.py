@@ -1,13 +1,56 @@
 import re
 import requests
+import pexpect
 from requests import ConnectTimeout
 
 from .models import Powered
+
+from django.conf import settings
 
 PDU_url = "http://hyposoft-mgt.colab.duke.edu:8008/"
 GET_suf = "pdu.php"
 POST_suf = "power.php"
 rack_pre = "hpdu-rtp1-"
+
+SSH_CMD = 'ssh admin8@hyposoft-mgt.colab.duke.edu -p 2222'
+SSH_NEWKEY = '(?i)are you sure you want to continue connecting'
+ENTER_PASSWORD = '(?i)password'
+PROMPT = 'bcman'
+PASSWORD = getattr(settings, 'BCMAN_PASSWORD')
+
+def to_prompt():
+    child = pexpect.spawn(SSH_CMD)
+    i = child.expect([SSH_NEWKEY, ENTER_PASSWORD])
+    if i == 0:
+        child.sendline('yes')
+        child.expect(ENTER_PASSWORD)
+    child.sendline(PASSWORD)
+    child.expect(PROMPT, timeout=5)
+
+    return child
+
+
+def is_blade_power_on(hostname, slot):
+    child = to_prompt()
+    child.sendline('chassis {}'.format(hostname))
+    child.expect(PROMPT, timeout=5)
+    child.sendline('blade {}'.format(slot))
+    child.expect(PROMPT, timeout=5)
+    child.sendline('power')
+    child.expect(PROMPT, timeout=5)
+    child.kill(0)
+    return "is ON" in child.before.decode("utf-8")
+
+
+def set_blade_power(hostname, slot, state):
+    child = to_prompt()
+    child.sendline('chassis {}'.format(hostname))
+    child.expect(PROMPT, timeout=5)
+    child.sendline('blade {}'.format(slot))
+    child.expect(PROMPT, timeout=5)
+    child.sendline('power {}'.format(state))
+    child.expect(PROMPT, timeout=5)
+    child.kill(0)
 
 
 def get_pdu(rack, position):
