@@ -16,55 +16,57 @@ const AssetTable = styled(Table)`
   }
 `;
 
-export const assetColumns = [
-  {
-    title: "Host",
-    dataIndex: "hostname",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Asset Number",
-    dataIndex: "asset_number",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Model",
-    dataIndex: "model",
-    sorter: true,
-    sortdirections: ["ascend", "descend"],
-  },
-  {
-    title: "Location",
-    dataIndex: "location",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Owner",
-    dataIndex: "owner",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Actions",
-    key: "actions",
-    sorter: false,
-    render: r => {
-      return (
-        <div>
-          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
-            Details
-          </a>
-          {r.power_action_visible && (
-            <NetworkPowerActionButtons assetID={r.id} />
-          )}
-        </div>
-      );
+export function assetColumns(origin) {
+  return [
+    {
+      title: "Host",
+      dataIndex: "hostname",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
     },
-  },
-];
+    {
+      title: "Asset Number",
+      dataIndex: "asset_number",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Model",
+      dataIndex: "model",
+      sorter: true,
+      sortdirections: ["ascend", "descend"],
+    },
+    {
+      title: "Location",
+      dataIndex: "location",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Owner",
+      dataIndex: "owner",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      sorter: false,
+      render: r => {
+        return (
+          <div>
+            <a href={`/#${origin}/${r.id}`} style={{ marginRight: 8 }}>
+              Details
+            </a>
+            {r.power_action_visible && (
+              <NetworkPowerActionButtons assetID={r.id} />
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+}
 
 const initialFilterValues = {
   search: "",
@@ -205,7 +207,7 @@ function AssetList({ modelID, forOffline }) {
       <AssetTable
         rowSelection={rowSelection}
         rowKey={r => r.id}
-        columns={assetColumns}
+        columns={assetColumns(forOffline ? "/offline_assets" : "/assets")}
         dataSource={data}
         onChange={onChange}
         pagination={false}

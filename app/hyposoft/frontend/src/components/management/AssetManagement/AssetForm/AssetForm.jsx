@@ -30,7 +30,7 @@ import Offline from "./Offline";
 import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
 
-function AssetForm({ id }) {
+function AssetForm({ id, origin }) {
   const history = useHistory();
   const query = Object.fromEntries(
     new URLSearchParams(useLocation().search).entries(),
@@ -42,7 +42,7 @@ function AssetForm({ id }) {
   const [siteList, setSiteList] = useState([]);
   const [users, setUsers] = useState([]);
 
-  useRedirectOnCPChange("/assets");
+  useRedirectOnCPChange(origin);
 
   React.useEffect(() => {
     getModelPicklist().then(setModelPickList);
@@ -70,22 +70,22 @@ function AssetForm({ id }) {
 
   async function handleCreate(fields) {
     await createAsset(fields);
-    history.push("/assets");
+    history.push(origin);
   }
 
   async function handleUpdate(fields) {
     const { id: newID } = await updateAsset(id, fields);
-    window.location.href = `/#/assets/${newID}`;
+    history.push(origin + "/" + newID);
   }
 
   async function handleDelete() {
     await deleteAsset(id);
-    history.push("/assets");
+    history.push(origin);
   }
 
   async function handleDecommission() {
     await decommissionAsset(id);
-    history.push("/assets");
+    history.push(origin);
   }
 
   return asset ? (

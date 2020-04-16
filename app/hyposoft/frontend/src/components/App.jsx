@@ -173,13 +173,16 @@ function App() {
                         <CreateAssetPage />
                       </Route>
                       <Route exact path="/assets/:id">
-                        <AssetDetailPage />
+                        <AssetDetailPage origin="/assets" />
                       </Route>
                       <Route exact path="/assets/readonly/:id">
                         <AssetDetailView />
                       </Route>
                       <Route exact path="/offline_assets">
                         <OfflineAssetManagementPage />
+                      </Route>
+                      <Route exact path="/offline_assets/:id">
+                        <AssetDetailPage origin="/offline_assets" />
                       </Route>
                       <Route exact path="/sites">
                         <SiteManagementPage />
