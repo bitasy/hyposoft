@@ -48,7 +48,7 @@ class ITModelImport(generics.CreateAPIView):
         force = bool(request.query_params['force'])
         file = data.get('file')
         dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
-        if not dataset.headers == ['vendor', 'model_number', 'height', 'display_color', 'network_ports',
+        if not dataset.headers == ['mount_type', 'vendor', 'model_number', 'height', 'display_color', 'network_ports',
                                    'power_ports', 'cpu', 'memory', 'storage', 'comment', 'network_port_name_1',
                                    'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
             raise serializers.ValidationError("Improperly formatted CSV")

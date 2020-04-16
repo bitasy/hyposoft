@@ -50,6 +50,10 @@ class VersionedResource(resources.ModelResource):
 
 
 class ITModelResource(ModelResource):
+    mount_type = fields.Field(
+        attribute='type'
+    )
+
     network_port_name_1 = fields.Field()
     network_port_name_2 = fields.Field()
     network_port_name_3 = fields.Field()
@@ -99,7 +103,7 @@ class ITModelResource(ModelResource):
         model = ITModel
         exclude = 'id'
         import_id_fields = ('vendor', 'model_number')
-        export_order = ('vendor', 'model_number', 'height', 'display_color', 'network_ports',
+        export_order = ('mount_type', 'vendor', 'model_number', 'height', 'display_color', 'network_ports',
                         'power_ports', 'cpu', 'memory', 'storage', 'comment',
                         'network_port_name_1', 'network_port_name_2', 'network_port_name_3', 'network_port_name_4')
         skip_unchanged = True
