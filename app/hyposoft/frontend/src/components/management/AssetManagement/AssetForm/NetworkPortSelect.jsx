@@ -36,10 +36,10 @@ function AssetNetworkPortSelect({ idx }) {
   const [networkPorts, setNetworkPorts] = React.useState([]);
 
   React.useEffect(() => {
-    if (values?.site) {
+    if (values?.location.site) {
       networkPortList().then(setNetworkPorts);
     }
-  }, [values?.site]);
+  }, [values?.location.site]);
 
   const networkPortGroups = Object.entries(
     networkPorts.reduce((acc, np) => {
