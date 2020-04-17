@@ -26,12 +26,23 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         if instance.changed_asset.hostname != instance.live_asset.hostname:
             messages.append('OLD HOSTNAME: ' + str(instance.live_asset.hostname) + ' | ' +
                             'NEW HOSTNAME: ' + str(instance.changed_asset.hostname))
-        if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
-            messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' + #todo test if new rack create in change plan breaks this
-                            'NEW RACK: ' + str(instance.changed_asset.rack.rack))
-        if instance.changed_asset.rack_position != instance.live_asset.rack_position:
-            messages.append('OLD RACK POSITION: ' + str(instance.live_asset.rack_position) + ' | ' +
-                            'NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
+
+        if not instance.changed_asset.itmodel.offline:
+            if not instance.live_asset.itmodel.offline:
+                if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
+                    messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' + #todo test if new rack create in change plan breaks this
+                                    'NEW RACK: ' + str(instance.changed_asset.rack.rack))
+            else:
+                messages.append('NEW RACK: ' + str(instance.changed_asset.rack.rack))
+
+        if not instance.changed_asset.itmodel.offline and instance.changed_asset.itmodel.type != 'blade':
+            if not instance.live_asset.itmodel.offline and instance.live_asset.itmodel.type != 'blade':
+                if instance.changed_asset.rack_position != instance.live_asset.rack_position:
+                    messages.append('OLD RACK POSITION: ' + str(instance.live_asset.rack_position) + ' | ' +
+                                    'NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
+                else:
+                    messages.append('NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
+
         if instance.changed_asset.itmodel != instance.live_asset.itmodel:
             messages.append('OLD ITMODEL: ' + str(instance.live_asset.itmodel) + ' | ' +
                             'NEW ITMODEL: ' + str(instance.changed_asset.itmodel))
@@ -40,9 +51,48 @@ def assetdiff_message(sender, instance, *args, **kwargs):
                              if instance.live_asset.owner else 'None') + ' | ' +
                             ('NEW OWNER: ' + str(instance.changed_asset.owner.username)
                              if instance.changed_asset.owner else 'None'))
+
+        # display_color, cpu, memory, storage
+        if instance.changed_asset.itmodel.type != 'chassis':
+            if instance.live_asset.itmodel.type != 'chassis':
+                if instance.changed_asset.display_color != instance.live_asset.display_color:
+                    messages.append('OLD DISPLAY COLOR: ' + str(instance.live_asset.display_color) + ' | ' +
+                                    'NEW DISPLAY COLOR: ' + str(instance.changed_asset.display_color))
+                if instance.changed_asset.cpu != instance.live_asset.cpu:
+                    messages.append('OLD CPU: ' + str(instance.live_asset.cpu) + ' | ' +
+                                    'NEW CPU: ' + str(instance.changed_asset.cpu))
+                if instance.changed_asset.memory != instance.live_asset.memory:
+                    messages.append('OLD MEMORY: ' + str(instance.live_asset.memory) + ' | ' +
+                                    'NEW MEMORY: ' + str(instance.changed_asset.memory))
+                if instance.changed_asset.storage != instance.live_asset.storage:
+                    messages.append('OLD STORAGE: ' + str(instance.live_asset.storage) + ' | ' +
+                                    'NEW STORAGE: ' + str(instance.changed_asset.storage))
+            else:
+                messages.append('NEW DISPLAY COLOR: ' + str(instance.changed_asset.display_color))
+                messages.append('NEW CPU: ' + str(instance.changed_asset.cpu))
+                messages.append('NEW MEMORY: ' + str(instance.changed_asset.memory))
+                messages.append('NEW STORAGE: ' + str(instance.changed_asset.storage))
+
         if instance.live_asset.commissioned is None and instance.new_asset.commissioned is not None:
             conflicts.append({"field": "decommissioned",
                               "message": 'Live asset is decommissioned.'})
+
+        # blade_chassis
+        if instance.changed_asset.itmodel.type == 'chassis' or instance.changed_asset.itmodel.type == 'blade':
+            if instance.live_asset.itmodel.type == 'chassis' or instance.live_asset.itmodel.type == 'blade':
+                if instance.changed_asset.blade_chassis != instance.changed_asset.blade_chassis:
+                    messages.append('OLD BLADE CHASSIS: ' + str(instance.live_asset.blade_chassis) + ' | ' +
+                                    'NEW BLADE CHASSIS: ' + str(instance.changed_asset.blade_chassis))
+            else:
+                messages.append('NEW BLADE CHASSIS: ' + str(instance.changed_asset.blade_chassis))
+        # slot
+        if instance.changed_asset.itmodel.type == 'chassis':
+            if instance.live_asset.itmodel.type == 'chassis':
+                if instance.changed_asset.slot != instance.changed_asset.slot:
+                    messages.append('OLD SLOT: ' + str(instance.live_asset.slot) + ' | ' +
+                                    'NEW SLOT: ' + str(instance.changed_asset.slot))
+            else:
+                messages.append('NEW SLOT: ' + str(instance.changed_asset.slot))
 
     else:
         changed = instance.changed_asset
