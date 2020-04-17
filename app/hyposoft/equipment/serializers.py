@@ -303,7 +303,7 @@ class AssetSerializer(serializers.ModelSerializer):
             data['power_state'] = None
 
         data['decommissioned'] = not instance.commissioned
-        # data['network_graph'] = net_graph(instance.id)  # todo: fix network graph
+        data['network_graph'] = net_graph(instance.id)  # todo: fix network graph
 
         location = {"site": instance.site.id}
         if instance.rack_position is not None:

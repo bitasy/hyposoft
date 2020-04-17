@@ -63,7 +63,7 @@ function process(assetID, rawGraph) {
 function NetworkGraph({ assetID, networkGraph }) {
   const [graph, setGraph] = React.useState(null);
   React.useEffect(() => {
-    // setGraph(process(assetID, networkGraph));
+    setGraph(process(assetID, networkGraph));
   }, [assetID, networkGraph]);
 
   return (
