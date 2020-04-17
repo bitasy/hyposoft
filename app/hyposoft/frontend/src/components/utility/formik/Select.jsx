@@ -30,7 +30,10 @@ function Select({ name, options, encode, decode, onChange, ...props }) {
       value={multiple ? (value ?? []).map(enc) : enc(value)}
       showSearch
       filterOption={(input, option) => {
-        return option.children.toLowerCase().includes(input.toLowerCase());
+        return option.children
+          .toString()
+          .toLowerCase()
+          .includes(input.toString().toLowerCase());
       }}
       onChange={s => {
         setTouched();
