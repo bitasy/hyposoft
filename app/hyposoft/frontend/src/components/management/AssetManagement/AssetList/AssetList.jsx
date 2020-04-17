@@ -182,6 +182,7 @@ function AssetList({ modelID, forOffline }) {
           <AssetFilters
             initialFilterValues={initialFilterValues}
             onChange={setFilterValues}
+            forOffline={forOffline}
           />
           <VSpace height="8px" />
           <Button
