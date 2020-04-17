@@ -18,7 +18,7 @@ function LocationSelect({ model, ...restProps }) {
         setFieldValue("location.tag", "chassis-mount");
       }
 
-      if (type === "rack-mount") {
+      if (type !== "blade") {
         setFieldValue(
           "network_ports",
           model.network_port_labels.map(label => {

@@ -10,7 +10,7 @@ function ChassisView({ assetID }) {
   const history = useHistory();
 
   const [isInOffline, setIsInOffline] = React.useState(false);
-  const [chassis, setChassis] = React.useState([]);
+  const [chassis, setChassis] = React.useState(null);
   const [blades, setBlades] = React.useState([]);
 
   React.useEffect(() => {
@@ -19,7 +19,7 @@ function ChassisView({ assetID }) {
         const asset = await getAsset(assetID);
         const rack = asset?.location.rack;
         if (rack) {
-          const rackViewData = (await getRackViewData(rack)).assets;
+          const rackViewData = (await getRackViewData([rack]))[rack].assets;
 
           const chassis = rackViewData.find(
             ({ model, asset: a }) =>
@@ -81,9 +81,11 @@ function ChassisView({ assetID }) {
                     const { model, asset } = blade;
                     return (
                       <td
+                        key={idx}
                         style={{
                           backgroundColor:
                             asset.display_color || model.display_color,
+                          minWidth: 20,
                         }}
                         onClick={() => history.push(`/assets/${asset.id}`)}
                         className={s.clickable}
@@ -92,7 +94,7 @@ function ChassisView({ assetID }) {
                       </td>
                     );
                   } else {
-                    return <td />;
+                    return <td key={idx} style={{ minWidth: 20 }} />;
                   }
                 })}
             </tr>
