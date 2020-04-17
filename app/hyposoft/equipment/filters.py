@@ -14,7 +14,7 @@ class ITModelFilter(filters.FilterSet):
 
     class Meta:
         model = ITModel
-        fields = ['height', 'network_ports', 'power_ports', 'memory']
+        fields = ['height', 'network_ports', 'power_ports', 'memory', 'type']
 
 
 class RackRangeFilter(BaseFilterBackend):
@@ -39,7 +39,7 @@ class AssetFilter(filters.FilterSet):
 
     class Meta:
         model = Asset
-        fields = ['itmodel', 'rack_position', 'asset_number', 'site__offline']
+        fields = ['itmodel', 'rack_position', 'asset_number', 'site__offline', 'itmodel__type']
 
 
 class ChangePlanFilter(BaseFilterBackend):

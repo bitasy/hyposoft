@@ -157,6 +157,13 @@ def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
     asset.version = change_plan
     asset.rack = rack
     asset.save()
+
+    if asset.blade_chassis is not None:
+        asset.blade_chassis = add_asset(asset.blade_chassis, change_plan, identity_fields)
+
+    for blade in asset.blade_set.all():
+        add_asset(blade, change_plan, identity_fields)
+
     return asset
 
 

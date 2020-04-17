@@ -39,7 +39,8 @@ class ITModelList(generics.ListAPIView):
         'model_number',
         'cpu',
         'storage',
-        'comment'
+        'comment',
+        'type'
     ]
     ordering_fields = [
         'id',
@@ -51,7 +52,8 @@ class ITModelList(generics.ListAPIView):
         'network_ports',
         'cpu',
         'memory',
-        'storage'
+        'storage',
+        'type'
     ]
     ordering = 'id'
 
@@ -86,7 +88,8 @@ class AssetList(FilterBySiteMixin, generics.ListAPIView):
         'owner__username',
         'owner__first_name',
         'owner__last_name',
-        'asset_number'
+        'asset_number',
+        'chassis_number'
     ]
     ordering_fields = [
         'id',
@@ -94,7 +97,7 @@ class AssetList(FilterBySiteMixin, generics.ListAPIView):
         'itmodel__vendor',
         'itmodel__model_number',
         'hostname',
-        'site__abbr', # todo fix in frontend (pending api changes)
+        'site__abbr',
         'rack__rack',
         'rack_position',
         'owner'

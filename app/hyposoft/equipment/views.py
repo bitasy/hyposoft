@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
-from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object, get_site
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
@@ -29,7 +29,7 @@ class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         version = ChangePlan.objects.get(id=get_version(request))
-        if version.id != 0:
+        if version.id != 0 and request.data['rack']:
             rack = Rack.objects.get(id=request.data['rack'])
             versioned_rack = add_rack(rack, version)
             request.data['rack'] = versioned_rack.id
@@ -88,22 +88,29 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
         asset_ver = asset.version
         if version != asset_ver:
             data = request.data
-            rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
-            if not rack:
-                rack = add_rack(asset.rack, version)
-                create_rack_extra(rack, version)
-            old_pdus = {port['id']: port['position']
-                        for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
-            new_pdus = {port['position']: port['id']
-                        for port in rack.pdu_set.order_by('position').values('id', 'position')}
-            data['rack'] = rack.id
-            for i, port in enumerate(request.data['power_connections']):
-               data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
+            site = Site.objects.get(id=request.data['location']['site'])
+            if not site.offline:
+                rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
+                if not rack:
+                    rack = add_rack(asset.rack, version)
+                    create_rack_extra(rack, version)
+                old_pdus = {port['id']: port['position']
+                            for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
+                new_pdus = {port['position']: port['id']
+                            for port in rack.pdu_set.order_by('position').values('id', 'position')}
+                data['rack'] = rack.id
+                for i, port in enumerate(request.data['power_connections']):
+                   data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
 
-            for i, port in enumerate(request.data['network_ports']):
-                if port['connection'] is not None:
-                    versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
-                    data['network_ports'][i]['connection'] = versioned_conn.id
+                for i, port in enumerate(request.data['network_ports']):
+                    if port['connection'] is not None:
+                        versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
+                        data['network_ports'][i]['connection'] = versioned_conn.id
+
+            if request.data['location']['tag'] == 'chassis-mount':
+                chassis = request.data['location']['asset']
+                request.data['location']['asset'] = add_asset(chassis, version, Asset.IDENTITY_FIELDS).id
+                pass
 
             serializer = AssetSerializer(data=data, context={'request': request, 'version': version.id})
             serializer.is_valid(raise_exception=True)
