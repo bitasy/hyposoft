@@ -79,3 +79,9 @@ export function networkPortList(assetID) {
     { headers: makeHeaders() },
   ).then(getData);
 }
+
+export function getAssetIDForAssetNumber(assetNumber) {
+  return Axios.get(`api/equipment/AssetIDForAssetNumber/${assetNumber}`).then(
+    getData,
+  );
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, Row, Col } from "antd";
+import { Typography } from "antd";
 import AssetForm from "./AssetForm/AssetForm";
 
 function CreateAssetPage() {

@@ -8,15 +8,15 @@ import {
 
 export const GLOBAL_ABBR = "global";
 
-export const DATACENTER_HEADER_NAME = "X-DATACENTER";
+export const SITE_HEADER_NAME = "X-SITE";
 export const CHANGEPLAN_HEADER_NAME = "X-CHANGE-PLAN";
 
-// overrides: { dcName: string, changePlanID: number }
+// overrides: { siteID: string, changePlanID: number }
 export function makeHeaders(overrides) {
-  const dcname = overrides?.dcName;
+  const siteid = overrides?.siteID;
   const cpid = overrides?.changePlanID;
   return {
-    ...(dcname != null ? { [DATACENTER_HEADER_NAME]: dcname } : {}),
+    ...(siteid != null ? { [SITE_HEADER_NAME]: sideid } : {}),
     ...(cpid != null ? { [CHANGEPLAN_HEADER_NAME]: cpid } : {}),
   };
 }
@@ -52,7 +52,7 @@ export function processAssetQuery(query) {
   const whatCanIDoIfDjangoForcesMeToLOL = {
     model: ["itmodel__vendor", "itmodel__model_number"],
     hostname: ["hostname"],
-    location: ["datacenter__abbr", "rack__rack", "rack_position"],
+    location: ["site__abbr", "rack__rack", "rack_position"],
     owner: ["owner"],
   };
 

@@ -28,7 +28,9 @@ function join(strs) {
   }
 */
 function Rack({ rack, onSelect }) {
-  const assetsByLevel = byLevel(rack.height, rack.assets);
+  const rackMounts = rack.assets.filter(({ model }) => model.type !== "blade");
+
+  const assetsByLevel = byLevel(rack.height, rackMounts);
 
   function renderCell(level) {
     if (!assetsByLevel[level]) {
@@ -49,6 +51,16 @@ function Rack({ rack, onSelect }) {
     const isBottom = level === asset.rack_position;
     const isTop = level === asset.rack_position + model.height - 1;
 
+    const mountCnt = rack.assets
+      .filter(
+        ({ asset }) =>
+          asset.location.tag === "chassis-mount" &&
+          asset.location.asset === asset.id,
+      )
+      .length.toString();
+
+    const additionalText = model.type === "chassis" ? `${mountCnt} blades` : "";
+
     return (
       <tr
         style={{ backgroundColor: model.display_color }}
@@ -61,8 +73,9 @@ function Rack({ rack, onSelect }) {
       >
         <td className={style.numberColumn}>{level}</td>
         <td className={style.infoColumnLeft}>
-          {isBottom && asset.isTmp ? "*" : ""}
-          {isBottom ? model.vendor + "\t" + model.model_number : ""}
+          {isBottom
+            ? `${model.model_number} by ${model.vendor} ${additionalText}`
+            : ""}
         </td>
         <td className={style.infoColumnRight}>
           {isBottom ? asset.hostname || "" : ""}

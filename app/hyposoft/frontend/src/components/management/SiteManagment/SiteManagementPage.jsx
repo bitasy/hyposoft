@@ -1,13 +1,12 @@
 import React, { useContext } from "react";
-import { Typography, List, Card, Input, Button, Icon } from "antd";
-import CreateTooltip from "../../utility/CreateTooltip";
-import { AuthContext, DCContext } from "../../../contexts/contexts";
+import { Typography, List, Card, Input, Button, Icon, Radio } from "antd";
+import { SiteContext } from "../../../contexts/contexts";
 import {
-  updateDatacenter,
-  deleteDatacenter,
-  createDatacenter,
-  getDatacenters,
-} from "../../../api/datacenter";
+  updateSite,
+  deleteSite,
+  createSite,
+  getSites,
+} from "../../../api/site";
 import useTrigger from "../../utility/useTrigger";
 import {
   CloseOutlined,
@@ -16,14 +15,15 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
+import VSpace from "../../utility/VSpace";
 
-function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
+function SiteCard({ site, onUpdate, onRemove, disabled }) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(null);
 
   React.useEffect(() => {
-    setDraft({ ...dc });
-  }, [dc.id, dc.name, dc.abbr]);
+    setDraft({ ...site });
+  }, [site.id, site.name, site.abbr, site.type]);
 
   function confirmUpdate() {
     onUpdate(draft);
@@ -52,7 +52,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
         disabled={disabled}
         onClick={() => {
           if (confirm("You sure?")) {
-            onRemove(dc.id, dc.abbr);
+            onRemove(site.id);
           }
         }}
       >
@@ -64,7 +64,7 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
   if (!draft) return null;
 
   return (
-    <Card title={dc.abbr} extra={ExtraButtons} actions={Actions}>
+    <Card title={site.abbr} extra={ExtraButtons} actions={Actions}>
       {isEditing ? (
         <>
           <h4>Name</h4>
@@ -81,13 +81,23 @@ function DatacenterCard({ dc, onUpdate, onRemove, disabled }) {
             onChange={e => setDraft({ ...draft, abbr: e.target.value })}
             onPressEnter={confirmUpdate}
           />
+          <h4>Type</h4>
+          <Radio.Group
+            value={draft.type}
+            onChange={e => setDraft({ ...draft, type: e.target.value })}
+          >
+            <Radio value="datacenter">datacenter</Radio>
+            <Radio value="offline-storage">offline-storage</Radio>
+          </Radio.Group>
         </>
       ) : (
         <>
           <h4>Name</h4>
-          <p>{dc.name}</p>
+          <p>{site.name}</p>
           <h4>Abbreviated Name</h4>
-          <p>{dc.abbr}</p>
+          <p>{site.abbr}</p>
+          <h4>Type</h4>
+          <p>{site.type}</p>
         </>
       )}
     </Card>
@@ -110,7 +120,7 @@ function AddCard({ onCreate, disabled }) {
         disabled={disabled}
       >
         <PlusOutlined />
-        Add Datacenter
+        Add Site
       </Button>
     </Card>
   );
@@ -120,6 +130,7 @@ function GhostCard({ onCreate, onCancel }) {
   const [draft, setDraft] = React.useState({
     name: "",
     abbr: "",
+    type: "datacenter",
   });
 
   function confirmCreate() {
@@ -155,42 +166,51 @@ function GhostCard({ onCreate, onCancel }) {
         onChange={e => setDraft({ ...draft, abbr: e.target.value })}
         onPressEnter={confirmCreate}
       />
+      <VSpace height="8px" />
+      <h4>Type</h4>
+      <Radio.Group
+        value={draft.type}
+        onChange={e => setDraft({ ...draft, type: e.target.value })}
+      >
+        <Radio value="datacenter">datacenter</Radio>
+        <Radio value="offline-storage">offline-storage</Radio>
+      </Radio.Group>
     </Card>
   );
 }
 
-function DatacenterManagementPage() {
+function SiteManagementPage() {
   const [isAdding, setIsAdding] = React.useState(false);
   const showGhostCard = () => setIsAdding(true);
   const showAddCard = () => setIsAdding(false);
 
-  const [datacenters, setDatacenters] = React.useState([]);
+  const [sites, setSites] = React.useState([]);
   const [trigger, fireTrigger] = useTrigger();
-  const { datacenter, setDCByID, refresh } = useContext(DCContext);
+  const { site, setSiteByID, refresh } = useContext(SiteContext);
 
   React.useEffect(() => {
-    getDatacenters().then(setDatacenters);
+    getSites().then(setSites);
     refresh();
   }, [trigger]);
 
   useRedirectOnCPChange();
 
-  const dcName = datacenter?.abbr;
+  const contextSiteID = site?.id;
 
   function handleUpdate({ id, name, abbr }) {
-    updateDatacenter(id, { name, abbr }).then(fireTrigger);
+    updateSite(id, { name, abbr }).then(fireTrigger);
   }
 
-  function handleDelete(id, abbr) {
-    deleteDatacenter(id)
+  function handleDelete(id) {
+    deleteSite(id)
       .then(() => {
-        dcName === abbr && setDCByID(null);
+        contextSiteID === id && setSiteByID(null);
       })
       .then(fireTrigger);
   }
 
   function handleCreate(fields) {
-    createDatacenter(fields)
+    createSite(fields)
       .then(fireTrigger)
       .then(showAddCard);
   }
@@ -199,11 +219,11 @@ function DatacenterManagementPage() {
     showGhostCard();
   }
 
-  const dataSource = [...datacenters, isAdding ? "ghost" : "add"]; // the last one for +
+  const dataSource = [...sites, isAdding ? "ghost" : "add"]; // the last one for +
 
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Datacenters</Typography.Title>
+      <Typography.Title level={3}>Sites</Typography.Title>
       <List
         grid={{
           gutter: 16,
@@ -215,8 +235,8 @@ function DatacenterManagementPage() {
           xxl: 3,
         }}
         dataSource={dataSource}
-        renderItem={dc => {
-          switch (dc) {
+        renderItem={site => {
+          switch (site) {
             case "add":
               return (
                 <List.Item>
@@ -232,8 +252,8 @@ function DatacenterManagementPage() {
             default:
               return (
                 <List.Item>
-                  <DatacenterCard
-                    dc={dc}
+                  <SiteCard
+                    site={site}
                     onUpdate={handleUpdate}
                     onRemove={handleDelete}
                   />
@@ -246,4 +266,4 @@ function DatacenterManagementPage() {
   );
 }
 
-export default DatacenterManagementPage;
+export default SiteManagementPage;

@@ -6,7 +6,7 @@ import AssetListFooter from "./AssetListFooter";
 import NetworkPowerActionButtons from "../NetworkPowerActionButtons";
 import AssetFilters from "./AssetFilters";
 import { getAssetList } from "../../../../api/asset";
-import { DCContext } from "../../../../contexts/contexts";
+import { SiteContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
@@ -16,55 +16,57 @@ const AssetTable = styled(Table)`
   }
 `;
 
-export const assetColumns = [
-  {
-    title: "Host",
-    dataIndex: "hostname",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Asset Number",
-    dataIndex: "asset_number",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Model",
-    dataIndex: "model",
-    sorter: true,
-    sortdirections: ["ascend", "descend"],
-  },
-  {
-    title: "Location",
-    dataIndex: "location",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Owner",
-    dataIndex: "owner",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
-  },
-  {
-    title: "Actions",
-    key: "actions",
-    sorter: false,
-    render: r => {
-      return (
-        <div>
-          <a href={`/#/assets/${r.id}`} style={{ marginRight: 8 }}>
-            Details
-          </a>
-          {r.power_action_visible && (
-            <NetworkPowerActionButtons assetID={r.id} />
-          )}
-        </div>
-      );
+export function assetColumns(origin) {
+  return [
+    {
+      title: "Host",
+      dataIndex: "hostname",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
     },
-  },
-];
+    {
+      title: "Asset Number",
+      dataIndex: "asset_number",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Model",
+      dataIndex: "model",
+      sorter: true,
+      sortdirections: ["ascend", "descend"],
+    },
+    {
+      title: "Location",
+      dataIndex: "location",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Owner",
+      dataIndex: "owner",
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      sorter: false,
+      render: r => {
+        return (
+          <div>
+            <a href={`/#${origin}/${r.id}`} style={{ marginRight: 8 }}>
+              Details
+            </a>
+            {r.power_action_visible && (
+              <NetworkPowerActionButtons assetID={r.id} />
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+}
 
 const initialFilterValues = {
   search: "",
@@ -74,10 +76,10 @@ const initialFilterValues = {
 };
 
 // modelID?: number
-function AssetList({ modelID }) {
+function AssetList({ modelID, forOffline }) {
   const history = useHistory();
 
-  const { datacenter } = React.useContext(DCContext);
+  const { site } = React.useContext(SiteContext);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
@@ -102,6 +104,7 @@ function AssetList({ modelID }) {
     rack_to: filterValues.rack_to,
     rack_position_min: filterValues.rack_position[0],
     rack_position_max: filterValues.rack_position[1],
+    site__offline: forOffline ? "True" : "False",
     ordering,
     direction,
   };
@@ -123,7 +126,7 @@ function AssetList({ modelID }) {
         setTotal(r.count);
       }
     });
-  }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
+  }, [filterValues, page, pageSize, ordering, direction, site?.id]);
 
   React.useEffect(() => {
     setPage(1);
@@ -204,7 +207,7 @@ function AssetList({ modelID }) {
       <AssetTable
         rowSelection={rowSelection}
         rowKey={r => r.id}
-        columns={assetColumns}
+        columns={assetColumns(forOffline ? "/offline_assets" : "/assets")}
         dataSource={data}
         onChange={onChange}
         pagination={false}

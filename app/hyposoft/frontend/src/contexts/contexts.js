@@ -5,10 +5,9 @@ export const AuthContext = React.createContext({
   setUser: () => {},
 });
 
-export const DCContext = React.createContext({
-  datacenter: null,
-  setDCByName: () => {},
-  setDCByID: () => {},
+export const SiteContext = React.createContext({
+  site: null,
+  setSiteByID: () => {},
   refreshTrigger: 0,
   refresh: () => {},
 });

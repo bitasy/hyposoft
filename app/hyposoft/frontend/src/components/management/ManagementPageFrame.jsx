@@ -14,26 +14,25 @@ import {
   UserOutlined,
   InboxOutlined,
   PullRequestOutlined,
+  DeliveredProcedureOutlined,
 } from "@ant-design/icons";
 import {
   AuthContext,
-  DCContext,
   ChangePlanContext,
+  SiteContext,
 } from "../../contexts/contexts";
 import HGreed from "../utility/HGreed";
-import { getDatacenters } from "../../api/datacenter";
 import { getChangePlanList } from "../../api/changeplan";
 import { logout } from "../../api/auth";
+import { getSites } from "../../api/site";
 
 const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
   const { user } = useContext(AuthContext);
-  const {
-    datacenter,
-    setDCByID,
-    refreshTrigger: dcRefreshTrigger,
-  } = useContext(DCContext);
+  const { site, setSiteByID, refreshTrigger: siteRefreshTrigger } = useContext(
+    SiteContext,
+  );
   const {
     changePlan,
     setChangePlan,
@@ -41,11 +40,11 @@ function ManagementPageFrame({ children }) {
   } = useContext(ChangePlanContext);
 
   const [changePlans, setChangePlans] = useState([]);
-  const [datacenters, setDatacenters] = useState([]);
+  const [sites, setSites] = useState([]);
 
   React.useEffect(() => {
-    getDatacenters().then(setDatacenters);
-  }, [dcRefreshTrigger]);
+    getSites().then(setSites);
+  }, [siteRefreshTrigger]);
 
   React.useEffect(() => {
     getChangePlanList().then(cps => {
@@ -60,7 +59,7 @@ function ManagementPageFrame({ children }) {
   }, [cpRefreshTrigger]);
 
   const isAdmin = user.is_staff;
-  const selectedDCID = datacenter?.id ?? -1;
+  const selectedSiteID = site?.id ?? -1;
 
   async function onLogout() {
     const { redirectTo } = await logout();
@@ -110,12 +109,12 @@ function ManagementPageFrame({ children }) {
               ))}
             </Select>
             <Select
-              value={selectedDCID}
-              onChange={setDCByID}
+              value={selectedSiteID}
+              onChange={setSiteByID}
               style={{ width: 250, marginRight: 8 }}
             >
               <Select.Option value={-1}>Global</Select.Option>
-              {datacenters.map((ds, idx) => (
+              {sites.map((ds, idx) => (
                 <Select.Option
                   key={idx}
                   value={ds.id}
@@ -190,9 +189,14 @@ function Sidebar() {
         <span>Decommission</span>
       </Menu.Item>
 
-      <Menu.Item key="/datacenters">
+      <Menu.Item key="/offline_assets">
+        <DeliveredProcedureOutlined />
+        <span>Offline</span>
+      </Menu.Item>
+
+      <Menu.Item key="/sites">
         <BuildOutlined />
-        <span>Datacenters</span>
+        <span>Sites</span>
       </Menu.Item>
 
       <Menu.Item key="/racks">

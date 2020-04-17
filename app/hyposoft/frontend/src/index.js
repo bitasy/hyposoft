@@ -3,11 +3,11 @@ import ReactDOM from "react-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import App, {
+  SITE_SESSION_KEY,
   CHANGE_PLAN_SESSION_KEY,
-  DATACENTER_ABBR_SESSION_KEY,
 } from "./components/App";
 import "antd/dist/antd.css";
-import { DATACENTER_HEADER_NAME, CHANGEPLAN_HEADER_NAME } from "./api/utils";
+import { SITE_HEADER_NAME, CHANGEPLAN_HEADER_NAME } from "./api/utils";
 
 axios.interceptors.request.use(config => {
   if (!config) return config;
@@ -31,11 +31,11 @@ axios.interceptors.request.use(config => {
     }
   }
 
-  const dcHeader =
-    config.headers[DATACENTER_HEADER_NAME] ??
-    sessionStorage.getItem(DATACENTER_ABBR_SESSION_KEY);
-  if (dcHeader) {
-    config.headers[DATACENTER_HEADER_NAME] = dcHeader;
+  const siteHeader =
+    config.headers[SITE_HEADER_NAME] ??
+    sessionStorage.getItem(SITE_SESSION_KEY);
+  if (siteHeader) {
+    config.headers[SITE_HEADER_NAME] = siteHeader;
   }
 
   config.headers[CHANGEPLAN_HEADER_NAME] =

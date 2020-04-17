@@ -21,6 +21,8 @@ import {
 } from "../../../../api/model";
 import { useHistory } from "react-router-dom";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import TypePicker from "./TypePicker";
+import produce from "immer";
 
 const COLOR_HEX_REGEX = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/g;
 
@@ -49,6 +51,7 @@ const schema = Yup.object()
   .default({
     vendor: "",
     model_number: "",
+    type: "regular",
     height: 1,
     display_color: "#0ff",
     network_port_labels: [],
@@ -77,12 +80,30 @@ function ModelForm({ id }) {
   useRedirectOnCPChange("/models");
 
   async function handleCreate(fields) {
-    await createModel(fields);
+    const fieldsForCreate = fields;
+    if (fields.type === "blade") {
+      fieldsForCreate = produce(fields, draft => {
+        delete draft.height;
+        delete draft.network_port_labels;
+        delete draft.power_ports;
+      });
+    }
+
+    await createModel(fieldsForCreate);
     history.push("/models");
   }
 
   function handleUpdate(fields) {
-    updateModel(id, fields);
+    const fieldsForUpdate = fields;
+    if (fields.type === "blade") {
+      fieldsForUpdate = produce(fields, draft => {
+        delete draft.height;
+        delete draft.network_port_labels;
+        delete draft.power_ports;
+      });
+    }
+
+    updateModel(id, fieldsForupdate);
   }
 
   async function handleDelete() {
@@ -96,60 +117,72 @@ function ModelForm({ id }) {
       initialValues={model}
       onSubmit={id ? handleUpdate : handleCreate}
     >
-      <Form>
-        <ItemWithLabel name="vendor" label="Vendor">
-          <AutoComplete name="vendor" acList={vendors} />
-        </ItemWithLabel>
+      {props => (
+        <Form>
+          <ItemWithLabel name="vendor" label="Vendor">
+            <AutoComplete name="vendor" acList={vendors} />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="model_number" label="Model #">
-          <Input name="model_number" />
-        </ItemWithLabel>
+          <ItemWithLabel name="model_number" label="Model #">
+            <Input name="model_number" />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="height" label="Height">
-          <InputNumber name="height" min={1} max={42} />
-        </ItemWithLabel>
+          <ItemWithLabel name="type" label="Type">
+            <TypePicker name="type" />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="display_color" label="Display Color">
-          <ColorPicker name="display_color" />
-        </ItemWithLabel>
+          {props.values.type !== "blade" ? (
+            <div>
+              <ItemWithLabel name="height" label="Height">
+                <InputNumber name="height" min={1} max={42} />
+              </ItemWithLabel>
+              <ItemWithLabel
+                name="network_port_labels"
+                label="Network Port Labels"
+              >
+                <NetworkPortLabelFormItem name="network_port_labels" />
+              </ItemWithLabel>
 
-        <ItemWithLabel name="network_port_labels" label="Network Port Labels">
-          <NetworkPortLabelFormItem name="network_port_labels" />
-        </ItemWithLabel>
+              <ItemWithLabel name="power_ports" label="# of Power ports">
+                <InputNumber name="power_ports" min={0} max={10} />
+              </ItemWithLabel>
+            </div>
+          ) : null}
 
-        <ItemWithLabel name="power_ports" label="# of Power ports">
-          <InputNumber name="power_ports" min={0} max={10} />
-        </ItemWithLabel>
+          <ItemWithLabel name="display_color" label="Display Color">
+            <ColorPicker name="display_color" />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="cpu" label="CPU">
-          <Input name="cpu" />
-        </ItemWithLabel>
+          <ItemWithLabel name="cpu" label="CPU">
+            <Input name="cpu" />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="memory" label="Memory">
-          <InputNumber name="memory" />
-        </ItemWithLabel>
+          <ItemWithLabel name="memory" label="Memory">
+            <InputNumber name="memory" />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="storage" label="Storage">
-          <Input name="storage" />
-        </ItemWithLabel>
+          <ItemWithLabel name="storage" label="Storage">
+            <Input name="storage" />
+          </ItemWithLabel>
 
-        <ItemWithLabel name="comment" label="Comment">
-          <TextArea name="comment" rows={5} />
-        </ItemWithLabel>
+          <ItemWithLabel name="comment" label="Comment">
+            <TextArea name="comment" rows={5} />
+          </ItemWithLabel>
 
-        <SubmitButton ghost type="primary" block>
-          {id ? "Update" : "Create"}
-        </SubmitButton>
+          <SubmitButton ghost type="primary" block>
+            {id ? "Update" : "Create"}
+          </SubmitButton>
 
-        {id && (
-          <>
-            <VSpace height="16px" />
-            <Button ghost type="danger" onClick={handleDelete} block>
-              Delete
-            </Button>
-          </>
-        )}
-      </Form>
+          {id && (
+            <>
+              <VSpace height="16px" />
+              <Button ghost type="danger" onClick={handleDelete} block>
+                Delete
+              </Button>
+            </>
+          )}
+        </Form>
+      )}
     </Formik>
   ) : null;
 }
