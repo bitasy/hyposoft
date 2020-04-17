@@ -154,7 +154,7 @@ function Sidebar() {
   const history = useHistory();
 
   const { user } = useContext(AuthContext);
-  const isAdmin = user.is_staff;
+  const isAdmin = user.permission.admin_perm;
 
   function handleClick(e) {
     const key = e.key;
