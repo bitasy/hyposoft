@@ -147,7 +147,6 @@ function ManagementPageFrame({ children }) {
 }
 
 const EXTERNAL_LINKS = {
-  "/user": "admin/auth/user/",
   "/import": "/static/bulk_format_proposal.pdf",
 };
 
@@ -220,7 +219,7 @@ function Sidebar() {
       </Menu.Item>
 
       {isAdmin ? (
-        <Menu.Item key="/user">
+        <Menu.Item key="/users">
           <UserOutlined />
           Users
         </Menu.Item>

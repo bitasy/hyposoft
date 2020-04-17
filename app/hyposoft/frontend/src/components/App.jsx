@@ -42,6 +42,7 @@ import NetworkImportPage from "./management/Import/NetworkImportPage";
 import AssetDetailView from "./management/DecommissionManagement/DecommissionList/AssetDetailView";
 import OfflineAssetManagementPage from "./management/OfflineAssetManagement/OfflineAssetManagementPage";
 import Scanner from "./mobile/Scanner";
+import UserManagementPage from "./management/UserManagement/UserManagementPage";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -216,6 +217,9 @@ function App() {
                       </Route>
                       <Route exact path="/import/network">
                         <NetworkImportPage />
+                      </Route>
+                      <Route exact path="/users">
+                        <UserManagementPage />
                       </Route>
                       <Route>
                         <LandingPage />
