@@ -29,6 +29,7 @@ import ChassisMounts from "./ChassisMounts";
 import Offline from "./Offline";
 import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
+import FormDebugger from "../../../utility/formik/FormDebugger";
 
 function AssetForm({ id, origin }) {
   const history = useHistory();
@@ -181,6 +182,8 @@ function AssetForm({ id, origin }) {
                   {id ? "Update" : "Create"}
                   <VSpace height="16px" />
                 </SubmitButton>
+
+                <FormDebugger />
 
                 {id && (
                   <>
