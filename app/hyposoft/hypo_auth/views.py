@@ -128,6 +128,10 @@ class UserCreate(generics.CreateAPIView):
         )
         return UserPermSerializer(user).data
 
+class UserRetrieve(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
+
 
 class UserUpdate(generics.UpdateAPIView):
     queryset = User.objects.all()

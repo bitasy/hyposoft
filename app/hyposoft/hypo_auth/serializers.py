@@ -29,7 +29,7 @@ class UserPermSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'permission']
+        fields = ['id', 'username', 'first_name', 'last_name', 'permission']
 
         def to_representation(self, instance):
             data = super(UserPermSerializer, self).to_representation(instance)

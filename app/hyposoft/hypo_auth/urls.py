@@ -22,8 +22,9 @@ urlpatterns += [
     path('logout', views.LogoutView.as_view()),
     path('shib_login', ShibbolethLoginView.as_view()),
     path('shib_session', ShibbolethView.as_view()),
-    path('api/UserCreate', views.UserCreate.as_view()),
-    path('api/UserUpdate<int:pk>', views.UserUpdate.as_view()),
-    path('api/UserList', views.UserList.as_view()),
-    path('api/UserDestroy<int:pk>', views.UserDestroy.as_view())
+    path('UserCreate', views.UserCreate.as_view()),
+    path('UserRetrieve/<int:pk>', views.UserRetrieve.as_view()),
+    path('UserUpdate/<int:pk>', views.UserUpdate.as_view()),
+    path('UserList', views.UserList.as_view()),
+    path('UserDestroy/<int:pk>', views.UserDestroy.as_view())
 ]
