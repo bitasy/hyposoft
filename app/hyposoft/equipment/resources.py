@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Max
 from import_export import resources, fields
 from import_export.resources import ModelResource
+from rest_framework import serializers
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
@@ -53,11 +54,27 @@ class ITModelResource(ModelResource):
     mount_type = fields.Field(
         attribute='type'
     )
+    network_port_name_1 = fields.Field(attribute='network_port_name_1')
+    network_port_name_2 = fields.Field(attribute='network_port_name_2')
+    network_port_name_3 = fields.Field(attribute='network_port_name_3')
+    network_port_name_4 = fields.Field(attribute='network_port_name_4')
 
-    network_port_name_1 = fields.Field()
-    network_port_name_2 = fields.Field()
-    network_port_name_3 = fields.Field()
-    network_port_name_4 = fields.Field()
+    def skip_row(self, instance, original):
+        port1 = getattr(instance, "network_port_name_1")
+        port2 = getattr(instance, "network_port_name_2")
+        port3 = getattr(instance, "network_port_name_3")
+        port4 = getattr(instance, "network_port_name_4")
+        new = [port for port in (port1, port2, port3, port4) if len(port) > 0]
+        curr = original.networkportlabel_set.values_list("name", flat=True)
+
+        if sorted(new) != sorted(curr):
+            return False
+
+        delattr(instance, "network_port_name_1")
+        delattr(instance, "network_port_name_2")
+        delattr(instance, "network_port_name_3")
+        delattr(instance, "network_port_name_4")
+        return super(ITModelResource, self).skip_row(instance, original)
 
     def dehydrate_network_port_name_1(self, itmodel):
         try:
@@ -129,6 +146,8 @@ class ITModelResource(ModelResource):
             data.insert(i, row)
 
     def after_import_row(self, row, row_result, **kwargs):
+        if row_result.import_type == 'skip':
+            return
         my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
         my_network_ports = int(row['network_ports'])
         current = [label['name'] for label in my_model.networkportlabel_set.order_by('order').values()]
@@ -137,11 +156,19 @@ class ITModelResource(ModelResource):
                 'Cannot decrease amount of network ports.'
             )
 
-        my_model.networkportlabel_set.all().delete()
-
         special = []
         for i in range(1, min(5, my_network_ports + 1)):
             special.append(row['network_port_name_' + str(i)])
+
+        if special != current[:len(special)]:
+            if my_model.asset_set.all().count() > 0:
+                raise serializers.ValidationError(
+                    "Cannot modify interconnected ITModel attributes while assets are deployed."
+                )
+            else:
+                my_model.networkportlabel_set.all().delete()
+
+
 
         create_itmodel_extra(my_model, special + current)
 
@@ -319,7 +346,7 @@ class AssetResource(VersionedResource):
     class Meta:
         model = Asset
         exclude = ('id', 'itmodel', 'site', 'commissioned', 'decommissioned_by', 'decommissioned_timestamp')
-        import_id_fields = ('hostname', 'vendor', 'model_number')
+        import_id_fields = ('hostname', 'vendor', 'model_number', 'version')
         export_order = ('asset_number', 'hostname', 'datacenter', 'offline_site', 'rack', 'rack_position',
                         'blade_chassis', 'slot', 'vendor', 'model_number',
                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2',
@@ -342,6 +369,8 @@ class AssetResource(VersionedResource):
         row['version'] = self.version.id
 
     def after_import_row(self, row, row_result, **kwargs):
+        if row_result.import_type == 'skip':
+            return
         try:
             my_asset = Asset.objects.get(id=row_result.object_id)
         except:

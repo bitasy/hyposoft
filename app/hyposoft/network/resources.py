@@ -74,7 +74,7 @@ class NetworkPortResource(VersionedResource):
     class Meta:
         model = NetworkPort
         exclude = ('id', 'asset', 'label', 'connection')
-        import_id_fields = ('src_hostname', 'src_port')
+        import_id_fields = ('src_hostname', 'src_port', 'version')
         export_order = ('src_hostname', 'src_port', 'src_mac', 'dest_hostname', 'dest_port')
         skip_unchanged = True
         report_skipped = True
@@ -102,6 +102,8 @@ class NetworkPortResource(VersionedResource):
             raise ValidationError("Asset with hostname {} not found.".format(row['dest_hostname']))
 
     def after_import_row(self, row, row_result, **kwargs):
+        if row_result.import_type == 'skip':
+            return
         try:
             my_src_network_port = NetworkPort.objects.get(id=row_result.object_id)
         except:

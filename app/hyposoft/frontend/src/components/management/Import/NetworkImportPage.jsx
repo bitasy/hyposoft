@@ -37,6 +37,7 @@ function NetworkImportPage() {
       if (errors) {
         setErrors(errors);
       } else {
+        setErrors([]);
         message.success("success!");
       }
     });

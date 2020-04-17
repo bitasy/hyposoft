@@ -1,7 +1,6 @@
-import datetime
-
 from django.db import transaction
 from django.db.models import Max
+from django.utils.timezone import now
 from rest_framework import serializers
 
 from system_log.views import log_decommission
@@ -86,10 +85,9 @@ def create_rack_extra(rack, version):
 
 
 @transaction.atomic()
-def decommission_asset(asset_id, view, user, changeplan):
+def decommission_asset(asset_id, view, user, version):
     try:
         asset = Asset.objects.get(id=asset_id)
-        version = ChangePlan.objects.get(id=changeplan.id)
 
         change_plan = ChangePlan.objects.create(
             owner=user,
@@ -110,7 +108,7 @@ def decommission_asset(asset_id, view, user, changeplan):
         rack = asset.rack
         asset.commissioned = None
         asset.decommissioned_by = user
-        asset.decommissioned_timestamp = datetime.datetime.now()
+        asset.decommissioned_timestamp = now()
         asset.save()
 
         if old_rack:
@@ -120,13 +118,17 @@ def decommission_asset(asset_id, view, user, changeplan):
         if rack:
             for pdu in old_rack.pdu_set.filter(version=version):
                 old_pdu = PDU.objects.get(id=pdu.id)
-                pdu.id = None
-                pdu.rack = rack
-                pdu.networked = False
-                pdu.version = change_plan
-                pdu.save()
+                pdu = versioned_object(old_pdu, version=change_plan, identity_fields=PDU.IDENTITY_FIELDS)
+                if pdu is None:
+                    pdu.id = None
+                    pdu.rack = rack
+                    pdu.networked = False
+                    pdu.version = change_plan
+                    pdu.save()
 
-                for power in old_pdu.powered_set.filter(version=version):
+            for power in old_pdu.powered_set.filter(version=version, asset=old_asset):
+                new_power = versioned_object(power, version=change_plan, identity_fields=Powered.IDENTITY_FIELDS)
+                if new_power is None:
                     power.id = None
                     power.pdu = pdu
                     power.asset = asset

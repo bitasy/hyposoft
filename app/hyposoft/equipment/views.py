@@ -140,6 +140,13 @@ class ITModelDestroy(ITModelPermissionDestroyMixin, ITModelDestroyWithIdMixin, g
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
+    def delete(self, request, *args, **kwargs):
+        if self.get_object().asset_set.all().count() > 0:
+            raise serializers.ValidationError(
+                "Cannot delete ITModel while assets are deployed."
+            )
+        return super(ITModelDestroy, self).delete(request, *args, **kwargs)
+
 
 class VendorList(views.APIView):
     def get(self, request):
