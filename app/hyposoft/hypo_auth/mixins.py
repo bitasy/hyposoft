@@ -54,14 +54,16 @@ class ITModelDestroyWithIdMixin(object):
 
 class AssetPermissionCreateMixin(CreateAndLogMixin):
     def perform_create(self, serializer):
-        abbr = self.get_object().site.abbr
+        site = serializer.validated_data['site']
         if self.request.user.is_superuser:
             super(AssetPermissionCreateMixin, self).perform_create(serializer)
             return
         else:
-            site_perm = self.request.user.permission.site_perm
-            if not self.request.user.permission.asset_perm or ('Global' not in site_perm and abbr not in site_perm):
-                raise serializers.ValidationError("You don't have permission.")
+            if site:
+                site_perm = self.request.user.permission.site_perm
+                if not self.request.user.permission.asset_perm or \
+                        ('Global' not in site_perm and site.abbr not in site_perm):
+                    raise serializers.ValidationError("You don't have permission.")
         super(AssetPermissionCreateMixin, self).perform_create(serializer)
 
 

@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_filters import rest_framework as filters
 from rest_framework.filters import BaseFilterBackend
 
@@ -34,12 +35,21 @@ class RackRangeFilter(BaseFilterBackend):
             return queryset
 
 
+class RackPositionFilter(BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        pos_min = request.query_params.get('rack_position_min')
+        pos_max = request.query_params.get('rack_position_max')
+
+        if pos_min and pos_max:
+            return queryset.filter(Q(rack_position__range=(pos_min, pos_max)) |
+                                   Q(blade_chassis__rack_position__range=(pos_min, pos_max)))
+
+
 class AssetFilter(filters.FilterSet):
-    rack_position = filters.RangeFilter()
 
     class Meta:
         model = Asset
-        fields = ['itmodel', 'rack_position', 'asset_number', 'site__offline', 'itmodel__type']
+        fields = ['itmodel', 'asset_number', 'site__offline', 'itmodel__type']
 
 
 class ChangePlanFilter(BaseFilterBackend):

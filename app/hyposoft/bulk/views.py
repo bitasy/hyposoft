@@ -11,7 +11,7 @@ from django.db import models
 
 from equipment.resources import ITModelResource, AssetResource
 from equipment.models import ITModel, Asset, Rack
-from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter
+from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter, RackPositionFilter
 from equipment.serializers import ITModelSerializer, AssetSerializer
 from changeplan.models import ChangePlan
 from power.models import Powered, PDU
@@ -313,7 +313,8 @@ class AssetExport(generics.ListAPIView):
         filters.SearchFilter,
         DjangoFilterBackend,
         filters.OrderingFilter,
-        RackRangeFilter
+        RackRangeFilter,
+        RackPositionFilter,
     ]
     search_fields = [
         'itmodel__vendor',
@@ -347,7 +348,8 @@ class NetworkExport(generics.ListAPIView):
         filters.SearchFilter,
         DjangoFilterBackend,
         filters.OrderingFilter,
-        RackRangeFilter
+        RackRangeFilter,
+        RackPositionFilter
     ]
     search_fields = [
         'itmodel__vendor',

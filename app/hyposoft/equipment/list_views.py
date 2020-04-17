@@ -6,7 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from hyposoft.utils import get_version, versioned_queryset, get_site
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
     AssetSerializer, RackSerializer, SiteSerializer, ITModelPickSerializer
-from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter
+from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter, RackPositionFilter
 from .models import *
 
 
@@ -78,6 +78,7 @@ class AssetList(FilterBySiteMixin, generics.ListAPIView):
         DjangoFilterBackend,
         filters.OrderingFilter,
         RackRangeFilter,
+        RackPositionFilter,
         ChangePlanFilter
     ]
     search_fields = [
