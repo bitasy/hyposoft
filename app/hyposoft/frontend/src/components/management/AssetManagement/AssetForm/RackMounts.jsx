@@ -6,6 +6,7 @@ import InputNumber from "../../../utility/formik/InputNumber";
 import { powerPortList } from "../../../../api/power";
 import NetworkPortSelect from "./NetworkPortSelect";
 import PowerPortSelect from "./PowerPortSelect";
+import { useFormikContext } from "formik";
 
 function RackMounts({ model, siteList }) {
   const { values } = useFormikContext();

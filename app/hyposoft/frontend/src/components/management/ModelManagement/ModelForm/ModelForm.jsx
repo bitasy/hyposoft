@@ -80,7 +80,7 @@ function ModelForm({ id }) {
   useRedirectOnCPChange("/models");
 
   async function handleCreate(fields) {
-    const fieldsForCreate = fields;
+    let fieldsForCreate = fields;
     if (fields.type === "blade") {
       fieldsForCreate = produce(fields, draft => {
         delete draft.height;
@@ -94,7 +94,7 @@ function ModelForm({ id }) {
   }
 
   function handleUpdate(fields) {
-    const fieldsForUpdate = fields;
+    let fieldsForUpdate = fields;
     if (fields.type === "blade") {
       fieldsForUpdate = produce(fields, draft => {
         delete draft.height;
@@ -103,7 +103,7 @@ function ModelForm({ id }) {
       });
     }
 
-    updateModel(id, fieldsForupdate);
+    updateModel(id, fieldsForUpdate);
   }
 
   async function handleDelete() {

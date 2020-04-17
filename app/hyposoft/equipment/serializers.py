@@ -304,7 +304,7 @@ class AssetSerializer(serializers.ModelSerializer):
         data['decommissioned'] = not instance.commissioned
         # data['network_graph'] = net_graph(instance.id)  # todo: fix network graph
 
-        location = {"site": instance.site}
+        location = {"site": instance.site.id}
         if instance.rack_position is not None:
             location['tag'] = 'rack-mount'
             location['rack'] = instance.rack.id
@@ -319,6 +319,7 @@ class AssetSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Location of this asset is inconsistent."
             )
+        data['location'] = location
 
         del data['site']
         del data['rack']
