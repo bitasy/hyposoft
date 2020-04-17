@@ -56,14 +56,16 @@ function AssetForm({ id, origin }) {
     if (id) {
       getAsset(id).then(asset => {
         setAsset(asset);
+        setTimeout(() => {
+          locked.current = false;
+        }, 1000);
       });
     } else {
       setAsset(schema.default());
+      setTimeout(() => {
+        locked.current = false;
+      }, 1000);
     }
-
-    setTimeout(() => {
-      locked.current = false;
-    }, 1000);
   }, []);
 
   React.useEffect(() => {
