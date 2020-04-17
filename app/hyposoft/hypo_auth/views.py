@@ -19,7 +19,7 @@ class SessionView(views.APIView):
     def get(self, request):
         u = auth.get_user(request)
         if u.is_authenticated:
-            user = UserSerializer(u.__dict__).data
+            user = UserPermSerializer(u).data
             return JsonResponse(user)
         else:
             return HttpResponse()

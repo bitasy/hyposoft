@@ -17,10 +17,10 @@ def get_asset(request, asset_id):
 
     asset = Asset.objects.get(id=asset_id)
 
-    if asset.location.tag != "offline": 
+    if not asset.site.offline:
         if asset.itmodel.type == "blade":
             networked = True
-            powered = is_blade_power_on(asset.hostname, asset.location.slot)
+            powered = is_blade_power_on(asset.blade_chassis.hostname, asset.slot)
         else:
             rack = asset.rack.rack
             ports = Powered.objects.filter(asset=asset)
@@ -65,10 +65,10 @@ def post_asset(request):
     state = request.data['state'].lower()
     asset = Asset.objects.get(id=request.data['asset_id'])
 
-    if asset.location.tag != "offline":
+    if not asset.site.offline:
         if asset.itmodel.type == "blade":
-                old = "ON" if is_blade_power_on(asset.hostname, asset.location.slot) else "OFF"
-                set_blade_power(asset.hostname, asset.location.slot, state)
+                old = "ON" if is_blade_power_on(asset.blade_chassis.hostname, asset.slot) else "OFF"
+                set_blade_power(asset.blade_chassis.hostname, asset.slot, state)
                 log(request.user, asset, old, state.upper())
         else:
             rack = asset.rack.rack
@@ -96,13 +96,13 @@ def cycle_asset(request):
 
     asset = Asset.objects.get(id=request.data['asset_id'])
 
-    if asset.location.tag != "offline": 
+    if not asset.site.offline:
         if asset.itmodel.type == "blade":
             networked = True
-            old = "ON" if is_blade_power_on(asset.hostname, asset.location.slot) else "OFF"
-            set_blade_power(asset.hostname, asset.location.slot, "off")
+            old = "ON" if is_blade_power_on(asset.blade_chassis.hostname, asset.slot) else "OFF"
+            set_blade_power(asset.blade_chassis.hostname, asset.slot, "off")
             time.sleep(2)
-            set_blade_power(asset.hostname, asset.location.slot, "on")
+            set_blade_power(asset.blade_chassis.hostname, asset.slot, "on")
             log(request.user, asset, old, "CYCLED")
         else:
             rack = asset.rack.rack

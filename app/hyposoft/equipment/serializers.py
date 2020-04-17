@@ -10,7 +10,7 @@ from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPort, NetworkPortLabel
 from power.models import PDU, Powered
-from power.handlers import update_asset_power
+from power.handlers import update_asset_power, is_blade_power_on
 
 from rest_framework import serializers
 from hyposoft.users import UserSerializer
@@ -185,7 +185,14 @@ class AssetEntrySerializer(serializers.ModelSerializer):
                 networked = True
                 break
 
-        data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
+    
+        if not instance.site.offline:
+            if instance.itmodel.type == ITModel.Type.BLADE:
+                data['power_action_visible'] = len(instance.blade_chassis.hostname or "") != 0
+            else: 
+                data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
+        else:
+            data['power_action_visible'] = False
         return data
 
 
@@ -295,6 +302,12 @@ class AssetSerializer(serializers.ModelSerializer):
                     if pdu.powered_set.filter(asset=instance, on=True).exists():
                         data['power_state'] = "On"
                         break
+            else:
+                data['power_state'] = None
+        if not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
+            chassis_hostname = instance.blade_chassis.hostname
+            if chassis_hostname:
+                data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
             else:
                 data['power_state'] = None
         else:
