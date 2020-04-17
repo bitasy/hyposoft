@@ -8,17 +8,17 @@ from network.models import NetworkPortLabel, NetworkPort
 from import_export.widgets import ForeignKeyWidget
 
 from equipment.resources import VersionedResource
-from hyposoft.utils import versioned_queryset, versioned_object, add_network_conn, add_asset
+from hyposoft.utils import versioned_queryset, versioned_object, add_network_conn, add_asset, newest_object
 
 
 class NetworkPortResource(VersionedResource):
     class SrcAssetForeignKeyWidget(ForeignKeyWidget):
-        def clean(self, value, row):
-            return Asset.objects.filter(hostname=row['src_hostname']).order_by("-version__id").first()
+        def clean(self, value, row=None, *args, **kwargs):
+            return newest_object(Asset, ChangePlan.objects.get(id=row['version']), hostname=row['src_hostname'])
 
     class SrcLabelForeignKeyWidget(ForeignKeyWidget):
-        def clean(self, value, row):
-            my_asset = Asset.objects.filter(hostname=row['src_hostname']).order_by("-version__id").first()
+        def clean(self, value, row=None, *args, **kwargs):
+            my_asset = newest_object(Asset, ChangePlan.objects.get(id=row['version']), hostname=row['src_hostname'])
             return self.model.objects.get(
                 name__iexact=row['src_port'],
                 itmodel__vendor__iexact=my_asset.itmodel.vendor,
