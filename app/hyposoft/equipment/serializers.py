@@ -228,7 +228,8 @@ class AssetSerializer(serializers.ModelSerializer):
         data['site'] = location['site']
         if location['tag'] == 'rack-mount':
             data['rack'] = location['rack']
-            data['rack_position'] = location['position']
+            # data['rack_position'] = location['position'] ???
+            data['rack_position'] = location['rack_position']
         elif location['tag'] == 'chassis-mount':
             data['blade_chassis'] = location['asset']
             data['slot'] = location['slot']

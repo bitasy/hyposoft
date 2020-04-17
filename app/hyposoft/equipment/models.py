@@ -181,16 +181,18 @@ class Asset(models.Model):
     )
     display_color = models.CharField(
         max_length=10,
-        blank=True,
+        blank=True, 
         validators=[
             RegexValidator("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
                            message="Please enter a valid color code.")  # Color code
         ],
-        default="#ddd"
+        default="#ddd",
+        null=True, # Thought these were nullable???
     )
     cpu = models.CharField(
         max_length=64,
-        blank=True
+        blank=True,
+        null=True, # Thought these were nullable???
     )
     memory = models.IntegerField(
         null=True,
@@ -203,7 +205,8 @@ class Asset(models.Model):
     )
     storage = models.CharField(
         max_length=128,
-        blank=True
+        blank=True,
+        null=True, # Thought these were nullable???
     )
     comment = models.TextField(
         blank=True,

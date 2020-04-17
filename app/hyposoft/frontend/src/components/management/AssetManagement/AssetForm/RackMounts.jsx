@@ -9,7 +9,7 @@ import PowerPortSelect from "./PowerPortSelect";
 import { useFormikContext } from "formik";
 
 function RackMounts({ model, siteList }) {
-  const { values } = useFormikContext();
+  const { values, setFieldValue } = useFormikContext();
   const { site, rack } = values.location;
 
   const [rackList, setRackList] = React.useState([]);

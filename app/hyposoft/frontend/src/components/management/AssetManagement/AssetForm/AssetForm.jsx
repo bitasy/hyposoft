@@ -132,8 +132,6 @@ function AssetForm({ id, origin }) {
 
                 <Divider />
 
-                <p>Model Overrides</p>
-
                 <ItemWithLabel name="display_color" label="Display Color">
                   <ColorPicker name="display_color" nullable />
                 </ItemWithLabel>

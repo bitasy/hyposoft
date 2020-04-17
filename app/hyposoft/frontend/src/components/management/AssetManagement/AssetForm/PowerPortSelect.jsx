@@ -1,10 +1,8 @@
 import React from "react";
 import Select from "../../../utility/formik/Select";
-import { useField } from "formik";
 
 function PowerPortSelect({ powerPorts }) {
   const name = "power_connections";
-  const [{ value }, {}, { setValue }] = useField(name);
 
   return (
     <Select

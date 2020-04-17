@@ -83,9 +83,9 @@ function ModelForm({ id }) {
     let fieldsForCreate = fields;
     if (fields.type === "blade") {
       fieldsForCreate = produce(fields, draft => {
-        delete draft.height;
-        delete draft.network_port_labels;
-        delete draft.power_ports;
+        draft.height = 1;
+        draft.network_port_labels = [];
+        draft.power_ports = 0;
       });
     }
 
@@ -96,10 +96,10 @@ function ModelForm({ id }) {
   function handleUpdate(fields) {
     let fieldsForUpdate = fields;
     if (fields.type === "blade") {
-      fieldsForUpdate = produce(fields, draft => {
-        delete draft.height;
-        delete draft.network_port_labels;
-        delete draft.power_ports;
+      fieldsForCreate = produce(fields, draft => {
+        draft.height = 1;
+        draft.network_port_labels = [];
+        draft.power_ports = 0;
       });
     }
 

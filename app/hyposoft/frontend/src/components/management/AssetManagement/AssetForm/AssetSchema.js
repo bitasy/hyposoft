@@ -56,14 +56,14 @@ export const schema = Yup.object()
         pdu_id: Yup.number().required(),
         plug: Yup.number().required(),
       }),
-    ).nullable(),
+    ),
     network_ports: Yup.array(
       Yup.object({
         label: Yup.string().required(),
         mac_address: Yup.string().nullable(),
         connection: Yup.number().nullable(),
       }),
-    ).nullable(),
+    ),
     comment: Yup.string().nullable(),
     owner: Yup.number().nullable(),
   })
@@ -81,8 +81,8 @@ export const schema = Yup.object()
       rack: null,
       rack_position: null,
     },
-    power_connections: null,
-    network_ports: null,
+    power_connections: [],
+    network_ports: [],
     comment: "",
     owner: null,
   });

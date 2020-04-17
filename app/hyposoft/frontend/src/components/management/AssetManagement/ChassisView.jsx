@@ -19,7 +19,7 @@ function ChassisView({ assetID }) {
         const asset = await getAsset(assetID);
         const rack = asset?.location.rack;
         if (rack) {
-          const rackViewData = await getRackViewData(rack);
+          const rackViewData = (await getRackViewData(rack)).assets;
 
           const chassis = rackViewData.find(
             ({ model, asset: a }) =>

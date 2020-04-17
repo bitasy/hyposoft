@@ -32,8 +32,8 @@ function LocationSelect({ model, ...restProps }) {
         );
         setFieldValue("power_connections", [], false);
       } else {
-        setFieldValue("network_ports", null, false);
-        setFieldValue("power_connections", null, false);
+        setFieldValue("network_ports", [], false);
+        setFieldValue("power_connections", [], false);
       }
     }
   }, [model]);
@@ -78,8 +78,8 @@ function LocationSelect({ model, ...restProps }) {
     setValue(e.target.value);
   }
 
-  const rackMountDisabled = model.type === "blade";
-  const chassisMountDisabled = model.type !== "blade";
+  const rackMountDisabled = model?.type === "blade";
+  const chassisMountDisabled = model?.type !== "blade";
 
   return (
     <Radio.Group

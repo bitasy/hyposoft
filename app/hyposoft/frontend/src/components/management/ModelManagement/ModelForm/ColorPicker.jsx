@@ -20,8 +20,7 @@ function ColorPicker({ name, nullable, ...restProps }) {
     <div>
       {nullable && (
         <div>
-          Null?:
-          <Checkbox checked={value === null} onChange={handleChange} />
+          Null?: <Checkbox checked={value === null} onChange={handleChange} />
         </div>
       )}
       {value != null && (

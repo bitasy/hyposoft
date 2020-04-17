@@ -3,7 +3,7 @@ import Select from "../../../utility/formik/Select";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import { getRackList } from "../../../../api/rack";
 import { getRackViewData } from "../../../../api/report";
-import InputNumber from "../../../utility/formik/InputNumber";
+import { useFormikContext } from "formik";
 
 function ChassisMounts({ siteList }) {
   const { values } = useFormikContext();
@@ -20,7 +20,10 @@ function ChassisMounts({ siteList }) {
 
   React.useEffect(() => {
     if (rack) {
-      getRackViewData([rack]).then(res => setRackViewData(res[rack]));
+      console.log(rack);
+      getRackViewData([rack]).then(res => {
+        setRackViewData(res[rack].assets);
+      });
     }
   }, [rack]);
 
