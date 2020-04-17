@@ -7,8 +7,6 @@ import s from "./ChassisView.module.css";
 
 // provide either of these two
 function ChassisView({ assetID }) {
-  const history = useHistory();
-
   const [isInOffline, setIsInOffline] = React.useState(false);
   const [chassis, setChassis] = React.useState(null);
   const [blades, setBlades] = React.useState([]);
@@ -24,13 +22,18 @@ function ChassisView({ assetID }) {
           const chassis = rackViewData.find(
             ({ model, asset: a }) =>
               model.type === "chassis" &&
-              (a.id === asset.id || asset.id === asset.location.asset),
+              (a.id === asset.id || a.id === asset.location.asset),
           );
 
           const blades = rackViewData.filter(
             ({ model, asset: a }) =>
-              model.type === "blade" && a.location.asset === chassis?.id,
+              model.type === "blade" && a.location.asset === chassis?.asset.id,
           );
+
+          console.log(asset.id);
+          console.log(rackViewData);
+          console.log(chassis);
+          console.log(blades);
 
           setChassis(chassis);
           setBlades(blades);
@@ -63,7 +66,10 @@ function ChassisView({ assetID }) {
                   textAlign: "center",
                 }}
                 className={s.clickable}
-                onClick={() => history.push(`/assets/${chassis.asset.id}`)}
+                onClick={() => {
+                  window.location.href = `/#/assets/${chassis.asset.id}`;
+                  window.location.reload();
+                }}
               >
                 Chassis{" "}
                 {`${chassis.asset.id === assetID ? "*" : ""} (${chassis.asset
@@ -92,7 +98,10 @@ function ChassisView({ assetID }) {
                           height: 20,
                           textAlign: "center",
                         }}
-                        onClick={() => history.push(`/assets/${asset.id}`)}
+                        onClick={() => {
+                          window.location.href = `/#/assets/${asset.id}`;
+                          window.location.reload();
+                        }}
                         className={s.clickable}
                       >
                         {asset.id === assetID ? "*" : ""}

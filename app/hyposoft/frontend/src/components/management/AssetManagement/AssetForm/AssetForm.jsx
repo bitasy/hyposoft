@@ -81,21 +81,25 @@ function AssetForm({ id, origin }) {
   async function handleCreate(fields) {
     await createAsset(fields);
     history.push(origin);
+    window.location.reload();
   }
 
   async function handleUpdate(fields) {
     const { id: newID } = await updateAsset(id, fields);
     history.push(origin + "/" + newID);
+    window.location.reload();
   }
 
   async function handleDelete() {
     await deleteAsset(id);
     history.push(origin);
+    window.location.reload();
   }
 
   async function handleDecommission() {
     await decommissionAsset(id);
     history.push(origin);
+    window.location.reload();
   }
 
   return asset ? (
