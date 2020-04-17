@@ -16,7 +16,7 @@ export function makeHeaders(overrides) {
   const siteid = overrides?.siteID;
   const cpid = overrides?.changePlanID;
   return {
-    ...(siteid != null ? { [SITE_HEADER_NAME]: sideid } : {}),
+    ...(siteid != null ? { [SITE_HEADER_NAME]: siteid } : {}),
     ...(cpid != null ? { [CHANGEPLAN_HEADER_NAME]: cpid } : {}),
   };
 }

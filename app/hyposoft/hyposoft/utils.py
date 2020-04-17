@@ -64,7 +64,11 @@ def get_version(request):
 
 
 def get_site(request):
-    return request.META.get('HTTP_X_SITE', None)
+    val = request.META.get('HTTP_X_SITE', None)
+    try:
+        return int(val)
+    except:
+        return None
 
 
 def newest_object(model, version, **filters):

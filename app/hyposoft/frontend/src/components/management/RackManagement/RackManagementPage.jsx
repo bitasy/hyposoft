@@ -192,7 +192,12 @@ function RackManagementPage() {
       ) : (
         <span>{site.abbr}</span>
       )}
-      {finalSelectedSite && (
+      {finalSelectedSite?.type === "offline-storage" && (
+        <span style={{ color: "red", marginLeft: 4 }}>
+          This site is offline storage and contains no racks.
+        </span>
+      )}
+      {finalSelectedSite && finalSelectedSite?.type === "datacenter" && (
         <>
           <Legend />
           <Grid

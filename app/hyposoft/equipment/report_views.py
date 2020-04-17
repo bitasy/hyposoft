@@ -92,7 +92,7 @@ class Report(views.APIView):
 
     def get(self, request):
         try:
-            site = Site.objects.get(abbr=get_site(request))
+            site = Site.objects.get(id=get_site(request))
         except:
             site = None
         models = [self.get_model(model, site) for model in ITModel.objects.all()]

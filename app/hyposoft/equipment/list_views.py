@@ -16,10 +16,10 @@ class FilterBySiteMixin(object):
         site = get_site(self.request)
         model = self.get_serializer_class().Meta.model
         queryset = model.objects.all()
-        if site:
-            if not Site.objects.filter(abbr=site).exists():
+        if site is not None:
+            if not Site.objects.filter(id=site).exists():
                 raise serializers.ValidationError("Site does not exist")
-            return queryset.filter(site__abbr=site)
+            return queryset.filter(site__id=site)
         return queryset
 
 
@@ -162,7 +162,7 @@ class DecommissionedAssetList(generics.ListAPIView):
         version = get_version(self.request)
 
         if site:
-            queryset = queryset.filter(site__abbr=site)
+            queryset = queryset.filter(site__id=site)
 
         if user:
             queryset = queryset.filter(owner__username=user)
