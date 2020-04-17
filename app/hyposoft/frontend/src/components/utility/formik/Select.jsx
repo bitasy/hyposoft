@@ -27,7 +27,7 @@ function Select({ name, options, encode, decode, onChange, ...props }) {
       {...props}
       style={{ width: "100%" }}
       disabled={disabled}
-      value={multiple ? value.map(enc) : enc(value)}
+      value={multiple ? (value ?? []).map(enc) : enc(value)}
       showSearch
       filterOption={(input, option) => {
         return option.children.toLowerCase().includes(input.toLowerCase());

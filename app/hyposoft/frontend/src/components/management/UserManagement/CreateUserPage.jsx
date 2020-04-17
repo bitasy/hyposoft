@@ -1,18 +1,18 @@
 import React from "react";
 import { Typography, Row, Col } from "antd";
-import ModelForm from "./ModelForm/ModelForm";
+import UserForm from "./UserForm";
 
-function CreateModelPage() {
+function CreateUserPage() {
   return (
     <div style={{ padding: 16 }}>
-      <Typography.Title level={3}>Create Model</Typography.Title>
+      <Typography.Title level={3}>Create User</Typography.Title>
       <Row>
         <Col md={8}>
-          <ModelForm />
+          <UserForm />
         </Col>
       </Row>
     </div>
   );
 }
 
-export default CreateModelPage;
+export default CreateUserPage;

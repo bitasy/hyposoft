@@ -43,6 +43,8 @@ import AssetDetailView from "./management/DecommissionManagement/DecommissionLis
 import OfflineAssetManagementPage from "./management/OfflineAssetManagement/OfflineAssetManagementPage";
 import Scanner from "./mobile/Scanner";
 import UserManagementPage from "./management/UserManagement/UserManagementPage";
+import CreateUserPage from "./management/UserManagement/CreateUserPage";
+import UserDetailPage from "./management/UserManagement/UserDetailPage";
 
 function App() {
   const [loading, setLoading] = React.useState(true);
@@ -220,6 +222,12 @@ function App() {
                       </Route>
                       <Route exact path="/users">
                         <UserManagementPage />
+                      </Route>
+                      <Route exact path="/users/create">
+                        <CreateUserPage />
+                      </Route>
+                      <Route exact path="/users/:id">
+                        <UserDetailPage />
                       </Route>
                       <Route>
                         <LandingPage />
