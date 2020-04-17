@@ -3,13 +3,13 @@ import { useField, useFormikContext } from "formik";
 import { DisableContext } from "../../../../contexts/contexts";
 import { Radio } from "antd";
 
-function LocationSelect({ model, ...restProps }) {
+function LocationSelect({ model, locked, ...restProps }) {
   const { disabled } = React.useContext(DisableContext);
   const { setFieldValue, values } = useFormikContext();
   const [{ value }, {}, { setValue, setTouched }] = useField("location.tag");
 
   React.useEffect(() => {
-    if (model) {
+    if (model && !locked.current) {
       const type = model.type;
 
       if (type !== "blade" && values.location.tag === "chassis-mount") {
@@ -39,7 +39,7 @@ function LocationSelect({ model, ...restProps }) {
   }, [model]);
 
   React.useEffect(() => {
-    if (value) {
+    if (value && !locked.current) {
       let empty = null;
 
       switch (value) {

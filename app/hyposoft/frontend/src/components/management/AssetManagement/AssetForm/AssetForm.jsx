@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Formik } from "formik";
 import { Form, Button, Typography, Row, Col, Divider } from "antd";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
@@ -37,6 +37,9 @@ function AssetForm({ id, origin }) {
     new URLSearchParams(useLocation().search).entries(),
   );
 
+  const locked = useRef(true);
+  // prevent original fields triggering overwrite on original fields
+
   const [asset, setAsset] = useState(null);
   const [modelPickList, setModelPickList] = useState([]);
   const [selectedModel, setSelectedModel] = useState(null);
@@ -51,10 +54,16 @@ function AssetForm({ id, origin }) {
     getUserList().then(setUsers);
 
     if (id) {
-      getAsset(id).then(setAsset);
+      getAsset(id).then(asset => {
+        setAsset(asset);
+      });
     } else {
       setAsset(schema.default());
     }
+
+    setTimeout(() => {
+      locked.current = false;
+    }, 1000);
   }, []);
 
   React.useEffect(() => {
@@ -152,7 +161,7 @@ function AssetForm({ id, origin }) {
                 <Divider />
 
                 <ItemWithLabel name="location.tag" label="Location">
-                  <LocationTypeSelect model={selectedModel} />
+                  <LocationTypeSelect model={selectedModel} locked={locked} />
                 </ItemWithLabel>
 
                 {props.values.location.tag === "rack-mount" ? (

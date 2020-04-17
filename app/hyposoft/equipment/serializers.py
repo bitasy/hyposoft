@@ -233,7 +233,7 @@ class AssetSerializer(serializers.ModelSerializer):
         elif location['tag'] == 'chassis-mount':
             data['blade_chassis'] = location['asset']
             data['slot'] = location['slot']
-            data['rack'] = Asset.objects.get(id=location['asset']).rack
+            data['rack'] = location['rack']
             data['rack_position'] = None
         elif location['tag'] == 'offline':
             data['rack'] = None
@@ -312,6 +312,7 @@ class AssetSerializer(serializers.ModelSerializer):
             location['rack_position'] = instance.rack_position
         elif instance.slot is not None:
             location['tag'] = 'chassis-mount'
+            location['rack'] = instance.blade_chassis.rack.id
             location['asset'] = instance.blade_chassis.id
             location['slot'] = instance.slot
         elif instance.site.offline:

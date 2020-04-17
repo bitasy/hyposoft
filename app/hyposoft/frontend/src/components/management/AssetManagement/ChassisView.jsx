@@ -59,6 +59,8 @@ function ChassisView({ assetID }) {
                 style={{
                   backgroundColor:
                     chassis.asset.display_color || chassis.model.display_color,
+                  border: "1pt black solid",
+                  textAlign: "center",
                 }}
                 className={s.clickable}
                 onClick={() => history.push(`/assets/${chassis.asset.id}`)}
@@ -85,7 +87,10 @@ function ChassisView({ assetID }) {
                         style={{
                           backgroundColor:
                             asset.display_color || model.display_color,
+                          border: "1pt black solid",
                           minWidth: 20,
+                          height: 20,
+                          textAlign: "center",
                         }}
                         onClick={() => history.push(`/assets/${asset.id}`)}
                         className={s.clickable}
@@ -94,7 +99,16 @@ function ChassisView({ assetID }) {
                       </td>
                     );
                   } else {
-                    return <td key={idx} style={{ minWidth: 20 }} />;
+                    return (
+                      <td
+                        key={idx}
+                        style={{
+                          border: "1pt black solid",
+                          minWidth: 20,
+                          height: 20,
+                        }}
+                      />
+                    );
                   }
                 })}
             </tr>

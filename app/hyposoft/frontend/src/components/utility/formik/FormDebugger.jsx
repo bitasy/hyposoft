@@ -3,6 +3,7 @@ import { useFormikContext } from "formik";
 
 function FormDebugger() {
   const { values, errors, touched } = useFormikContext();
+  console.log(values);
   return (
     <div style={{ textAlign: "left" }}>
       <pre>{JSON.stringify(values, null, 2)}</pre>
