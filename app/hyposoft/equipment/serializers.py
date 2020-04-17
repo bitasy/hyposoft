@@ -167,7 +167,6 @@ class AssetEntrySerializer(serializers.ModelSerializer):
             'asset_number',
             'hostname',
             'owner',
-            'location',
         ]
 
     def to_representation(self, instance):

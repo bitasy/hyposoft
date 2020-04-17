@@ -33,13 +33,7 @@ class Report(views.APIView):
         except:
             used = 0
             free = 0
-        msg = [
-            {
-                "category": vendor,
-                "used": used,
-                "free": free
-            }
-        ]
+        msg = {"category": vendor, "used": used, "free": free}
         return msg
 
     def get_model(self, model, my_site):
@@ -66,12 +60,7 @@ class Report(views.APIView):
         except:
             used = 0
             free = 0
-        msg = [
-            {"category": str(model),
-             "used": used,
-             "free": free
-             }
-        ]
+        msg = {"category": str(model), "used": used, "free": free}
         return msg
 
     def get_owner(self, my_owner, my_site):
@@ -98,13 +87,7 @@ class Report(views.APIView):
         except:
             used = 0
             free = 0
-        msg = [
-            {
-                "category": my_owner.username,
-                "used": used,
-                "free": free
-            }
-        ]
+        msg = {"category": my_owner.username, "used": used,"free": free}
         return msg
 
     def get(self, request):
@@ -115,7 +98,7 @@ class Report(views.APIView):
         models = [self.get_model(model, site) for model in ITModel.objects.all()]
         owners = [self.get_owner(owner, site) for owner in User.objects.all()]
         vendors = [self.get_vendor(vendor, site)
-                   for vendor in ITModel.objects.values_list('vendor', flat=True).distinct()]
+                   for vendor in ITModel.objects.values_list('vendor', flat=True).distinct('vendor')]
 
         used = 0
         for model in ITModel.objects.all():

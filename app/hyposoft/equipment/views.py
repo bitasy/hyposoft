@@ -150,8 +150,7 @@ class ITModelDestroy(ITModelPermissionDestroyMixin, ITModelDestroyWithIdMixin, g
 
 class VendorList(views.APIView):
     def get(self, request):
-        vendors = ITModel.objects.values('vendor')
-        return Response([v['vendor'] for v in vendors])
+        return Response(list(ITModel.objects.values_list('vendor', flat=True).distinct('vendor')))
 
 
 class AssetDestroy(AssetPermissionDestroyMixin, AssetDestroyWithIdMixin, generics.DestroyAPIView):

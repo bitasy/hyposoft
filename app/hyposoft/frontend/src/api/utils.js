@@ -58,19 +58,15 @@ export function processAssetQuery(query) {
 
   const ordering = whatCanIDoIfDjangoForcesMeToLOL[query.ordering];
 
-  const [r1, c1] = query.rack_from
-    ? toIndex(query.rack_from)
-    : [undefined, undefined];
-  const [r2, c2] = query.rack_to
-    ? toIndex(query.rack_to)
-    : [undefined, undefined];
+  const [r1, c1] = query.rack_from ? toIndex(query.rack_from) : [null, null];
+  const [r2, c2] = query.rack_to ? toIndex(query.rack_to) : [null, null];
 
   return {
     ...query,
-    r1: r1 && indexToRow(r1),
-    r2: r2 && indexToRow(r2),
-    c1: c1 && indexToCol(c1),
-    c2: c2 && indexToCol(c2),
+    r1: r1 == null ? null : indexToRow(r1),
+    r2: r2 == null ? null : indexToRow(r2),
+    c1: c1 == null ? null : indexToCol(c1),
+    c2: c2 == null ? null : indexToCol(c2),
     ordering: ordering
       ? ordering.map(o => directionPrefix + o).join(",")
       : undefined,
