@@ -74,7 +74,7 @@ class ITModelSerializer(serializers.ModelSerializer):
         if validated_data['type'] == ITModel.Type.BLADE:
             validated_data['height'] = 9
             validated_data['power_ports'] = 0
-            validated_data['network_port_labels'] = ['chassis']
+            validated_data['network_port_labels'] = []
 
         labels = validated_data.pop('network_port_labels')
 
@@ -101,6 +101,7 @@ class ITModelSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Cannot modify interconnected ITModel attributes while assets are deployed."
                 )
+
             if instance.height != validated_data['height']:
                 throw()
             if instance.power_ports != validated_data['power_ports']:
@@ -154,7 +155,6 @@ class ITModelPickSerializer(serializers.ModelSerializer):
 
 
 class AssetEntrySerializer(serializers.ModelSerializer):
-    location = serializers.CharField(source='rack.rack')
     model = serializers.CharField(source='itmodel')
     owner = serializers.CharField()
 
@@ -173,17 +173,20 @@ class AssetEntrySerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super(AssetEntrySerializer, self).to_representation(instance)
 
-        data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
+        if instance.slot is not None:
+            data['location'] = "Chassis {}: Slot {}".format(instance.blade_chassis, instance.slot)
+        elif instance.site.offline:
+            data['location'] = instance.site.abbr
+        else:
+            data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
 
         networked = False
         for pdu in instance.pdu_set.all():
             if pdu.networked:
                 networked = True
                 break
-        permission = True # self.context['request'].user == instance.owner #todo implement this correctly
-        data['power_action_visible'] = \
-            permission and networked and instance.commissioned is not None and instance.version.id == 0
 
+        data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
         return data
 
 
@@ -271,30 +274,36 @@ class AssetSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super(AssetSerializer, self).to_representation(instance)
-        connections = Powered.objects.filter(asset=instance)
-        ports = NetworkPort.objects.filter(asset=instance)
-        if instance.version.id != 0:
-            connections = versioned_queryset(connections, instance.version, Powered.IDENTITY_FIELDS)
-            ports = versioned_queryset(ports, instance.version, NetworkPort.IDENTITY_FIELDS)
-        data['power_connections'] = [
-            {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
-            connections.values('pdu', 'plug_number')]
-        data['network_ports'] = [
-            NetworkPortSerializer(port).data
-            for port in ports.order_by('label')
-        ]
-        data['decommissioned'] = not instance.commissioned
-        update_asset_power(instance)
-        networked = instance.pdu_set.filter(networked=True)
-        data['network_graph'] = net_graph(instance.id)
-        if networked.exists() and instance.version.id == 0:
-            for pdu in networked:
-                if pdu.powered_set.filter(asset=instance, on=True).exists():
-                    data['power_state'] = "On"
-                    return data
-            data['power_state'] = "Off"
+        if not instance.site.offline and not instance.itmodel.type == ITModel.Type.BLADE:
+            connections = Powered.objects.filter(asset=instance)
+            ports = NetworkPort.objects.filter(asset=instance)
+            if instance.version.id != 0:
+                connections = versioned_queryset(connections, instance.version, Powered.IDENTITY_FIELDS)
+                ports = versioned_queryset(ports, instance.version, NetworkPort.IDENTITY_FIELDS)
+            data['power_connections'] = [
+                {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
+                connections.values('pdu', 'plug_number')]
+            data['network_ports'] = [
+                NetworkPortSerializer(port).data
+                for port in ports.order_by('label')
+            ]
+            update_asset_power(instance)
+            networked = instance.pdu_set.filter(networked=True)
+            if networked.exists() and instance.version.id == 0:
+                data['power_state'] = "Off"
+                for pdu in networked:
+                    if pdu.powered_set.filter(asset=instance, on=True).exists():
+                        data['power_state'] = "On"
+                        break
+            else:
+                data['power_state'] = None
         else:
+            data['power_connections'] = []
+            data['network_ports'] = []
             data['power_state'] = None
+
+        data['decommissioned'] = not instance.commissioned
+        # data['network_graph'] = net_graph(instance.id)  # todo: fix network graph
 
         location = {"site": instance.site}
         if instance.rack_position is not None:
@@ -393,4 +402,3 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
         data['decommissioned_timestamp'] = \
             datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)
         return data
-

@@ -113,39 +113,41 @@ def decommission_asset(asset_id, view, user, changeplan):
         asset.decommissioned_timestamp = datetime.datetime.now()
         asset.save()
 
-        for a in old_rack.asset_set.exclude(id=old_asset.id):
-            add_asset(a, change_plan)
+        if old_rack:
+            for a in old_rack.asset_set.exclude(id=old_asset.id):
+                add_asset(a, change_plan)
 
-        for pdu in old_rack.pdu_set.filter(version=version):
-            old_pdu = PDU.objects.get(id=pdu.id)
-            pdu.id = None
-            pdu.rack = rack
-            pdu.networked = False
-            pdu.version = change_plan
-            pdu.save()
+        if rack:
+            for pdu in old_rack.pdu_set.filter(version=version):
+                old_pdu = PDU.objects.get(id=pdu.id)
+                pdu.id = None
+                pdu.rack = rack
+                pdu.networked = False
+                pdu.version = change_plan
+                pdu.save()
 
-            for power in old_pdu.powered_set.filter(version=version):
-                power.id = None
-                power.pdu = pdu
-                power.asset = asset
-                power.version = change_plan
-                power.save()
+                for power in old_pdu.powered_set.filter(version=version):
+                    power.id = None
+                    power.pdu = pdu
+                    power.asset = asset
+                    power.version = change_plan
+                    power.save()
 
-        def loop_ports(old_asset, recurse):
-            for port in old_asset.networkport_set.all():
-                old_port = NetworkPort.objects.get(id=port.id)
-                other = old_port.connection
-                port = add_network_conn(port, change_plan)
-                if other:
-                    if recurse:
-                        loop_ports(other.asset, False)
-                    other = add_network_conn(other, change_plan)
-                    other.connection = port
-                    port.connection = other
-                    other.save()
-                    port.save()
+            def loop_ports(old_asset, recurse):
+                for port in old_asset.networkport_set.all():
+                    old_port = NetworkPort.objects.get(id=port.id)
+                    other = old_port.connection
+                    port = add_network_conn(port, change_plan)
+                    if other:
+                        if recurse:
+                            loop_ports(other.asset, False)
+                        other = add_network_conn(other, change_plan)
+                        other.connection = port
+                        port.connection = other
+                        other.save()
+                        port.save()
 
-        loop_ports(old_asset, True)
+            loop_ports(old_asset, True)
 
         log_decommission(view, old_asset)
 

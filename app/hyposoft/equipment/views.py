@@ -106,6 +106,9 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
                     if port['connection'] is not None:
                         versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
                         data['network_ports'][i]['connection'] = versioned_conn.id
+            else:
+                request.data['power_connections'] = []
+                request.data['network_ports'] = []
 
             if request.data['location']['tag'] == 'chassis-mount':
                 chassis = request.data['location']['asset']
