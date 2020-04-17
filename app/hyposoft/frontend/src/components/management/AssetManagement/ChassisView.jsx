@@ -63,6 +63,9 @@ function ChassisView({ assetID }) {
                   backgroundColor:
                     chassis.asset.display_color || chassis.model.display_color,
                   border: "1pt black solid",
+                  color: "white",
+                  textShadow:
+                    "0.05em 0 black, 0 0.05em black, -0.05em 0 black, 0 -0.05em black, -0.05em -0.05em black, -0.05em 0.05em black, 0.05em -0.05em black, 0.05em 0.05em black",
                   textAlign: "center",
                 }}
                 className={s.clickable}
@@ -93,6 +96,9 @@ function ChassisView({ assetID }) {
                           backgroundColor:
                             asset.display_color || model.display_color,
                           border: "1pt black solid",
+                          color: "white",
+                          textShadow:
+                            "0.05em 0 black, 0 0.05em black, -0.05em 0 black, 0 -0.05em black, -0.05em -0.05em black, -0.05em 0.05em black, 0.05em -0.05em black, 0.05em 0.05em black",
                           minWidth: 20,
                           height: 20,
                           textAlign: "center",
@@ -112,6 +118,7 @@ function ChassisView({ assetID }) {
                         key={idx}
                         style={{
                           border: "1pt black solid",
+                          textShadow: "white 0px 0px 10px",
                           minWidth: 20,
                           height: 20,
                         }}
