@@ -117,7 +117,7 @@ class Report(views.APIView):
             used = 0
             free = 0
         return Response({
-            'total': [{"category": "total", "used": used / total, "free": (total - used) / total}],
+            'total': [{"category": "total", "used": used, "free": free}],
             'by_model': models,
             'by_owner': owners,
             'by_vendor': vendors
