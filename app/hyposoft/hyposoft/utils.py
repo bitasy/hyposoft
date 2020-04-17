@@ -1,16 +1,15 @@
-
-
-# Given a rack row letter, provides the next row letter
-# Essentially, after Z is AA and after AA is AB etc.
 from copy import deepcopy
 
 from django.db.models import Q
 from rest_framework import serializers
 
 from equipment.models import Rack, Asset
+from changeplan.models import ChangePlan
 from power.models import PDU
 
 
+# Given a rack row letter, provides the next row letter
+# Essentially, after Z is AA and after AA is AB etc.
 def next_char(char):
     if len(char) == 1:
         if char < "Z":
@@ -66,6 +65,20 @@ def get_version(request):
 
 def get_site(request):
     return request.META.get('HTTP_X_SITE', None)
+
+
+def newest_object(model, version, **filters):
+    try:
+        return model.objects.get(version=version, **filters)
+    except:
+        if version.parent is not None:
+            try:
+                return model.objects.get(version=version.parent, **filters)
+            except:
+                try:
+                    return model.objects.get(version=ChangePlan.objects.get(id=0), **filters)
+                except:
+                    return None
 
 
 def versioned_object(obj, version, identity_fields):
@@ -127,16 +140,18 @@ def add_rack(rack, change_plan):
 
 
 def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
-    if asset.rack.version != asset.version:
+    if asset.rack and asset.rack.version != asset.version:
         asset.rack = add_rack(asset.rack, asset.version)
     if asset.version == change_plan:
         return asset
     newer_asset = versioned_object(asset, change_plan, identity_fields)
     if newer_asset:
         return newer_asset
-    rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
-    if rack is None:
-        rack = add_rack(asset.rack, change_plan)
+    rack = None
+    if asset.rack:
+        rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
+        if rack is None:
+            rack = add_rack(asset.rack, change_plan)
 
     asset.id = None
     asset.version = change_plan

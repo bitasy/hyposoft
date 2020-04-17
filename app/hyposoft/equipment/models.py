@@ -156,14 +156,16 @@ class Asset(models.Model):
     rack = models.ForeignKey(
         Rack,
         on_delete=models.PROTECT,
-        null=True
+        null=True,
+        blank=True
     )
     rack_position = models.IntegerField(
         validators=[
             MinValueValidator(1,
                               message="Rack position must be at least 1.")
         ],
-        null=True
+        null=True,
+        blank=True
     )
     itmodel = models.ForeignKey(
         ITModel,
@@ -242,7 +244,7 @@ class Asset(models.Model):
         blank=True,
         default=None,
         on_delete=models.PROTECT,
-        related_name="blade"
+        related_name="blade_set"
     )
     slot = models.IntegerField(
         null=True,

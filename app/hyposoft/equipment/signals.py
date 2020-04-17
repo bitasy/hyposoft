@@ -58,7 +58,7 @@ def validate_asset(sender, instance, *args, **kwargs):
                 "The asset number is too small. Please try manually setting it to be 6 digits.")
 
     if instance.rack is None or instance.rack_position is None:
-        if not instance.site.offline:
+        if not (instance.site.offline or instance.itmodel.type == ITModel.Type.BLADE):
             raise serializers.ValidationError(
                 "If asset is being placed in a datacenter, rack and rack position must be specified."
             )
@@ -71,44 +71,44 @@ def validate_asset(sender, instance, *args, **kwargs):
             raise serializers.ValidationError(
                 "The rack does not exist, please create it first.")
 
-    blocked = Asset.objects.filter(
-        rack=instance.rack,
-        rack_position__range=(instance.rack_position,
-                              instance.rack_position + instance.itmodel.height),
-        site=instance.site,
-        version=instance.version
-    ).exclude(id=instance.id)
-
-    if len(blocked) > 0:
-        raise serializers.ValidationError(
-            "There is already an asset in this area of the specified rack.")
-
-    i = instance.rack_position - 1
-    while i > 0:
-        under = Asset.objects.filter(
+        blocked = Asset.objects.filter(
             rack=instance.rack,
-            rack_position=i,
+            rack_position__range=(instance.rack_position,
+                                  instance.rack_position + instance.itmodel.height),
             site=instance.site,
             version=instance.version
         ).exclude(id=instance.id)
-        if len(under) > 0:
-            asset = under.values_list(
-                'rack_position', 'itmodel__height')[0]
-            if asset[0] + asset[1] > instance.rack_position:
-                raise serializers.ValidationError(
-                    "There is already an asset in this area of the specified rack.")
-            else:
-                break
-        i -= 1
 
-    if instance.hostname is not None and len(instance.hostname) == 0:
-        instance.hostname = None
+        if len(blocked) > 0:
+            raise serializers.ValidationError(
+                "There is already an asset in this area of the specified rack.")
+
+        i = instance.rack_position - 1
+        while i > 0:
+            under = Asset.objects.filter(
+                rack=instance.rack,
+                rack_position=i,
+                site=instance.site,
+                version=instance.version
+            ).exclude(id=instance.id)
+            if len(under) > 0:
+                asset = under.values_list(
+                    'rack_position', 'itmodel__height')[0]
+                if asset[0] + asset[1] > instance.rack_position:
+                    raise serializers.ValidationError(
+                        "There is already an asset in this area of the specified rack.")
+                else:
+                    break
+            i -= 1
+
+        if instance.hostname is not None and len(instance.hostname) == 0:
+            instance.hostname = None
 
 
 @receiver(post_save, sender=Asset)
 def set_asset_defaults(instance, created, *args, **kwargs):
-    if created:
-        instance.display_color = instance.itmodel.display_color
-        instance.storage = instance.itmodel.storage
-        instance.memory = instance.itmodel.memory
-        instance.cpu = instance.itmodel.cpu
+    if instance.itmodel.type == ITModel.Type.BLADE and instance.rack is None:
+        instance.rack = instance.blade_chassis.rack
+        instance.save()
+
+

@@ -18,7 +18,7 @@ class FilterBySiteMixin(object):
         queryset = model.objects.all()
         if site:
             if not Site.objects.filter(abbr=site).exists():
-                raise serializers.ValidationError("Datacenter does not exist")
+                raise serializers.ValidationError("Site does not exist")
             return queryset.filter(site__abbr=site)
         return queryset
 
@@ -113,7 +113,7 @@ class AssetPickList(generics.ListAPIView):
     def get_queryset(self):
         version = ChangePlan.objects.get(id=get_version(self.request))
         queryset = Asset.objects.all()
-        datacenter_id = self.request.query_params.get('datacenter_id', None)
+        datacenter_id = self.request.query_params.get('site_id', None)
         if datacenter_id is not None:
             queryset = queryset.filter(site_id=datacenter_id)
         rack_id = self.request.query_params.get('rack_id', None)

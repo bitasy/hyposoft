@@ -53,12 +53,13 @@ class ITModelImport(generics.CreateAPIView):
                                    'network_port_name_2', 'network_port_name_3', 'network_port_name_4']:
             raise serializers.ValidationError("Improperly formatted CSV")
 
-        print(dataset)
         result = ITModelResource().import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-            for row in result.rows if len(row.errors) > 0
+            {"row": row.errors[0].row if row.errors else "Row " + str(i), "errors":
+                ["{}: {}".format(*item) for item in row.validation_error.message_dict.items()] if row.validation_error
+                else [str(error.error) for error in row.errors]}
+            for i, row in enumerate(result.rows) if len(row.errors) > 0 or row.validation_error is not None
         ]
 
         if len(errors) > 0:
@@ -81,18 +82,21 @@ class AssetImport(generics.CreateAPIView):
         data = request.data
         force = bool(request.query_params['force'])
         file = data.get('file')
-        dataset = Dataset().load(str(file.read(), 'utf-8'), format="csv")
-        if not set(dataset.headers) == {'asset_number', 'site', 'hostname', 'rack', 'rack_position',
-                                   'vendor', 'model_number', 'owner', 'comment',
-                                   'power_port_connection_1', 'power_port_connection_2'}:
+        dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
+        if not set(dataset.headers) == {'asset_number', 'hostname', 'datacenter', 'offline_site', 'rack',
+                                        'rack_position', 'chassis_number', 'slot_number', 'vendor', 'model_number',
+                                        'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2',
+                                        'custom_display_color', 'custom_cpu', 'custom_memory', 'custom_storage'}:
             raise serializers.ValidationError("Improperly formatted CSV")
 
         result = AssetResource(
             get_version(request), request.user, True).import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-            for row in result.rows if len(row.errors) > 0
+            {"row": row.errors[0].row if row.errors else "Row " + str(i), "errors":
+                ["{}: {}".format(*item) for item in row.validation_error.message_dict.items()] if row.validation_error
+                else [str(error.error) for error in row.errors]}
+            for i, row in enumerate(result.rows) if len(row.errors) > 0 or row.validation_error is not None
         ]
 
         if len(errors) > 0:
@@ -102,8 +106,10 @@ class AssetImport(generics.CreateAPIView):
             result = resource.import_data(dataset)
 
             errors = [
-                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-                for row in result.rows if len(row.errors) > 0
+                {"row": row.errors[0].row if row.errors else "Row " + str(i), "errors":
+                    ["{}: {}".format(*item) for item in row.validation_error.message_dict.items()] if row.validation_error
+                    else [str(error.error) for error in row.errors]}
+                for i, row in enumerate(result.rows) if len(row.errors) > 0 or row.validation_error is not None
             ]
 
             if len(errors) > 0:
@@ -140,6 +146,8 @@ class AssetImport(generics.CreateAPIView):
             }
 
             for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                if model == Asset:
+                    model.objects.filter(version=changeplan, itmodel__type=ITModel.Type.BLADE).delete()
                 model.objects.filter(version=changeplan).delete()
             changeplan.delete()
 
@@ -167,8 +175,10 @@ class NetworkImport(generics.CreateAPIView):
             get_version(request), request.user, True).import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-            for row in result.rows if len(row.errors) > 0
+            {"row": row.errors[0].row if row.errors else "Row " + str(i), "errors":
+                ["{}: {}".format(*item) for item in row.validation_error.message_dict.items()] if row.validation_error
+                else [str(error.error) for error in row.errors]}
+            for i, row in enumerate(result.rows) if len(row.errors) > 0 or row.validation_error is not None
         ]
 
         if len(errors) > 0:
@@ -178,8 +188,10 @@ class NetworkImport(generics.CreateAPIView):
             result = resource.import_data(dataset)
 
             errors = [
-                {"row": row.errors[0].row, "errors": [str(error.error) for error in row.errors]}
-                for row in result.rows if len(row.errors) > 0
+                {"row": row.errors[0].row if row.errors else "Row " + str(i), "errors":
+                    ["{}: {}".format(*item) for item in row.validation_error.message_dict.items()] if row.validation_error
+                    else [str(error.error) for error in row.errors]}
+                for i, row in enumerate(result.rows) if len(row.errors) > 0 or row.validation_error is not None
             ]
 
             if len(errors) > 0:
@@ -208,6 +220,8 @@ class NetworkImport(generics.CreateAPIView):
             }
 
             for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                if model == Asset:
+                    model.objects.filter(version=changeplan, itmodel__type=ITModel.Type.BLADE).delete()
                 model.objects.filter(version=changeplan).delete()
             changeplan.delete()
 
@@ -220,7 +234,7 @@ class NetworkImport(generics.CreateAPIView):
 class CSVRenderer(renderers.BaseRenderer):
     media_type = "application/octet-stream"
     format = "txt"
-    charset = "utf-8-sig"
+    charset = "utf-8"
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         return data.export('csv')

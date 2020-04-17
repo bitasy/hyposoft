@@ -53,7 +53,7 @@ class RackRangeCreate(views.APIView):
         for rack in racks:
             try:
                 new = Rack(
-                    site=Site.objects.get(id=request.data['datacenter']),
+                    site=Site.objects.get(id=request.data['site']),
                     version=version,
                     rack=rack
                 )
@@ -148,7 +148,7 @@ class RackRangeDestroy(views.APIView):
         r2 = request.data['r2']
         c1 = request.data['c1']
         c2 = request.data['c2']
-        datacenter = request.data['datacenter']
+        datacenter = request.data['site']
 
         version = get_version(request)
         removed = []

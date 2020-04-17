@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
 from equipment.handlers import decommission_asset
-from equipment.models import Rack, Asset
+from equipment.models import Rack, Asset, ITModel
 from equipment.views import DecommissionAsset
 from hyposoft.utils import versioned_object
 from network.models import NetworkPort
@@ -44,6 +44,8 @@ class ExecuteChangePlan(views.APIView):
                     decommission_asset(live_asset.id, DecommissionAsset(), request.user, child)
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                    if model == Asset:
+                        model.objects.filter(version=child, itmodel__type=ITModel.Type.BLADE).delete()
                     model.objects.filter(version=child).delete()
 
                 child.delete()
@@ -78,6 +80,8 @@ class ChangePlanDestroy(UserChangePlansMixin, generics.DestroyAPIView):
 
         # Order matters!
         for model in (Powered, NetworkPort, Asset, PDU, Rack):
+            if model == Asset:
+                model.objects.filter(version=version, itmodel__type=ITModel.Type.BLADE).delete()
             model.objects.filter(version=version).delete()
 
         return super(ChangePlanDestroy, self).destroy(request, *args, **kwargs)

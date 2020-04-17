@@ -19,7 +19,7 @@ from hyposoft.users import UserSerializer
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
-        fields = ['abbr', 'name', 'offline']
+        fields = ['id', 'abbr', 'name', 'offline']
 
     def to_internal_value(self, data):
         data['offline'] = data.pop('type') == 'offline-storage'
@@ -71,6 +71,10 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def create(self, validated_data):
+        if validated_data['type'] == ITModel.Type.BLADE:
+            validated_data['height'] = 9
+            validated_data['power_ports'] = 0
+            validated_data['network_port_labels'] = ['chassis']
 
         labels = validated_data.pop('network_port_labels')
 
