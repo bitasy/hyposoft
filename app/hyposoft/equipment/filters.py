@@ -43,6 +43,8 @@ class RackPositionFilter(BaseFilterBackend):
         if pos_min and pos_max:
             return queryset.filter(Q(rack_position__range=(pos_min, pos_max)) |
                                    Q(blade_chassis__rack_position__range=(pos_min, pos_max)))
+        else:
+            return queryset
 
 
 class AssetFilter(filters.FilterSet):

@@ -71,9 +71,8 @@ function ChassisView({ assetID }) {
                   window.location.reload();
                 }}
               >
-                Chassis{" "}
-                {`${chassis.asset.id === assetID ? "*" : ""} (${chassis.asset
-                  .hostname || chassis.asset.asset_number})`}
+                {`${chassis.asset.id == assetID ? "*" : ""} Chassis (${chassis
+                  .asset.hostname || chassis.asset.asset_number})`}
               </th>
             </tr>
           </thead>
@@ -104,7 +103,7 @@ function ChassisView({ assetID }) {
                         }}
                         className={s.clickable}
                       >
-                        {asset.id === assetID ? "*" : ""}
+                        {asset.id == assetID ? "*" : ""}
                       </td>
                     );
                   } else {

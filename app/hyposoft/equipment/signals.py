@@ -105,10 +105,13 @@ def validate_asset(sender, instance, *args, **kwargs):
             instance.hostname = None
 
 
-@receiver(post_save, sender=Asset)
-def set_asset_defaults(instance, created, *args, **kwargs):
-    if instance.itmodel.type == ITModel.Type.BLADE and instance.rack is None:
-        instance.rack = instance.blade_chassis.rack
-        instance.save()
+# Added this in to_internal since I actually send .rack even for blades 
+# Also this prevents me from adding offline assets, since it wouldn't have any racks
+
+# @receiver(post_save, sender=Asset)
+# def set_asset_defaults(instance, created, *args, **kwargs):
+#     if instance.itmodel.type == ITModel.Type.BLADE and instance.rack is None:
+#         instance.rack = instance.blade_chassis.rack
+#         instance.save()
 
 
