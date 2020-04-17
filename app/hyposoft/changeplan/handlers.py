@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from equipment.models import Asset, Rack
+from equipment.models import Asset, Rack, ITModel
 from equipment.handlers import decommission_asset
 from network.models import NetworkPort
 from power.models import Powered, PDU
@@ -80,23 +80,37 @@ def execute_assets(changeplan):
 
             if live_asset is None:
                 Asset.objects.create(
+                    version=live,
                     hostname=changed_asset.hostname,
                     site=changed_asset.site,
-                    rack=add_rack(changed_asset.rack, live),
-                    rack_position=changed_asset.rack_position,
+                    rack=add_rack(changed_asset.rack, live) if not changed_asset.itmodel.offline else None,
+                    rack_position=changed_asset.rack_position if not changed_asset.itmodel.offline and changed_asset.itmodel.type != ITModel.Type.BLADE else None,
                     itmodel=changed_asset.itmodel,
                     owner=changed_asset.owner,
-                    comment=changed_asset.comment
+                    comment=changed_asset.comment,
+                    display_color=changed_asset.display_color if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
+                    cpu=changed_asset.cpu if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
+                    memory=changed_asset.memory if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
+                    storage=changed_asset.storage if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
+                    blade_chassis=changed_asset.blade_chassis if changed_asset.itmodel.type == ITModel.Type.BLADE or changed_asset.itmodel.type == ITModel.Type.CHASSIS else None,
+                    slot=changed_asset.slot if changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
                 )
+
             else:
                 live_asset.asset_number = changed_asset.asset_number
                 live_asset.hostname = changed_asset.hostname
                 live_asset.site = changed_asset.site
-                live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS)
-                live_asset.rack_position = changed_asset.rack_position
+                live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS) if not changed_asset.itmodel.offline else None
+                live_asset.rack_position = changed_asset.rack_position if not changed_asset.itmodel.offline and changed_asset.itmodel.type != ITModel.Type.BLADE else None
                 live_asset.itmodel = changed_asset.itmodel
                 live_asset.owner = changed_asset.owner
                 live_asset.comment = changed_asset.comment
+                live_asset.display_color = changed_asset.display_color if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
+                live_asset.cpu = changed_asset.cpu if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
+                live_asset.memory = changed_asset.memory if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
+                live_asset.storage = changed_asset.storage if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
+                live_asset.blade_chassis = changed_asset.blade_chassis if changed_asset.itmodel.type == ITModel.Type.BLADE or changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
+                live_asset.slot = changed_asset.slot if changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
                 live_asset.save()
         except:
             create_live_asset(changed_asset)
