@@ -5,6 +5,7 @@ import VSpace from "../../../utility/VSpace";
 import RangeSlider from "../../../utility/formik/RangeSlider";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import Input from "../../../utility/formik/Input";
+import ResetButton from "../../../utility/formik/ResetButton";
 
 // Props
 /* 
@@ -54,6 +55,8 @@ function AssetFilters({ initialFilterValues, onChange, forOffline }) {
                     </ItemWithLabel>
                   </>
                 )}
+
+                <ResetButton block>Reset</ResetButton>
               </Col>
             </Row>
           </Form>

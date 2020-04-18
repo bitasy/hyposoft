@@ -46,7 +46,9 @@ function AssetDetailView() {
 
   const { vendor, model_number, type } = itmodel;
   const { tag, site } = location;
-  const powerConnStr = power_connections.map(({ label }) => label).join(", ");
+  const powerConnStr = (power_connections ?? [])
+    .map(({ label }) => label)
+    .join(", ");
 
   return (
     <div style={{ padding: 16 }}>
@@ -95,28 +97,30 @@ function AssetDetailView() {
 
           <Label>Network Ports</Label>
           <VSpace height="8px" />
-          {network_ports.map(({ label, mac_address, connection_str }, idx) => (
-            <div key={idx}>
-              <div
-                style={{
-                  display: "inline-block",
-                  border: "1pt solid #eee",
-                  padding: 8,
-                }}
-              >
-                <Label>{label}</Label>
-                <VSpace height="8px" />
+          {(network_ports ?? []).map(
+            ({ label, mac_address, connection_str }, idx) => (
+              <div key={idx}>
+                <div
+                  style={{
+                    display: "inline-block",
+                    border: "1pt solid #eee",
+                    padding: 8,
+                  }}
+                >
+                  <Label>{label}</Label>
+                  <VSpace height="8px" />
 
-                <Label>MAC Address</Label>
-                <Value>{mac_address ?? "(empty)"}</Value>
-                <VSpace height="8px" />
+                  <Label>MAC Address</Label>
+                  <Value>{mac_address ?? "(empty)"}</Value>
+                  <VSpace height="8px" />
 
-                <Label>Connected To</Label>
-                <Value>{connection_str ?? "(empty)"}</Value>
+                  <Label>Connected To</Label>
+                  <Value>{connection_str ?? "(empty)"}</Value>
+                </div>
+                <VSpace height="8px" />
               </div>
-              <VSpace height="8px" />
-            </div>
-          ))}
+            ),
+          )}
         </div>
       ) : null}
 
