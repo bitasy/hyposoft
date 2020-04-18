@@ -15,16 +15,22 @@ const DecommissionTable = styled(Table)`
 
 export const decommissionColumns = [
   {
+    title: "Hostname",
+    dataIndex: "hostname",
+    sorter: true,
+    sortDirections: ["ascend", "descend"],
+  },
+  {
     title: "Model",
     dataIndex: "itmodel",
     sorter: true,
     sortDirections: ["ascend", "descend"],
   },
   {
-    title: "Host",
-    dataIndex: "hostname",
-    sorter: true,
-    sortDirections: ["ascend", "descend"],
+     title: "Asset Number",
+     dataIndex: "asset_number",
+     sorter: true,
+     sortDirections: ["ascend", "descend"],
   },
   {
     title: "Location",
@@ -39,7 +45,7 @@ export const decommissionColumns = [
     sortDirections: ["ascend", "descend"],
   },
   {
-    title: "Decommissoned At",
+    title: "Decommission Time",
     dataIndex: "decommissioned_timestamp",
     sorter: true,
     sortDirections: ["ascend", "descend"],
@@ -128,6 +134,7 @@ function DecommissionList({ modelID }) {
 
   function onRow(r) {
     const onClick = () => history.push(`/assets/readonly/${r.id}`);
+    //const onClick = () => history.push(`/decommission/${r.id}`);
     return { onClick };
   }
 
