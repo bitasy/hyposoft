@@ -68,7 +68,6 @@ function ManagementPageFrame({ children }) {
     });
   }, [cpRefreshTrigger]);
 
-  const isAdmin = user.is_staff;
   const selectedSiteID = site?.id ?? -1;
 
   async function onLogout() {
@@ -131,12 +130,6 @@ function ManagementPageFrame({ children }) {
                 >{`${ds.name} (${ds.abbr})`}</Select.Option>
               ))}
             </Select>
-            {isAdmin ? (
-              <Button ghost style={{ marginRight: 8 }} href="admin">
-                <EyeInvisibleOutlined />
-                Admin page
-              </Button>
-            ) : null}
             <Button ghost onClick={onLogout}>
               <LogoutOutlined />
               Logout
@@ -164,7 +157,7 @@ function Sidebar() {
   const history = useHistory();
 
   const { user } = useContext(AuthContext);
-  const isAdmin = user.permission.admin_perm;
+  const isAdmin = !!user?.permission?.admin_perm;
 
   function handleClick(e) {
     const key = e.key;
