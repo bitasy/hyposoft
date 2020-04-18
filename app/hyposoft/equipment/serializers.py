@@ -277,12 +277,14 @@ class AssetSerializer(serializers.ModelSerializer):
 
         create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
 
+        instance = super(AssetSerializer, self).update(instance, validated_data)
+
         if instance.site.offline:
             for port in instance.networkport_set.all():
                 port.connection = None
                 port.save()
 
-        return super(AssetSerializer, self).update(instance, validated_data)
+        return instance
 
     def to_representation(self, instance):
         data = super(AssetSerializer, self).to_representation(instance)
@@ -297,7 +299,7 @@ class AssetSerializer(serializers.ModelSerializer):
                 connections.values('pdu', 'plug_number')]
             data['network_ports'] = [
                 NetworkPortSerializer(port).data
-                for port in ports.order_by('label')
+                for port in ports.order_by('label') if port
             ]
             update_asset_power(instance)
             networked = instance.pdu_set.filter(networked=True)

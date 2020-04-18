@@ -51,12 +51,12 @@ export const schema = Yup.object()
           })
         : null,
     ),
-    power_connections: Yup.array(
+    /*power_connections: Yup.array(
       Yup.object({
         pdu_id: Yup.number().required(),
         plug: Yup.number().required(),
-      }),
-    ),
+      }).nullable(),
+    ),*/
     network_ports: Yup.array(
       Yup.object({
         label: Yup.string().required(),

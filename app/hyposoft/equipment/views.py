@@ -29,9 +29,7 @@ class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         version = ChangePlan.objects.get(id=get_version(request))
-        # Shouldn't these be location.rack???
-        # Anyways, this blows up with error
-        # Expected view AssetCreate to be called with a URL keyword argument named "pk". Fix your URL conf, or set the `.lookup_field` attribute on the view correctly.
+        request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
         if version.id != 0 and request.data['location']['tag'] != 'offline' and request.data['location']['rack']:
             rack = Rack.objects.get(id=request.data['location']['rack'])
             versioned_rack = add_rack(rack, version)
@@ -89,6 +87,7 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
         asset_ver = asset.version
+        request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
         if version != asset_ver:
             data = request.data
             site = Site.objects.get(id=request.data['location']['site'])
