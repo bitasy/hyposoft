@@ -21,6 +21,7 @@ function ImportPage({ title, importData }) {
 
     importData(fd, false).then(({ status, diff, errors }) => {
       if (status === "diff") {
+        setErrors([]);
         setDiff(diff);
       } else if (status === "error") {
         setErrors(errors.map(({ errors }) => errors));
