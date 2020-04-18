@@ -50,7 +50,7 @@ function UserManagementPage() {
         columns={columns}
         dataSource={data}
         pagination={false}
-        footer={() => (
+        title={() => (
           <Button
             onClick={() => {
               history.push("/users/create");
