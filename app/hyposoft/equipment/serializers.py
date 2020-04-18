@@ -400,6 +400,7 @@ class AssetDetailSerializer(AssetSerializer):
 
 class DecommissionedAssetSerializer(AssetEntrySerializer):
     decommissioned_by = serializers.StringRelatedField()
+    itmodel = serializers.StringRelatedField()
 
     class Meta:
         model = Asset

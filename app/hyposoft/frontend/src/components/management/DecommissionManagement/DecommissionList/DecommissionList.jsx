@@ -43,17 +43,6 @@ export const decommissionColumns = [
     dataIndex: "decommissioned_by",
     sorter: true,
     sortDirections: ["ascend", "descend"],
-    render: function(text, record) {
-      return (
-        <div>
-          <a href={`/#/models/${record.decommissioned_by}`} style={{ marginRight: 8 }}>
-             {text}
-          </a>
-        </div>
-      );
-    },
-  
-
   },
   {
     title: "Decommission Time",
