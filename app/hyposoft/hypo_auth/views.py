@@ -112,23 +112,30 @@ class UserCreate(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         data = request.data
         perms = data['user'].pop('permission')
-        user = User.objects.create_user(
-            username=data['user']['username'],
-            first_name=data['user']['first_name'],
-            last_name=data['user']['last_name'],
-            password=data['password'],
-            email=data['user']['email']
-        )
-        Permission.objects.create(
-            user=user,
-            model_perm=perms['model_perm'],
-            asset_perm=perms['asset_perm'],
-            power_perm=perms['power_perm'],
-            audit_perm=perms['audit_perm'],
-            admin_perm=perms['admin_perm'],
-            site_perm=perms['site_perm']
-        )
+        try:
+            user = User.objects.get(username=data['user']['username'])
+        except:
+            user = User.objects.create_user(
+                username=data['user']['username'],
+                first_name=data['user']['first_name'],
+                last_name=data['user']['last_name'],
+                password=data['password'],
+                email=data['user']['email']
+            )
+        try:
+            Permission.object.get(user=user)
+        except:
+            Permission.objects.create(
+                user=user,
+                model_perm=perms['model_perm'],
+                asset_perm=perms['asset_perm'],
+                power_perm=perms['power_perm'],
+                audit_perm=perms['audit_perm'],
+                admin_perm=perms['admin_perm'],
+                site_perm=perms['site_perm']
+            )
         return Response(UserPermSerializer(user).data)
+
 
 class UserRetrieve(generics.RetrieveAPIView):
     queryset = User.objects.all()
