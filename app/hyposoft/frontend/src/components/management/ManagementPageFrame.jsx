@@ -31,7 +31,7 @@ const {Header, Content, Sider} = Layout;
 
 function ManagementPageFrame({children}) {
     const history = useHistory();
-    const { user } = useContext(AuthContext);
+    const {user} = useContext(AuthContext);
     const {site, setSiteByID, refreshTrigger: siteRefreshTrigger} = useContext(
         SiteContext,
     );
@@ -160,8 +160,7 @@ function Sidebar() {
     const {user} = useContext(AuthContext);
     const isAdmin = !!user?.permission?.admin_perm;
     const config = ConfigurePermissions();
-    console.log("config", config);
-    console.log("canLogView", config.canLogView);
+    console.log(config);
 
     function handleClick(e) {
         const key = e.key;
@@ -222,10 +221,12 @@ function Sidebar() {
                 </Menu.Item>
             ) : null}
 
-            <Menu.Item key="/changeplan">
-                <PullRequestOutlined/>
-                <span>Change Plans</span>
-            </Menu.Item>
+            {config.canChangePlan ? (
+                <Menu.Item key="/changeplan">
+                    <PullRequestOutlined/>
+                    <span>Change Plans</span>
+                </Menu.Item>
+            ) : null}
 
             {isAdmin ? (
                 <Menu.Item key="/users">
