@@ -144,12 +144,9 @@ class ITModelResource(ModelResource):
                 row[0] = "asset"
             data.insert(i, row)
 
-    def after_import_row(self, row, row_result, **kwargs):
-        if row_result.import_type == 'skip':
-            return
-        my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
-        my_network_ports = int(row['network_ports'])
-        current = [label['name'] for label in my_model.networkportlabel_set.order_by('order').values()]
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        my_network_ports = instance.network_ports
+        current = [label['name'] for label in instance.networkportlabel_set.order_by('order').values()]
         if len(current) > my_network_ports >= 4:
             raise ValidationError(
                 'Cannot decrease amount of network ports.'
@@ -157,16 +154,19 @@ class ITModelResource(ModelResource):
 
         special = []
         for i in range(1, min(5, my_network_ports + 1)):
-            special.append(row['network_port_name_' + str(i)])
+            try:
+                special.append(getattr(instance, 'network_port_name_' + str(i)))
+            except:
+                special.append('')
 
         if special != current[:len(special)]:
-            if my_model.asset_set.all().count() > 0:
+            if instance.asset_set.all().count() > 0:
                 raise serializers.ValidationError(
                     "Cannot modify interconnected ITModel attributes while assets are deployed."
                 )
             else:
-                my_model.networkportlabel_set.all().delete()
-                create_itmodel_extra(my_model, special + current)
+                instance.networkportlabel_set.all().delete()
+                create_itmodel_extra(instance, special + current)
 
 
 def get_site(row):

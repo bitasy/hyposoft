@@ -11,10 +11,11 @@ class HeightFilter(BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         height_min = request.query_params.get('height_min')
         height_max = request.query_params.get('height_max')
-        if height_min == 1 and height_max == 42:
+        if height_min == '1' and height_max == '42':
             return queryset
 
-        return queryset.filter(height__range=(height_min, height_max))
+        return queryset.filter(
+            height__range=(height_min, height_max), type__in=(ITModel.Type.REGULAR, ITModel.Type.CHASSIS))
 
 
 class ITModelFilter(filters.FilterSet):
