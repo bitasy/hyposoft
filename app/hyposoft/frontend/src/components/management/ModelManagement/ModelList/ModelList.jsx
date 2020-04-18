@@ -8,6 +8,11 @@ import { getModelList } from "../../../../api/model";
 import VSpace from "../../../utility/VSpace";
 import { exportModels } from "../../../../api/bulk";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import ConfigurePermissions from "../../../utility/ConfigurePermissions";
+
+//configure permissions
+const config = ConfigurePermissions;
+const canModelCRUD = config.canModelCRUD;
 
 const ModelTable = styled(Table)`
   :hover {
@@ -79,9 +84,8 @@ const initialFilterValues = {
   power_ports: [0, 10],
 };
 
-// noCreate?: boolean
 
-function ModelList({ noCreate }) {
+function ModelList({ canModelCRUD }) {
   const history = useHistory();
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
@@ -195,7 +199,8 @@ function ModelList({ noCreate }) {
         onRow={onRow}
         onChange={onChange}
         pagination={false}
-        footer={() => (noCreate ? null : ModelListFooter())}
+        header={() => (canModelCRUD ? null : ModelListFooter())}
+        //footer={() => (canModelCRUD ? null : ModelListFooter())}
       />
     </>
   );
