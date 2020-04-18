@@ -122,18 +122,15 @@ class UserCreate(generics.CreateAPIView):
                 password=data['password'],
                 email=data['user']['email']
             )
-        try:
-            Permission.object.get(user=user)
-        except:
-            Permission.objects.create(
-                user=user,
-                model_perm=perms['model_perm'],
-                asset_perm=perms['asset_perm'],
-                power_perm=perms['power_perm'],
-                audit_perm=perms['audit_perm'],
-                admin_perm=perms['admin_perm'],
-                site_perm=perms['site_perm']
-            )
+        perm = Permission.objects.get(user=user)  # Created by user signal
+        perm.model_perm = perms['model_perm']
+        perm.asset_perm=perms['asset_perm']
+        perm.power_perm=perms['power_perm']
+        perm.audit_perm=perms['audit_perm']
+        perm.admin_perm=perms['admin_perm']
+        perm.site_perm=perms['site_perm']
+        perm.save()
+
         return Response(UserPermSerializer(user).data)
 
 
