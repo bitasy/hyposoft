@@ -30,6 +30,17 @@ class SiteSerializer(serializers.ModelSerializer):
         data['type'] = 'offline-storage' if data.pop('offline') else 'datacenter'
         return data
 
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        if instance.type == 'offline-storage' and validated_data['type'] == 'datacenter':
+            raise serializers.ValidationError(
+                "Cannot transform an offline site into a datacenter."
+            )
+        elif instance.type == 'datacenter' and validated_data['type'] == 'offline-storage':
+            instance.asset_set.update(rack=None, rack_position=None)
+            return super(SiteSerializer, self).update(instance, validated_data)
+        return super(SiteSerializer, self).update(instance, validated_data)
+
 
 class ITModelEntrySerializer(serializers.ModelSerializer):
     class Meta:
