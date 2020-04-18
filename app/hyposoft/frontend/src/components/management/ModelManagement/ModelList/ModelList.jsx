@@ -199,8 +199,8 @@ function ModelList({ canModelCRUD }) {
         onRow={onRow}
         onChange={onChange}
         pagination={false}
-       // header={() => (canModelCRUD ? null : ModelListFooter())}
-        footer={() => (canModelCRUD ? ModelListFooter() : null)}
+        header={() => (canModelCRUD ? null : ModelListFooter())}
+        //footer={() => (canModelCRUD ? ModelListFooter() : null)}
       />
     </>
   );
