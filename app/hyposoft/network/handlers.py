@@ -32,11 +32,15 @@ def net_graph(asset_id):
                 blade_nodes.append({
                     'id': blade.id,
                     'label': "{}: Slot {}".format(blade.hostname, blade.slot) if blade.hostname else
-                             "Slot " + blade.slot + " blade"
+                    "Slot " + blade.slot + " blade"
                 })
                 blade_edges.append((asset.id, blade.id))
 
-    add_asset_blades(asset)
+    if asset.blade_chassis is not None:
+        blade_nodes.append({'id': asset.blade_chassis.id, 'label': str(asset.blade_chassis)})
+        blade_edges.append((asset.id, asset.blade_chassis.id))
+    else:
+        add_asset_blades(asset)
     for asset in assets:
         add_asset_blades(asset)
 

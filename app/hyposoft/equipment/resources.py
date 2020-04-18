@@ -167,10 +167,7 @@ class ITModelResource(ModelResource):
                 )
             else:
                 my_model.networkportlabel_set.all().delete()
-
-
-
-        create_itmodel_extra(my_model, special + current)
+                create_itmodel_extra(my_model, special + current)
 
 
 def get_site(row):

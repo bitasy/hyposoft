@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.contrib import auth
 from rest_framework import views, generics
+from rest_framework.response import Response
+
 from hyposoft.users import UserSerializer
 from .serializers import LoginSerializer, UserPermSerializer
 from .models import Permission
@@ -126,7 +128,7 @@ class UserCreate(generics.CreateAPIView):
             admin_perm=perms['admin_perm'],
             site_perm=perms['site_perm']
         )
-        return UserPermSerializer(user).data
+        return Response(UserPermSerializer(user).data)
 
 class UserRetrieve(generics.RetrieveAPIView):
     queryset = User.objects.all()
