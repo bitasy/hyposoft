@@ -381,10 +381,10 @@ class AssetDetailSerializer(AssetSerializer):
     def to_representation(self, instance):
         data = super(AssetDetailSerializer, self).to_representation(instance)
 
-        for i, connection in enumerate(data['power_connections']):
+        for i, connection in enumerate(data.get('power_connections') or []):
             pdu = PDU.objects.get(id=connection['pdu_id'])
             data['power_connections'][i]['label'] = pdu.position + str(connection['plug'])
-        for i, port in enumerate(data['network_ports']):
+        for i, port in enumerate(data.get('network_ports') or []):
             if port['connection']:
                 data['network_ports'][i]['connection_str'] = str(NetworkPort.objects.get(id=port['connection']))
 
