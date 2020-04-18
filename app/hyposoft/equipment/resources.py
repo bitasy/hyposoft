@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
+from hypo_auth.handlers import check_asset_perm
 from hyposoft.utils import versioned_object, add_asset, add_rack, newest_object
 from .models import ITModel, Asset, Rack, Site
 from network.models import NetworkPortLabel
@@ -295,6 +296,9 @@ class AssetResource(VersionedResource):
     )
 
     def skip_row(self, instance, original):
+        check_asset_perm(self.owner.username, original.site.abbr) if original else None
+        check_asset_perm(self.owner.username, instance.site.abbr)
+
         port1 = getattr(instance, "power_port_connection_1")
         port2 = getattr(instance, "power_port_connection_2")
         new = [port for port in (port1, port2) if len(port) > 0]
@@ -352,6 +356,9 @@ class AssetResource(VersionedResource):
         clean_model_instances = True
 
     def before_import_row(self, row, **kwargs):
+        if row['datacenter']:
+            if row['offline_site']:
+                raise serializers.ValidationError('You cannot specify both datacenter and offline_site')
         if row['asset_number'] == '' and self.version.id == 0:
             try:
                 exists = Asset.objects.get(hostname=row['hostname'], version_id=0)
@@ -386,7 +393,7 @@ class AssetResource(VersionedResource):
                         plug = int(pc[split:])
                         special.append({'pdu_id': PDU.objects.get(rack=my_rack, position=position), 'plug': plug})
                     except AttributeError:
-                        raise ValidationError('power_port_connection_' + str(i) + "formatted incorrectly")
+                        raise ValidationError('power_port_connection_' + str(i) + " formatted incorrectly")
                     except PDU.DoesNotExist:
                         raise ValidationError(pc + " does not exit on the specified rack")
             current = []

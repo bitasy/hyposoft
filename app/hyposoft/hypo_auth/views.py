@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.contrib import auth
-from rest_framework import views, generics
+from rest_framework import views, generics, serializers
 from rest_framework.response import Response
 
 from hyposoft.users import UserSerializer
@@ -112,6 +112,10 @@ class UserCreate(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         data = request.data
         perms = data['user'].pop('permission')
+        if perms['asset_perm'] and not perms['site_perm']:
+            raise serializers.ValidationError(
+                "If asset permission is specified, site permission must also be specified."
+            )
         try:
             user = User.objects.get(username=data['user']['username'])
         except:

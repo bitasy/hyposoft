@@ -1,16 +1,14 @@
 from django.db import IntegrityError
 from django.db.models import ProtectedError
-from django.utils import timezone
-from rest_framework import generics, views, status
-from rest_framework.response import Response
+from rest_framework import generics, views
 from rest_framework.status import HTTP_200_OK
-from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object, get_site
-from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
 from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
 from .models import *
 import logging
-from hypo_auth .mixins import *
+from hypo_auth.mixins import *
+from hypo_auth.handlers import *
 
 
 class SiteCreate(CreateAndLogMixin, generics.CreateAPIView):
@@ -88,9 +86,13 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
         asset = self.get_object()
         asset_ver = asset.version
         request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
+
+        site = Site.objects.get(id=request.data['location']['site'])
+        check_asset_perm(self.user.username, request.data['location']['site'])
+        check_asset_perm(self.user.username, asset.site.abbr)
+
         if version != asset_ver:
             data = request.data
-            site = Site.objects.get(id=request.data['location']['site'])
             if not site.offline:
                 rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
                 if not rack:
