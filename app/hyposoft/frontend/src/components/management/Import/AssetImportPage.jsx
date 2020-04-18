@@ -25,8 +25,6 @@ function AssetImportPage() {
         setErrors([]);
         setAsset(asset);
         setPower(power);
-        console.log("ASSET ", asset);
-        console.log("POWER ", power);
       } else if (status === "error") {
         setErrors(errors.map(({ errors }) => errors));
       } else {

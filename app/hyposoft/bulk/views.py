@@ -11,7 +11,7 @@ from django.db import models
 
 from equipment.resources import ITModelResource, AssetResource
 from equipment.models import ITModel, Asset, Rack
-from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter, RackPositionFilter
+from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter, RackPositionFilter, HeightFilter
 from equipment.serializers import ITModelSerializer, AssetSerializer
 from changeplan.models import ChangePlan
 from power.models import Powered, PDU
@@ -206,9 +206,9 @@ class NetworkImport(generics.CreateAPIView):
                 ["Row {} {}: {}".format(i, *item)
                  for item in row.validation_error.message_dict.items()] if row.validation_error
                 else [
-                    "{} {}: {}".format(
-                        row.errors[0].row['vendor'],
-                        row.errors[0].row['model_number'],
+                    "{} -> {}: {}".format(
+                        row.errors[0].row['src_hostname'],
+                        row.errors[0].row['dest_hostname'],
                         str(error.error.detail[0]
                             if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
                     )
@@ -228,9 +228,9 @@ class NetworkImport(generics.CreateAPIView):
                     ["Row {} {}: {}".format(i, *item)
                      for item in row.validation_error.message_dict.items()] if row.validation_error
                     else [
-                        "{} {}: {}".format(
-                            row.errors[0].row['vendor'],
-                            row.errors[0].row['model_number'],
+                        "{} -> {}: {}".format(
+                            row.errors[0].row['src_hostname'],
+                            row.errors[0].row['dest_hostname'],
                             str(error.error.detail[0]
                                 if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
                         )
@@ -288,7 +288,7 @@ class CSVRenderer(renderers.BaseRenderer):
 class ITModelExport(generics.ListAPIView):
     renderer_classes = [CSVRenderer]
 
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, HeightFilter]
     search_fields = [
         'vendor',
         'model_number',

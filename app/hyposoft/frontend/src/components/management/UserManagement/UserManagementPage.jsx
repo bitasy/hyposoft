@@ -60,7 +60,6 @@ function UserManagementPage() {
           </Button>
         )}
       />
-      <Table />
     </div>
   );
 }

@@ -36,7 +36,7 @@ class LoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         auth.login(request, user)
-        return JsonResponse(UserSerializer(user).data)
+        return JsonResponse(UserPermSerializer(user).data)
 
 
 class LogoutView(views.APIView):
@@ -112,7 +112,7 @@ class UserCreate(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         data = request.data
         perms = data['user'].pop('permission')
-        user = User.objects.create(
+        user = User.objects.create_user(
             username=data['user']['username'],
             first_name=data['user']['first_name'],
             last_name=data['user']['last_name'],

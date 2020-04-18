@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserBarcodeReader } from "@zxing/library";
-import { Button } from "antd";
+import { Button, Typography } from "antd";
 import { useHistory } from "react-router-dom";
 import { getAssetIDForAssetNumber } from "../../api/asset";
 
@@ -64,7 +64,8 @@ function Scanner() {
   }
 
   return (
-    <div>
+    <div style={{ padding: 16 }}>
+      <Typography.Title level={4}>Barcode Scanner</Typography.Title>
       <video
         id="video"
         ref={ref}

@@ -72,7 +72,7 @@ class ITModelSerializer(serializers.ModelSerializer):
     @transaction.atomic()
     def create(self, validated_data):
         if validated_data['type'] == ITModel.Type.BLADE:
-            validated_data['height'] = 9  # Placeholder, hopefully this isn't used for anything
+            validated_data['height'] = 0
             validated_data['power_ports'] = 0
             validated_data['network_port_labels'] = []
 
@@ -309,7 +309,7 @@ class AssetSerializer(serializers.ModelSerializer):
                         break
             else:
                 data['power_state'] = None
-        if not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
+        elif not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
             chassis_hostname = instance.blade_chassis.hostname
             if chassis_hostname:
                 data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
@@ -381,10 +381,10 @@ class AssetDetailSerializer(AssetSerializer):
     def to_representation(self, instance):
         data = super(AssetDetailSerializer, self).to_representation(instance)
 
-        for i, connection in enumerate(data['power_connections']):
+        for i, connection in enumerate(data.get('power_connections') or []):
             pdu = PDU.objects.get(id=connection['pdu_id'])
             data['power_connections'][i]['label'] = pdu.position + str(connection['plug'])
-        for i, port in enumerate(data['network_ports']):
+        for i, port in enumerate(data.get('network_ports') or []):
             if port['connection']:
                 data['network_ports'][i]['connection_str'] = str(NetworkPort.objects.get(id=port['connection']))
 

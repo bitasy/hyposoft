@@ -273,7 +273,7 @@ function AssetForm({ id, origin }) {
         </Col>
       </Row>
 
-      {id && (
+      {id && asset.location.tag !== "offline" && (
         <div>
           <div>
             <VSpace height="32px" />
