@@ -30,6 +30,19 @@ import Offline from "./Offline";
 import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
 import FormDebugger from "../../../utility/formik/FormDebugger";
+import styled from "styled-components";
+
+const InputBlackPlaceholder = styled(Input)`
+  ::placeholder {
+    color: rgba(0, 0, 0, 0.65);
+  }
+`;
+
+const InputNumberBlackPlaceholder = styled(InputNumber)`
+  ::placeholder {
+    color: rgba(0, 0, 0, 0.65);
+  }
+`;
 
 function AssetForm({ id, origin }) {
   const history = useHistory();
@@ -146,22 +159,57 @@ function AssetForm({ id, origin }) {
                   )}
                 </ItemWithLabel>
 
-                <Divider />
+                <Divider>Upgrades</Divider>
 
-                <ItemWithLabel name="display_color" label="Display Color">
-                  <ColorPicker name="display_color" nullable />
+                <h4>* Upgraded fields are shown in orange</h4>
+
+                <ItemWithLabel
+                  name="display_color"
+                  label="Display Color"
+                  color={
+                    props.values.display_color != null ? "orange" : "black"
+                  }
+                >
+                  <ColorPicker
+                    name="display_color"
+                    nullable
+                    placeholder={selectedModel?.display_color}
+                  />
                 </ItemWithLabel>
 
-                <ItemWithLabel name="cpu" label="CPU">
-                  <Input name="cpu" />
+                <ItemWithLabel
+                  name="cpu"
+                  label="CPU"
+                  color={props.values.cpu != null ? "orange" : "black"}
+                >
+                  <InputBlackPlaceholder
+                    name="cpu"
+                    nullIfBlank
+                    placeholder={selectedModel?.cpu}
+                  />
                 </ItemWithLabel>
 
-                <ItemWithLabel name="memory" label="Memory">
-                  <InputNumber name="memory" />
+                <ItemWithLabel
+                  name="memory"
+                  label="Memory"
+                  color={props.values.memory != null ? "orange" : "black"}
+                >
+                  <InputNumberBlackPlaceholder
+                    name="memory"
+                    placeholder={selectedModel?.memory}
+                  />
                 </ItemWithLabel>
 
-                <ItemWithLabel name="storage" label="Storage">
-                  <Input name="storage" />
+                <ItemWithLabel
+                  name="storage"
+                  label="Storage"
+                  color={props.values.storage != null ? "orange" : "black"}
+                >
+                  <InputBlackPlaceholder
+                    name="storage"
+                    nullIfBlank
+                    placeholder={selectedModel?.storage}
+                  />
                 </ItemWithLabel>
 
                 <Divider />
@@ -225,7 +273,7 @@ function AssetForm({ id, origin }) {
         </Col>
       </Row>
 
-      {id && (
+      {id && asset.location.tag !== "offline" && (
         <div>
           <div>
             <VSpace height="32px" />

@@ -6,10 +6,10 @@ const BlockSpan = styled("span")`
   display: block;
 `;
 
-function ItemWithLabel({ name, label, children, flip, slim }) {
+function ItemWithLabel({ name, label, children, flip, slim, color }) {
   return (
     <div style={{ textAlign: "left", padding: "8px 0", color: "black" }}>
-      <BlockSpan style={{ fontWeight: slim ? "normal" : "bold" }}>
+      <BlockSpan style={{ fontWeight: slim ? "normal" : "bold", color }}>
         {label}
       </BlockSpan>
       {!flip && children}

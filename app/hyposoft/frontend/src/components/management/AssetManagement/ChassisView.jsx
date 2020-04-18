@@ -109,7 +109,7 @@ function ChassisView({ assetID }) {
                         }}
                         className={s.clickable}
                       >
-                        {asset.id == assetID ? "*" : ""}
+                        {`${idx} ${asset.id == assetID ? "*" : ""}`}
                       </td>
                     );
                   } else {

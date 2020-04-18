@@ -4,15 +4,15 @@ import { ChromePicker } from "react-color";
 import { DisableContext } from "../../../../contexts/contexts";
 import { Checkbox } from "antd";
 
-function ColorPicker({ name, nullable, ...restProps }) {
+function ColorPicker({ name, nullable, placeholder, ...restProps }) {
   const { disabled } = React.useContext(DisableContext);
   const [{ value }, {}, { setValue }] = useField(name);
 
   function handleChange(e) {
     if (e.target.checked) {
-      setValue(null);
-    } else {
       setValue("#0ff");
+    } else {
+      setValue(null);
     }
   }
 
@@ -20,20 +20,19 @@ function ColorPicker({ name, nullable, ...restProps }) {
     <div>
       {nullable && (
         <div>
-          Null?: <Checkbox checked={value === null} onChange={handleChange} />
+          Use upgrade{" "}
+          <Checkbox checked={value != null} onChange={handleChange} />
         </div>
       )}
-      {value != null && (
-        <ChromePicker
-          disableAlpha
-          color={value}
-          onChange={color => {
-            if (disabled) return;
-            setValue(color.hex);
-          }}
-          {...restProps}
-        />
-      )}
+      <ChromePicker
+        disableAlpha
+        color={value ?? placeholder}
+        onChange={color => {
+          if (disabled || value == null) return;
+          setValue(color.hex);
+        }}
+        {...restProps}
+      />
     </div>
   );
 }
