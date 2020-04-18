@@ -132,10 +132,9 @@ class ITModelResource(ModelResource):
             row['mount_type'] = 'regular'
 
         if row['mount_type'] == ITModel.Type.BLADE:
-            row['height'] = 0
+            row['height'] = 1
             row['power_ports'] = 0
-            row['network_ports'] = 1
-            row['network_port_name_1'] = 'chassis'
+            row['network_ports'] = 0
 
     def after_export(self, queryset, data, *args, **kwargs):
         for i, row in enumerate(data):
