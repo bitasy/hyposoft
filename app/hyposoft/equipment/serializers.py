@@ -408,6 +408,7 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
             'id',
             'itmodel',
             'hostname',
+            'asset_number',
             'owner',
             'rack',
             'rack_position',

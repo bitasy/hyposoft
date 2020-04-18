@@ -31,12 +31,6 @@ function DecommissionFilters({ initialFilterValues, onChange }) {
           <Form>
             <Row>
               <Col md={8}>
-                <ItemWithLabel name="search" label="Search by keyword">
-                  <Input name="search" />
-                </ItemWithLabel>
-
-                <VSpace height="8px" />
-
                 <ItemWithLabel name="search" label="Search by decommissioner">
                   <Input name="decommissioned_by" />
                 </ItemWithLabel>
