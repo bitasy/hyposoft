@@ -22,7 +22,7 @@ function AssetListFooter({selectedAssets}) {
         history.push(`/assets/print_view?asset_ids=${selectedAssets.join(",")}`);
     }
 
-    return () => doDisplay ? (
+    return doDisplay ? (
             <div>
                 <Button onClick={onCreate}>
                     <PlusOutlined/>

@@ -79,7 +79,7 @@ const initialFilterValues = {
 // modelID?: number
 function AssetList({ modelID, forOffline }) {
   const history = useHistory();
-  
+
   console.log("modleID", modelID);
 
   const { site } = React.useContext(SiteContext);
