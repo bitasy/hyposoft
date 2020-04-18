@@ -6,7 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from hyposoft.utils import get_version, versioned_queryset, get_site
 from .serializers import ITModelEntrySerializer, AssetEntrySerializer, DecommissionedAssetSerializer, \
     AssetSerializer, RackSerializer, SiteSerializer, ITModelPickSerializer
-from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter, RackPositionFilter
+from .filters import ITModelFilter, AssetFilter, RackRangeFilter, ChangePlanFilter, RackPositionFilter, HeightFilter
 from .models import *
 
 
@@ -33,7 +33,7 @@ class ITModelList(generics.ListAPIView):
     Class for returning ITModels after filtering criteria.
     """
 
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter, HeightFilter]
     search_fields = [
         'vendor',
         'model_number',

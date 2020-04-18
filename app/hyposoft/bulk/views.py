@@ -11,7 +11,7 @@ from django.db import models
 
 from equipment.resources import ITModelResource, AssetResource
 from equipment.models import ITModel, Asset, Rack
-from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter, RackPositionFilter
+from equipment.filters import ITModelFilter, RackRangeFilter, AssetFilter, RackPositionFilter, HeightFilter
 from equipment.serializers import ITModelSerializer, AssetSerializer
 from changeplan.models import ChangePlan
 from power.models import Powered, PDU
@@ -288,7 +288,7 @@ class CSVRenderer(renderers.BaseRenderer):
 class ITModelExport(generics.ListAPIView):
     renderer_classes = [CSVRenderer]
 
-    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, HeightFilter]
     search_fields = [
         'vendor',
         'model_number',
