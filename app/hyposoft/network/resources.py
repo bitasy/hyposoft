@@ -81,10 +81,11 @@ class NetworkPortResource(VersionedResource):
         clean_model_instances = True
 
     def skip_row(self, instance, original):
-        dest_host = NetworkPort.objects.filter(
-            asset__hostname=getattr(instance, "dest_hostname"),
-            label__name=getattr(instance, "dest_port")
-        ).order_by("-version__id").first()
+        dest_host = newest_object(
+            NetworkPort, self.version,
+            asset__hostname=getattr(instance, 'dest_hostname'),
+            label__name=getattr(instance, 'dest_port')
+        )
 
         connected = dest_host.connection is not None and dest_host.connection.asset.hostname == instance.asset.hostname
 
@@ -117,14 +118,19 @@ class NetworkPortResource(VersionedResource):
         live = ChangePlan.objects.get(id=0)
 
         new_src_network_port = add_network_conn(my_src_network_port, self.version)
+        new_src_network_port.asset = add_asset(
+            newest_object(Asset, self.version, hostname=row['src_hostname']),
+            self.version,
+            ['hostname']
+        )
+        new_src_network_port.save()
         if row['dest_hostname'] != '' and row['dest_port'] != '':
-
-            my_dest_asset = Asset.objects.filter(hostname=row['dest_hostname']).order_by("-version__id").first()
+            my_dest_asset = newest_object(Asset, self.version, hostname=row['dest_hostname'])
             my_dest_asset = add_asset(my_dest_asset, self.version, ['hostname'])
             my_dest_label = NetworkPortLabel.objects.get(name=row['dest_port'], itmodel=my_dest_asset.itmodel)
 
-            exists_dest = NetworkPort.objects.filter(asset__hostname=my_dest_asset.hostname, label=my_dest_label) \
-                .order_by('-version__id').first()
+            exists_dest = newest_object(
+                NetworkPort, self.version, asset__hostname=my_dest_asset.hostname, label=my_dest_label)
             exists_dest = add_network_conn(exists_dest, self.version)
             exists_dest.connection = new_src_network_port
             new_src_network_port.connection = exists_dest
