@@ -29,6 +29,7 @@ import { getSites } from "../../api/site";
 const { Header, Content, Sider } = Layout;
 
 function ManagementPageFrame({ children }) {
+  const history = useHistory();
   const { user } = useContext(AuthContext);
   const { site, setSiteByID, refreshTrigger: siteRefreshTrigger } = useContext(
     SiteContext,
@@ -41,6 +42,15 @@ function ManagementPageFrame({ children }) {
 
   const [changePlans, setChangePlans] = useState([]);
   const [sites, setSites] = useState([]);
+
+  React.useEffect(() => {
+    let isMobile = window.matchMedia("only screen and (max-width: 600px)")
+      .matches;
+
+    if (isMobile) {
+      history.push("/scanner");
+    }
+  }, []);
 
   React.useEffect(() => {
     getSites().then(setSites);
