@@ -52,7 +52,7 @@ export const decommissionColumns = [
         </div>
       );
     },
-   },
+  
 
   },
   {
