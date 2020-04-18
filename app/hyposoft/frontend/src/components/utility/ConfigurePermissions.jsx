@@ -17,26 +17,25 @@ function ConfigurePermissions() {
 
     //configure signals for viewable tabs
     const canLogView = !!(hasAuditPerm || hasAdminPerm);
+    const canChangePlan = !!(hasAssetPerm || hasAdminPerm);
 
     //configure signals for editable views
-    const canModelCRUD = !!(hasModelPerm || hasAdminPerm);
-    const canAssetCRUD = !!(hasAssetPerm || hasAdminPerm);
-    const canDecommission = !!(hasAssetPerm || hasAdminPerm);
-    const canOfflineCRUD = !!(hasAssetPerm || hasAdminPerm);
-    const canRackCRUD = !!(hasAssetPerm || hasAdminPerm);
-    const canChangePlan = !!(hasAssetPerm || hasAdminPerm);
+    const canModelCUD = !!(hasModelPerm || hasAdminPerm);
+    const canAssetCUDD = !!(hasAssetPerm || hasAdminPerm);
+    //const canDecommission = !!(hasAssetPerm || hasAdminPerm);
+    const canOfflineCUDD = !!(hasAssetPerm || hasAdminPerm);
+    const canRackCUD = !!(hasAssetPerm || hasAdminPerm);
 
     //configure signals for within detail views
     const canAssetPower = !!(hasPowerPerm || hasAdminPerm);
 
     const config = {
         canLogView,
-        canModelCRUD,
-        canAssetCRUD,
-        canDecommission,
-        canOfflineCRUD,
-        canRackCRUD,
         canChangePlan,
+        canModelCUD,
+        canAssetCUDD,
+        canOfflineCUDD,
+        canRackCUD,
         canAssetPower,
     }
 

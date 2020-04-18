@@ -10,9 +10,7 @@ import { exportModels } from "../../../../api/bulk";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 import ConfigurePermissions from "../../../utility/ConfigurePermissions";
 
-//configure permissions
-const config = ConfigurePermissions;
-const canModelCRUD = config.canModelCRUD;
+
 
 const ModelTable = styled(Table)`
   :hover {
@@ -85,8 +83,14 @@ const initialFilterValues = {
 };
 
 
-function ModelList({ canModelCRUD }) {
+function ModelList() {
   const history = useHistory();
+
+  //configure permissions
+  const config = ConfigurePermissions();
+  console.log(config);
+  const doDisplay = config.canModelCUD;
+  console.log("canModelCUD", doDisplay);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [total, setTotal] = React.useState(0);
@@ -199,7 +203,7 @@ function ModelList({ canModelCRUD }) {
         onRow={onRow}
         onChange={onChange}
         pagination={false}
-        footer={() => (canModelCRUD ? ModelListFooter() : null)}
+        footer={() => (doDisplay ? <ModelListFooter /> : null)}
       />
     </>
   );

@@ -160,8 +160,8 @@ function Sidebar() {
     const {user} = useContext(AuthContext);
     const isAdmin = !!user?.permission?.admin_perm;
     const config = ConfigurePermissions();
-    console.log(config);
-    console.log(config.canLogView);
+    console.log("config", config);
+    console.log("canLogView", config.canLogView);
 
     function handleClick(e) {
         const key = e.key;

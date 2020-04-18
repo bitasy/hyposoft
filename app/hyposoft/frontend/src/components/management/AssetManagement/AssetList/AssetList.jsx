@@ -10,6 +10,7 @@ import { SiteContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import ConfigurePermissions from "../../../utility/ConfigurePermissions";
 
 const AssetTable = styled(Table)`
   :hover {
@@ -78,6 +79,8 @@ const initialFilterValues = {
 // modelID?: number
 function AssetList({ modelID, forOffline }) {
   const history = useHistory();
+  
+  console.log("modleID", modelID);
 
   const { site } = React.useContext(SiteContext);
 
