@@ -8,6 +8,7 @@ import { getModelList } from "../../../../api/model";
 import VSpace from "../../../utility/VSpace";
 import { exportModels } from "../../../../api/bulk";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import AssetListFooter from "../../AssetManagement/AssetList/AssetListFooter";
 
 const ModelTable = styled(Table)`
   :hover {
@@ -187,6 +188,7 @@ function ModelList({ noCreate }) {
       </Button>
       <Button onClick={handleExport}>Export Models</Button>
       <VSpace height="8px" />
+      {noCreate ? null : <ModelListFooter/>}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <ModelTable
         rowKey={r => r.id}
@@ -195,7 +197,7 @@ function ModelList({ noCreate }) {
         onRow={onRow}
         onChange={onChange}
         pagination={false}
-        footer={() => (noCreate ? null : ModelListFooter())}
+        //footer={() => (noCreate ? null : ModelListFooter())}
       />
     </>
   );

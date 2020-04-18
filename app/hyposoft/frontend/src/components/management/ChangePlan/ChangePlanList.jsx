@@ -62,7 +62,8 @@ function ChangePlanList() {
         dataSource={data}
         onRow={onRow}
         pagination={false}
-        footer={footer}
+        //footer={footer}
+          title={footer}
       />
     </div>
   );
