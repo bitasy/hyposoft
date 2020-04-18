@@ -38,5 +38,5 @@ urlpatterns = [
 
     path('DecommissionAsset/<int:asset_id>', DecommissionAsset.as_view()),
 
-    path('AssetIDForAssetNumber/<int:asset_number>', AssetIDForAssetNumber),
+    path('AssetIDForAssetNumber/<int:asset_number>', AssetIDForAssetNumber.as_view()),
 ]
