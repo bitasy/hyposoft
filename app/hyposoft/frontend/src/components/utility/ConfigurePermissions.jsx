@@ -24,6 +24,7 @@ function ConfigurePermissions() {
     const canAssetCUDD = !!(hasAssetPerm || hasAdminPerm);
     //const canDecommission = !!(hasAssetPerm || hasAdminPerm);
     const canOfflineCUDD = !!(hasAssetPerm || hasAdminPerm);
+    const canSiteCUD = !!(hasAssetPerm || hasAdminPerm);
     const canRackCUD = !!(hasAssetPerm || hasAdminPerm);
 
     //configure signals for within detail views
@@ -35,6 +36,7 @@ function ConfigurePermissions() {
         canModelCUD,
         canAssetCUDD,
         canOfflineCUDD,
+        canSiteCUD,
         canRackCUD,
         canAssetPower,
     }
