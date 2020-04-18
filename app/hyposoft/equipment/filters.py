@@ -11,7 +11,6 @@ class HeightFilter(BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         height_min = request.query_params.get('height_min')
         height_max = request.query_params.get('height_max')
-
         if height_min == 1 and height_max == 42:
             return queryset
 
