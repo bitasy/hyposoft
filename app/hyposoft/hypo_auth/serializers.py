@@ -25,25 +25,16 @@ class PermissionSerializer(serializers.ModelSerializer):
 
 
 class UserPermSerializer(serializers.ModelSerializer):
+    permission = PermissionSerializer(read_only=False)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'permission']
 
-    def to_representation(self, instance):
-        data = super(UserPermSerializer, self).to_representation(instance)
-        
-        try:
-            perm = Permission.objects.get(user=instance)
-        except:
-            perm = Permission(admin_perm=True, user=instance)
-            perm.save()
-
-        data['permission'] = PermissionSerializer(perm).data
-
-        return data
-
-    def to_internal_value(self, data):
-        req = self.context['request']
-        permission = data.pop['permission']
-        return super(UserPermSerializer, self).to_internal_value(data)
-
+    def update(self, instance, validated_data):
+        perm = validated_data.pop('permission')
+        obj = Permission.objects.get(user=instance)
+        for (field, val) in perm.items():
+            setattr(obj, field, val)
+        obj.save()
+        return super(UserPermSerializer, self).update(instance, validated_data)
