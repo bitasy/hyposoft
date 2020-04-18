@@ -159,14 +159,14 @@ class ITModelResource(ModelResource):
             except:
                 special.append('')
 
-        if special != current[:len(special)]:
+        if special != current[:len(special)] or my_network_ports <= 4:
             if instance.asset_set.all().count() > 0:
                 raise serializers.ValidationError(
                     "Cannot modify interconnected ITModel attributes while assets are deployed."
                 )
             else:
                 instance.networkportlabel_set.all().delete()
-                create_itmodel_extra(instance, special + current)
+                create_itmodel_extra(instance, (special + current)[:my_network_ports])
 
 
 def get_site(row):
