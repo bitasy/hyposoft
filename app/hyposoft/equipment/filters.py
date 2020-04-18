@@ -7,15 +7,26 @@ from .models import ITModel, Asset
 from hyposoft.utils import generate_racks, get_version, versioned_queryset
 
 
+class HeightFilter(BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        height_min = request.query_params.get('height_min')
+        height_max = request.query_params.get('height_max')
+
+        if height_min and height_max:
+            return queryset.filter(Q(height__range=(height_min, height_max)) |
+                                   Q(blade_chassis__height__range=(height_min, height_max)))
+        else:
+            return queryset
+
+
 class ITModelFilter(filters.FilterSet):
-    height = filters.RangeFilter()
     network_ports = filters.RangeFilter()
     power_ports = filters.RangeFilter()
     memory = filters.RangeFilter()
 
     class Meta:
         model = ITModel
-        fields = ['height', 'network_ports', 'power_ports', 'memory', 'type']
+        fields = ['network_ports', 'power_ports', 'memory', 'type']
 
 
 class RackRangeFilter(BaseFilterBackend):

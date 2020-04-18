@@ -132,7 +132,7 @@ class ITModelResource(ModelResource):
             row['mount_type'] = 'regular'
 
         if row['mount_type'] == ITModel.Type.BLADE:
-            row['height'] = 9
+            row['height'] = 0
             row['power_ports'] = 0
             row['network_ports'] = 1
             row['network_port_name_1'] = 'chassis'

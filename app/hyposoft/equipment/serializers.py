@@ -72,7 +72,7 @@ class ITModelSerializer(serializers.ModelSerializer):
     @transaction.atomic()
     def create(self, validated_data):
         if validated_data['type'] == ITModel.Type.BLADE:
-            validated_data['height'] = 9  # Placeholder, hopefully this isn't used for anything
+            validated_data['height'] = 0
             validated_data['power_ports'] = 0
             validated_data['network_port_labels'] = []
 
