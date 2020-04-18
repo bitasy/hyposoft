@@ -309,7 +309,7 @@ class AssetSerializer(serializers.ModelSerializer):
                         break
             else:
                 data['power_state'] = None
-        if not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
+        elif not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
             chassis_hostname = instance.blade_chassis.hostname
             if chassis_hostname:
                 data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
