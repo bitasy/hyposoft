@@ -30,11 +30,6 @@ function ChassisView({ assetID }) {
               model.type === "blade" && a.location.asset === chassis?.asset.id,
           );
 
-          console.log(asset.id);
-          console.log(rackViewData);
-          console.log(chassis);
-          console.log(blades);
-
           setChassis(chassis);
           setBlades(blades);
         } else {

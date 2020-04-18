@@ -55,7 +55,7 @@ function RackMounts({ model, siteList }) {
         <InputNumber name="location.rack_position" min={1} max={42} />
       </ItemWithLabel>
       <ItemWithLabel name="power_connections" label="Power connections">
-        <PowerPortSelect powerPorts={powerPorts} />
+        <PowerPortSelect powerPorts={powerPorts} total={model?.power_ports} />
       </ItemWithLabel>
       <ItemWithLabel name="network_ports" label="Network ports" flip>
         <NetworkPortSelect selectedModel={model} />
