@@ -186,7 +186,9 @@ function AssetList({ modelID, forOffline }) {
           />
           <VSpace height="8px" />
           <Button
-            onClick={() => history.push("/import/asset")}
+            onClick={() =>
+              history.push(`/import/asset?origin=${history.location.pathname}`)
+            }
             style={{ marginRight: 8 }}
           >
             Import Assets
@@ -194,7 +196,11 @@ function AssetList({ modelID, forOffline }) {
           <Button onClick={handleAssetExport}>Export Assets</Button>
           <VSpace height="8px" />
           <Button
-            onClick={() => history.push("/import/network")}
+            onClick={() =>
+              history.push(
+                `/import/network?origin=${history.location.pathname}`,
+              )
+            }
             style={{ marginRight: 8 }}
           >
             Import Network

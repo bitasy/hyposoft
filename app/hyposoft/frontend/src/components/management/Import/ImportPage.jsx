@@ -2,9 +2,13 @@ import React from "react";
 import { Typography, Row, Col, Button, Divider, message, Alert } from "antd";
 import VSpace from "../../utility/VSpace";
 import { UploadOutlined } from "@ant-design/icons";
-import Diff from "../../utility/Diff";
+import { useHistory, useLocation } from "react-router-dom";
 
 function ImportPage({ title, importData }) {
+  const history = useHistory();
+
+  const origin = new URLSearchParams(useLocation().search).get("origin");
+
   const fileInputRef = React.useRef(null);
   const [diff, setDiff] = React.useState(null);
   const [errors, setErrors] = React.useState([]);
@@ -38,8 +42,8 @@ function ImportPage({ title, importData }) {
       if (errors) {
         setErrors(errors);
       } else {
-        setErrors([]);
         message.success("success!");
+        history.push(origin);
       }
     });
   }
