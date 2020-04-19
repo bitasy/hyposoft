@@ -180,7 +180,9 @@ function ModelList({ noCreate }) {
       />
       <VSpace height="8px" />
       <Button
-        onClick={() => history.push("/import/model")}
+        onClick={() =>
+          history.push(`/import/model?origin=${history.location.pathname}`)
+        }
         style={{ marginRight: 8 }}
       >
         Import Models

@@ -6,7 +6,7 @@ function CreateAssetPage() {
   return (
     <div style={{ padding: 16 }}>
       <Typography.Title level={3}>Create Asset</Typography.Title>
-      <AssetForm />
+      <AssetForm origin="/assets" />
     </div>
   );
 }

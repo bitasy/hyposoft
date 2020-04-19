@@ -34,6 +34,7 @@ function NetworkImportPage() {
   }
 
   function forceUpload() {
+    message.loading("In progress...");
     importNetwork(formData.current, true).then(({ errors }) => {
       if (errors) {
         setErrors(errors.map(({ errors }) => errors));
