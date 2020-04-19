@@ -190,16 +190,17 @@ class AssetEntrySerializer(serializers.ModelSerializer):
         else:
             data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
 
+        update_asset_power(instance)
         networked = False
         for pdu in instance.pdu_set.all():
             if pdu.networked:
                 networked = True
                 break
-
     
         if not instance.site.offline:
             if instance.itmodel.type == ITModel.Type.BLADE:
-                data['power_action_visible'] = len(instance.blade_chassis.hostname or "") != 0
+                data['power_action_visible'] = instance.blade_chassis.itmodel.vendor == 'BMI' and \
+                                               len(instance.blade_chassis.hostname or "") != 0
             else: 
                 data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
         else:
@@ -324,7 +325,7 @@ class AssetSerializer(serializers.ModelSerializer):
                 data['power_state'] = None
         elif not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
             chassis_hostname = instance.blade_chassis.hostname
-            if chassis_hostname:
+            if chassis_hostname and instance.blade_chassis.itmodel.vendor == 'BMI':
                 data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
             else:
                 data['power_state'] = None
