@@ -82,7 +82,7 @@ def validate_asset(sender, instance, *args, **kwargs):
         blocked = Asset.objects.filter(
             rack=instance.rack,
             rack_position__range=(instance.rack_position,
-                                  instance.rack_position + instance.itmodel.height),
+                                  instance.rack_position + instance.itmodel.height - 1),
             site=instance.site,
             version=instance.version
         ).exclude(id=instance.id)
@@ -111,6 +111,11 @@ def validate_asset(sender, instance, *args, **kwargs):
 
         if instance.hostname is not None and len(instance.hostname) == 0:
             instance.hostname = None
+
+        if instance.hostname is None and instance.networkport_set.exclude(connection__isnull=True).exists():
+            raise serializers.ValidationError(
+                "If network port connections are set, hostname must be set."
+            )
 
 
 # Added this in to_internal since I actually send .rack even for blades 

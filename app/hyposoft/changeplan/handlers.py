@@ -9,7 +9,7 @@ from .models import AssetDiff, NetworkPortDiff, PoweredDiff, ChangePlan
 
 
 def create_asset_diffs(changeplan, target):
-    changed_assets = Asset.objects.filter(version=changeplan)
+    changed_assets = Asset.objects.filter(version=changeplan).order_by('id')
     for changed_asset in changed_assets:
         try:
             live_asset = versioned_object(changed_asset, target, Asset.IDENTITY_FIELDS)
@@ -25,8 +25,6 @@ def create_asset_diffs(changeplan, target):
                 changeplan=changeplan,
                 changed_asset=changed_asset,
             )
-        except Exception as e:
-            print(e)
 
 
 def create_networkport_diffs(changeplan, target):
@@ -47,19 +45,24 @@ def create_networkport_diffs(changeplan, target):
 
 
 def create_powered_diffs(changeplan, target):
-    changed_powereds = Powered.objects.filter(version=changeplan)
-    for changed_powered in changed_powereds:
-        try:
-            live_powered = versioned_object(changed_powered, target, Powered.IDENTITY_FIELDS)
+    for asset in Asset.objects.filter(version=changeplan).order_by('id'):
+        live_asset = versioned_object(asset, target, Asset.IDENTITY_FIELDS)
+        new_plugs = asset.powered_set.all()
+        if live_asset:
+            live_plugs = live_asset.powered_set.all()
+            for plug in live_plugs:
+                if versioned_object(plug, changeplan, Powered.IDENTITY_FIELDS) not in new_plugs:
+                    PoweredDiff.objects.create(
+                        changeplan=changeplan,
+                        live_powered=plug,
+                        changed_powered=None
+                    )
+        for plug in new_plugs:
+            live_plug = versioned_object(plug, target, Powered.IDENTITY_FIELDS)
             PoweredDiff.objects.create(
                 changeplan=changeplan,
-                live_powered=live_powered,
-                changed_powered=changed_powered,
-            )
-        except:
-            PoweredDiff.objects.create(
-                changeplan=changeplan,
-                changed_powered=changed_powered,
+                changed_powered=plug,
+                live_powered=live_plug
             )
 
 
@@ -200,7 +203,7 @@ def get_asset(changeplan, target):
         if not changeplan.executed:
             create_asset_diffs(changeplan, target)
 
-        asset_diffs = AssetDiff.objects.filter(changeplan=changeplan)
+        asset_diffs = AssetDiff.objects.filter(changeplan=changeplan).order_by('id')
         diffs = [
             {
                 "changeplan": asset_diff.changeplan.name,
@@ -246,7 +249,7 @@ def get_power(changeplan, target):
     if changeplan:
         if not changeplan.executed:
             create_powered_diffs(changeplan, target)
-        powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan)
+        powered_diffs = PoweredDiff.objects.filter(changeplan=changeplan).order_by('id')
         diffs = [
             {
                 "changeplan": powered_diff.changeplan.name,

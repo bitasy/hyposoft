@@ -72,6 +72,7 @@ class Powered(models.Model):
 
     class Meta:
         unique_together = [['plug_number', 'pdu', 'version'], ['order', 'asset', 'version']]
+        ordering = 'asset__asset_number', 'asset_id', 'order'
 
     IDENTITY_FIELDS = ['pdu__' + field for field in PDU.IDENTITY_FIELDS] + ['plug_number']
 

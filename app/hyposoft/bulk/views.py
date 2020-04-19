@@ -7,7 +7,7 @@ from changeplan.handlers import get_asset, get_power, get_network
 
 import io
 
-from django.db import models
+from django.db import models, transaction
 
 from equipment.resources import ITModelResource, AssetResource
 from equipment.models import ITModel, Asset, Rack
@@ -40,6 +40,7 @@ class ITModelImport(generics.CreateAPIView):
     queryset = ITModel.objects.filter(id=-1)
     serializer_class = FileSerializer
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             if not request.user.permission.model_perm:
@@ -60,7 +61,7 @@ class ITModelImport(generics.CreateAPIView):
                 ["Row {} {}: {}".format(i, *item)
                  for item in row.validation_error.message_dict.items()] if row.validation_error
                 else [
-                    "{} {}: {}".format(
+                    "{} - {}: {}".format(
                         row.errors[0].row['vendor'],
                         row.errors[0].row['model_number'],
                         str(error.error.detail[0]
@@ -84,6 +85,7 @@ class AssetImport(generics.CreateAPIView):
     queryset = Asset.objects.filter(id=-1)
     serializer_class = FileSerializer
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             if not request.user.permission.asset_perm:
@@ -93,7 +95,7 @@ class AssetImport(generics.CreateAPIView):
         file = data.get('file')
         dataset = Dataset().load(str(file.read(), 'utf-8-sig'), format="csv")
         if not set(dataset.headers) == {'asset_number', 'hostname', 'datacenter', 'offline_site', 'rack',
-                                        'rack_position', 'chassis_number', 'slot_number', 'vendor', 'model_number',
+                                        'rack_position', 'chassis_number', 'chassis_slot', 'vendor', 'model_number',
                                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2',
                                         'custom_display_color', 'custom_cpu', 'custom_memory', 'custom_storage'}:
             return Response({"status": "error", "errors": [{"errors": "Improperly Formatted CSV"}]}, HTTP_200_OK)
@@ -102,13 +104,13 @@ class AssetImport(generics.CreateAPIView):
             get_version(request), request.user, True).import_data(dataset, dry_run=not force)
 
         errors = [
-            {"row": row.errors[0].row if row.errors else "Row " + str(i), "errors":
-                ["Row {} {}: {}".format(i, *item)
+            {"row": row.errors[0].row if row.errors else "Row " + str(i + 1), "errors":
+                ["Row {} {}: {}".format(i + 1, *item)
                  for item in row.validation_error.message_dict.items()] if row.validation_error
                 else [
                     "{} {}: {}".format(
-                        row.errors[0].row['vendor'],
-                        row.errors[0].row['model_number'],
+                        row.errors[0].row['asset_number'],
+                        row.errors[0].row['hostname'],
                         str(error.error.detail[0]
                             if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
                     )
@@ -129,8 +131,8 @@ class AssetImport(generics.CreateAPIView):
                      for item in row.validation_error.message_dict.items()] if row.validation_error
                     else [
                         "{} {}: {}".format(
-                            row.errors[0].row['vendor'],
-                            row.errors[0].row['model_number'],
+                            row.errors[0].row['asset_number'],
+                            row.errors[0].row['hostname'],
                             str(error.error.detail[0]
                                 if hasattr(error.error, "detail") and isinstance(error.error.detail, list) else error.error)
                         )
@@ -164,7 +166,8 @@ class AssetImport(generics.CreateAPIView):
                 if diff['live']:
                     power_messages += ["#{}: {}".format(diff['live'].asset.asset_number, message) for message in diff['messages']]
                 else:
-                    power_messages += diff['messages']
+                    power_messages += ["{}: {}".format(diff['new'].asset.asset_number or diff['new'].asset, message)
+                                       for message in diff['messages']]
 
             response = {
                 'status': "diff",
@@ -188,6 +191,7 @@ class NetworkImport(generics.CreateAPIView):
     queryset = NetworkPort.objects.filter(id=-1)
     serializer_class = FileSerializer
 
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             if not request.user.permission.asset_perm:

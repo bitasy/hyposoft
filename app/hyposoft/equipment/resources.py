@@ -23,12 +23,8 @@ class VersionedResource(resources.ModelResource):
         self.version = ChangePlan.objects.get(id=version)
         self.owner = owner
         self.force = force
-
-    def before_save_instance(self, instance, using_transactions, dry_run):
-        if not self.force:
+        if not force:
             self.version = self.get_new_version()
-
-        instance.version = self.version
 
     def get_new_version(self):
         if self.force:
@@ -231,6 +227,14 @@ class AssetResource(VersionedResource):
                     return value.abbr
             return ""
 
+    class ChassisWidget(ForeignKeyWidget):
+        def clean(self, value, row=None, *args, **kwargs):
+            if value:
+                version = ChangePlan.objects.get(id=row['version'])
+                chassis = newest_object(Asset, version, asset_number=value)
+                return add_asset(chassis, version)
+            return None
+
     datacenter = fields.Field(
         column_name='datacenter',
         attribute='site',
@@ -270,10 +274,10 @@ class AssetResource(VersionedResource):
     blade_chassis = fields.Field(
         column_name='chassis_number',
         attribute='blade_chassis',
-        widget=ForeignKeyWidget(Asset, 'asset_number')
+        widget=ChassisWidget(Asset, 'asset_number')
     )
     slot = fields.Field(
-        column_name='slot_number',
+        column_name='chassis_slot',
         attribute='slot',
         widget=IntegerWidget()
     )
@@ -296,7 +300,10 @@ class AssetResource(VersionedResource):
     )
 
     def skip_row(self, instance, original):
-        check_asset_perm(self.owner.username, original.site.abbr) if original else None
+        try:
+            check_asset_perm(self.owner.username, original.site.abbr)
+        except:
+            pass
         check_asset_perm(self.owner.username, instance.site.abbr)
 
         port1 = getattr(instance, "power_port_connection_1")
@@ -346,7 +353,7 @@ class AssetResource(VersionedResource):
     class Meta:
         model = Asset
         exclude = ('id', 'itmodel', 'site', 'commissioned', 'decommissioned_by', 'decommissioned_timestamp')
-        import_id_fields = ('hostname', 'vendor', 'model_number', 'version')
+        import_id_fields = ('asset_number', 'version')
         export_order = ('asset_number', 'hostname', 'datacenter', 'offline_site', 'rack', 'rack_position',
                         'blade_chassis', 'slot', 'vendor', 'model_number',
                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2',
@@ -360,14 +367,19 @@ class AssetResource(VersionedResource):
             if row['offline_site']:
                 raise serializers.ValidationError('You cannot specify both datacenter and offline_site')
         if row['asset_number'] == '' and self.version.id == 0:
-            try:
-                exists = Asset.objects.get(hostname=row['hostname'], version_id=0)
-                row['asset_number'] = exists.asset_number
-            except:
                 max_an = Asset.objects.all().aggregate(Max('asset_number'))
                 row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
         elif row['asset_number'] == '':
             row['asset_number'] = None
+        else:
+            row['asset_number'] = int(row['asset_number'])
+
+        val = row['custom_display_color']
+        row['custom_display_color'] = val if val else None
+        val = row['custom_cpu']
+        row['custom_cpu'] = val if val else None
+        val = row['custom_storage']
+        row['custom_storage'] = val if val else None
 
         row['version'] = self.version.id
 
@@ -397,16 +409,19 @@ class AssetResource(VersionedResource):
                     except PDU.DoesNotExist:
                         raise ValidationError(pc + " does not exit on the specified rack")
             current = []
-            if len(special) >= 2:
+            powered_set = my_asset.powered_set
+            if 2 <= len(special) < my_asset.itmodel.power_ports and \
+                    powered_set.exists() and powered_set.first().pdu.rack == my_asset.rack:
                 special_simple = [port['pdu_id'].position + str(port['plug']) for port in special]
 
-                current = [{'pdu_id': port['pdu'], 'plug': port['plug_number']}
-                           for port in my_asset.powered_set.order_by('order').values('pdu', 'plug_number')]
+                current = [{'pdu_id': port['pdu'], 'plug': port['plug_number'], 'position': port['pdu__position']}
+                           for port in powered_set.order_by('order').values(
+                        'pdu', 'plug_number', 'pdu__position')]
 
                 for port in current:
-                    simple = port['pdu_id'].position + str(port['plug'])
+                    simple = port['position'] + str(port['plug'])
                     if simple in special_simple:
-                        current.remove(simple)
+                        current.remove(port)
 
             my_asset.powered_set.all().delete()
 
@@ -423,6 +438,10 @@ class AssetResource(VersionedResource):
                 special + current,
                 ports
             )
+
+        if my_asset.itmodel.type == ITModel.Type.BLADE:
+            my_asset.rack = my_asset.blade_chassis.rack
+            my_asset.save()
 
     def after_export(self, queryset, data, *args, **kwargs):
         del data['version']

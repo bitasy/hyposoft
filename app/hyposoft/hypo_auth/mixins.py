@@ -56,14 +56,14 @@ class ITModelDestroyWithIdMixin(object):
 
 class AssetPermissionCreateMixin(CreateAndLogMixin):
     def perform_create(self, serializer):
-        check_asset_perm(self.user.username, serializer.validated_data['location']['site'])
+        check_asset_perm(self.request.user.username, serializer.validated_data['site'].abbr)
         return super(AssetPermissionCreateMixin, self).perform_create(serializer)
 
 
 class AssetPermissionUpdateMixin(UpdateAndLogMixin):
     def perform_update(self, serializer):
-        check_asset_perm(self.user.username, self.get_object().site.abbr)
-        check_asset_perm(self.user.username, serializer.validated_data['location']['site'])
+        check_asset_perm(self.request.user.username, self.get_object().site.abbr)
+        check_asset_perm(self.request.user.username, serializer.validated_data['site'].abbr)
         return super(AssetPermissionUpdateMixin, self).perform_update(serializer)
 
 
