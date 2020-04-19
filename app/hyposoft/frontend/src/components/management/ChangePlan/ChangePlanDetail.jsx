@@ -27,7 +27,18 @@ const ASSET_HEADERS = [
   },
   {
     name: "location",
-    toText: ad => `${ad.site.abbr}: Rack ${ad.rack.rack}U${ad.rack_position}`,
+    toText: ad => {
+      if (ad.location.type === "rack-mount") {
+        return `${ad.location.site.abbr}: Rack ${ad.location.rack.rack}U${ad.location.rack_position}`;
+      } else if (ad.location.type === "chassis-mount") {
+        return `Chassis ${ad.location.asset.hostname ??
+          "#" +
+            ad.location.asset
+              .asset_number} Slot ${ad.location.slot.toString()}`;
+      } else if (ad.location.type === "offline") {
+        return ad.location.site.name;
+      }
+    },
   },
   {
     name: "power conn.",
