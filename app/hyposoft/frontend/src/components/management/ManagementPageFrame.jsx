@@ -159,8 +159,8 @@ function Sidebar() {
 
     const {user} = useContext(AuthContext);
     const isAdmin = !!user?.permission?.admin_perm;
-    const config = ConfigurePermissions();
-    console.log(config);
+    const doDisplay = ConfigurePermissions();
+    console.log(doDisplay);
 
     function handleClick(e) {
         const key = e.key;
@@ -214,14 +214,14 @@ function Sidebar() {
                 <span>Reports</span>
             </Menu.Item>
 
-            {config.canLogView ? (
+            {doDisplay.canLogView ? (
                 <Menu.Item key="/logs">
                     <BarsOutlined/>
                     <span>Logs</span>
                 </Menu.Item>
             ) : null}
 
-            {config.canChangePlan ? (
+            {doDisplay.canChangePlan ? (
                 <Menu.Item key="/changeplan">
                     <PullRequestOutlined/>
                     <span>Change Plans</span>
