@@ -25,6 +25,8 @@ function SiteCard({ site, onUpdate, onRemove, disabled }) {
     setDraft({ ...site });
   }, [site.id, site.name, site.abbr, site.type]);
 
+  console.log(draft);
+
   function confirmUpdate() {
     onUpdate(draft);
     setIsEditing(false);
@@ -197,8 +199,8 @@ function SiteManagementPage() {
 
   const contextSiteID = site?.id;
 
-  function handleUpdate({ id, name, abbr }) {
-    updateSite(id, { name, abbr }).then(fireTrigger);
+  function handleUpdate({ id, name, abbr, type }) {
+    updateSite(id, { name, abbr, type }).then(fireTrigger);
   }
 
   function handleDelete(id) {
