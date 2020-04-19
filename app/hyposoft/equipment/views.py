@@ -100,12 +100,11 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
                 rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
                 if not rack:
                     rack = add_rack(asset.rack, version)
-                    create_rack_extra(rack, version)
                 old_pdus = {port['id']: port['position']
                             for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
                 new_pdus = {port['position']: port['id']
                             for port in rack.pdu_set.order_by('position').values('id', 'position')}
-                data['rack'] = rack.id
+                data['location']['rack'] = rack.id
                 for i, port in enumerate(request.data['power_connections']):
                    data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
 

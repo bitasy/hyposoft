@@ -319,7 +319,7 @@ class AssetResource(VersionedResource):
         new = [port for port in (port1, port2) if len(port) > 0]
         curr = [port[0] + str(port[1]) for port in instance.powered_set.values_list("pdu__position", "plug_number")]
 
-        if instance.site.abbr != original.site.abbr:
+        if hasattr(original, 'site') and instance.site.abbr != original.site.abbr:
             for port in original.networkport_set.all():
                 port.connection = None
                 port.save()
