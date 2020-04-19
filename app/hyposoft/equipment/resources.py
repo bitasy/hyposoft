@@ -425,7 +425,14 @@ class AssetResource(VersionedResource):
 
             my_asset.powered_set.all().delete()
 
-            if row_result.import_type == "new":
+            create_ports = False
+            net_port = my_asset.networkport_set.first()
+            if net_port and net_port.label.itmodel != my_asset.itmodel:
+                for port in my_asset.networkport_set.all():
+                    port.delete()
+                create_ports = True
+
+            if row_result.import_type == "new" or create_ports:
                 ports = [{"label": port, "mac_address": None, "connection": None}
                          for port in
                          NetworkPortLabel.objects.filter(itmodel=my_asset.itmodel).values_list('name', flat=True)]
@@ -442,6 +449,11 @@ class AssetResource(VersionedResource):
         if my_asset.itmodel.type == ITModel.Type.BLADE:
             my_asset.rack = my_asset.blade_chassis.rack
             my_asset.save()
+
+        if my_asset.site.offline:
+            for port in my_asset.networkport_set.all():
+                port.connection = None
+                port.save()
 
     def after_export(self, queryset, data, *args, **kwargs):
         del data['version']

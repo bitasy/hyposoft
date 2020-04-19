@@ -259,9 +259,10 @@ class NetworkImport(generics.CreateAPIView):
             for diff in network_diff:
                 if diff['live']:
                     messages += ["#{} – {}: {}".format(
-                        diff['live'].asset.asset_number, diff['live'].label.name, message) for message in diff['messages']]
+                        diff['live'].asset.hostname, diff['live'].label.name, message) for message in diff['messages']]
                 else:
-                    messages += diff['messages']
+                    messages += ["#{} – {}: {}".format(
+                        diff['live'].asset.hostname, diff['new'].label.name, message) for message in diff['messages']]
 
             response = {
                 'status': "diff",

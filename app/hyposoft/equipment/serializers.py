@@ -284,7 +284,7 @@ class AssetSerializer(serializers.ModelSerializer):
 
         if power_connections:
             Powered.objects.filter(asset=instance).delete()
-        if net_ports:
+        if net_ports or validated_data['itmodel'] != instance.itmodel:
             NetworkPort.objects.filter(asset=instance).delete()
 
         create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
