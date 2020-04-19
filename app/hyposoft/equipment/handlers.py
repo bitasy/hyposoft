@@ -40,6 +40,8 @@ def create_asset_extra(asset, version, power_connections, net_ports):
         for connection in power_connections:
             if order > asset.itmodel.power_ports:
                 break
+            if isinstance(connection['pdu_id'], int):
+                connection['pdu_id'] = PDU.objects.get(id=connection['pdu_id'])
             new_pdu = versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS)
             if new_pdu is None:
                 add_rack(connection['pdu_id'].rack, version)
@@ -101,10 +103,8 @@ def decommission_asset(asset_id, view, user, version):
         # Freeze Asset - Copy all data to new change plan
         # Requires resetting of all foreign keys
 
-        # old_rack = Rack.objects.filter(id=asset.rack.id).first()
-        # old_asset = Asset.objects.filter(id=asset.id).first()
-        old_rack = asset.rack
-        old_asset = asset
+        old_rack = Rack.objects.get(id=asset.rack.id)
+        old_asset = Asset.objects.get(id=asset.id)
 
         asset = add_asset(asset, change_plan)
         rack = asset.rack

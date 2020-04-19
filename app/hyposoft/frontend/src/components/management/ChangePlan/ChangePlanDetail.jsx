@@ -27,7 +27,20 @@ const ASSET_HEADERS = [
   },
   {
     name: "location",
-    toText: ad => `${ad.site.abbr}: Rack ${ad.rack.rack}U${ad.rack_position}`,
+    toText: ad => {
+      if (ad.location.tag === "rack-mount") {
+        return `${ad.location.site.abbr}: Rack ${ad.location.rack.rack}U${ad.location.rack_position}`;
+      } else if (ad.location.tag === "chassis-mount") {
+        let chassis_str = ad.location.asset?.hostname;
+        if (!chassis_str) chassis_str = ad.location.asset?.asset_number;
+        if (!chassis_str)
+          chassis_str = "ID #" + ad.location.asset.id.toString();
+        else chassis_str = "#" + chassis_str;
+        return `Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
+      } else if (ad.location.type === "offline") {
+        return ad.location.site.name;
+      }
+    },
   },
   {
     name: "power conn.",

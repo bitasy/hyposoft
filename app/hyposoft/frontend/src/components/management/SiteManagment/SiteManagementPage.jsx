@@ -28,14 +28,16 @@ function SiteCard({site, onUpdate, onRemove, disabled}) {
     const [isEditing, setIsEditing] = React.useState(false);
     const [draft, setDraft] = React.useState(null);
 
-    React.useEffect(() => {
-        setDraft({...site});
-    }, [site.id, site.name, site.abbr, site.type]);
+    console.log(draft);
 
     function confirmUpdate() {
         onUpdate(draft);
         setIsEditing(false);
     }
+
+    React.useEffect(() => {
+        setDraft({...site});
+    }, [site.id, site.name, site.abbr, site.type]);
 
     const Actions = isEditing
         ? [<Button onClick={confirmUpdate}>Confirm</Button>]
@@ -215,8 +217,8 @@ function SiteManagementPage() {
 
     const contextSiteID = site?.id;
 
-    function handleUpdate({id, name, abbr}) {
-        updateSite(id, {name, abbr}).then(fireTrigger);
+    function handleUpdate({id, name, abbr, type}) {
+        updateSite(id, {name, abbr, type}).then(fireTrigger);
     }
 
     function handleDelete(id) {

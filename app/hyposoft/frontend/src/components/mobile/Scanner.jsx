@@ -54,7 +54,7 @@ function Scanner() {
     const assetNumber = parseInt(text);
     if (assetNumber) {
       getAssetIDForAssetNumber(assetNumber).then(id => {
-        history.push(`/mobile/assets/${id}`);
+        history.push(`/scanner/assets/${id}`);
       });
     }
   }

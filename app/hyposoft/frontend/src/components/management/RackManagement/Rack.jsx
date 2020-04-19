@@ -5,8 +5,8 @@ function byLevel(rackHeight, assets) {
   const rack = Array(rackHeight + 1).fill(null);
   assets.forEach(({ asset, model }) => {
     for (
-      let i = asset.rack_position;
-      i < asset.rack_position + model.height;
+      let i = asset.location.rack_position;
+      i < asset.location.rack_position + model.height;
       i++
     ) {
       rack[i] = { asset, model };
@@ -28,9 +28,12 @@ function join(strs) {
   }
 */
 function Rack({ rack, onSelect }) {
+  console.log(rack);
   const rackMounts = rack.assets.filter(({ model }) => model.type !== "blade");
+  console.log(rackMounts);
 
   const assetsByLevel = byLevel(rack.height, rackMounts);
+  console.log(assetsByLevel);
 
   function renderCell(level) {
     if (!assetsByLevel[level]) {
@@ -48,8 +51,8 @@ function Rack({ rack, onSelect }) {
     }
 
     const { asset, model } = assetsByLevel[level];
-    const isBottom = level === asset.rack_position;
-    const isTop = level === asset.rack_position + model.height - 1;
+    const isBottom = level === asset.location.rack_position;
+    const isTop = level === asset.location.rack_position + model.height - 1;
 
     const mountCnt = rack.assets
       .filter(
@@ -59,7 +62,8 @@ function Rack({ rack, onSelect }) {
       )
       .length.toString();
 
-    const additionalText = model.type === "chassis" ? `${mountCnt} blades` : "";
+    const additionalText =
+      model.type === "chassis" ? `(${mountCnt} blades)` : "";
 
     return (
       <tr

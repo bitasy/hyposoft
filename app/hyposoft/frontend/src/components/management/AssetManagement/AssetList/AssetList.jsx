@@ -189,21 +189,31 @@ function AssetList({ modelID, forOffline }) {
           />
           <VSpace height="8px" />
           <Button
-            onClick={() => history.push("/import/asset")}
+            onClick={() =>
+              history.push(`/import/asset?origin=${history.location.pathname}`)
+            }
             style={{ marginRight: 8 }}
           >
             Import Assets
           </Button>
           <Button onClick={handleAssetExport}>Export Assets</Button>
-          <VSpace height="8px" />
-          <Button
-            onClick={() => history.push("/import/network")}
-            style={{ marginRight: 8 }}
-          >
-            Import Network
-          </Button>
-          <Button onClick={handleNetworkExport}>Export Network</Button>
-          <VSpace height="8px" />
+          {!forOffline && (
+            <div>
+              <VSpace height="8px" />
+              <Button
+                onClick={() =>
+                  history.push(
+                    `/import/network?origin=${history.location.pathname}`,
+                  )
+                }
+                style={{ marginRight: 8 }}
+              >
+                Import Network
+              </Button>
+              <Button onClick={handleNetworkExport}>Export Network</Button>
+              <VSpace height="8px" />
+            </div>
+          )}
         </div>
       )}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />

@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from .handlers import check_asset_perm
 from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin
 from rest_framework.response import Response
 from rest_framework import status
@@ -54,30 +56,15 @@ class ITModelDestroyWithIdMixin(object):
 
 class AssetPermissionCreateMixin(CreateAndLogMixin):
     def perform_create(self, serializer):
-        site = serializer.validated_data['site']
-        if self.request.user.is_superuser:
-            super(AssetPermissionCreateMixin, self).perform_create(serializer)
-            return
-        else:
-            if site:
-                site_perm = self.request.user.permission.site_perm
-                if not self.request.user.permission.asset_perm or \
-                        ('Global' not in site_perm and site.abbr not in site_perm):
-                    raise serializers.ValidationError("You don't have permission.")
-        super(AssetPermissionCreateMixin, self).perform_create(serializer)
+        check_asset_perm(self.request.user.username, serializer.validated_data['site'].abbr)
+        return super(AssetPermissionCreateMixin, self).perform_create(serializer)
 
 
 class AssetPermissionUpdateMixin(UpdateAndLogMixin):
     def perform_update(self, serializer):
-        abbr = self.get_object().site.abbr
-        if self.request.user.is_superuser:
-            super(AssetPermissionUpdateMixin, self).perform_update(serializer)
-            return
-        else:
-            site_perm = self.request.user.permission.site_perm
-            if not self.request.user.permission.asset_perm or ('Global' not in site_perm and abbr not in site_perm):
-                raise serializers.ValidationError("You don't have permission.")
-        super(AssetPermissionUpdateMixin, self).perform_update(serializer)
+        check_asset_perm(self.request.user.username, self.get_object().site.abbr)
+        check_asset_perm(self.request.user.username, serializer.validated_data['site'].abbr)
+        return super(AssetPermissionUpdateMixin, self).perform_update(serializer)
 
 
 class AssetPermissionDestroyMixin(DeleteAndLogMixin):

@@ -84,13 +84,13 @@ class AssetList(FilterBySiteMixin, generics.ListAPIView):
     search_fields = [
         'itmodel__vendor',
         'itmodel__model_number',
+        'itmodel__type',
         'hostname',
         'networkport__mac_address',
         'owner__username',
         'owner__first_name',
         'owner__last_name',
         'asset_number',
-        'chassis_number'
     ]
     ordering_fields = [
         'id',
@@ -106,7 +106,8 @@ class AssetList(FilterBySiteMixin, generics.ListAPIView):
     ordering = 'id'
 
     def get_queryset(self):
-        return super(AssetList, self).get_queryset().filter(commissioned=Asset.Decommissioned.COMMISSIONED)
+        return super(AssetList, self).get_queryset().filter(commissioned=Asset.Decommissioned.COMMISSIONED).order_by(
+            'asset_number', 'itmodel__vendor', 'itmodel__model_number')
 
     serializer_class = AssetEntrySerializer
     filterset_class = AssetFilter

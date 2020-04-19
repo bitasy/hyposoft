@@ -59,14 +59,14 @@ function RackView({ r }) {
           gutter={16}
           style={{
             pageBreakAfter: "always",
-            paddingTop: 16,
-            paddingBottom: 16,
+            padding: 16,
             height: "100%",
           }}
         >
           {row.map((rackVM, idx) => (
             <Col
               key={idx}
+              md={6}
               style={{
                 marginTop: "auto",
                 marginBottom: "auto",

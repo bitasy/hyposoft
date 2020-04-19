@@ -1,16 +1,14 @@
 from django.db import IntegrityError
 from django.db.models import ProtectedError
-from django.utils import timezone
-from rest_framework import generics, views, status
-from rest_framework.response import Response
+from rest_framework import generics, views
 from rest_framework.status import HTTP_200_OK
-from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object, get_site
-from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
 from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
 from .models import *
 import logging
-from hypo_auth .mixins import *
+from hypo_auth.mixins import *
+from hypo_auth.handlers import *
 
 
 class SiteCreate(CreateAndLogMixin, generics.CreateAPIView):
@@ -29,9 +27,7 @@ class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         version = ChangePlan.objects.get(id=get_version(request))
-        # Shouldn't these be location.rack???
-        # Anyways, this blows up with error
-        # Expected view AssetCreate to be called with a URL keyword argument named "pk". Fix your URL conf, or set the `.lookup_field` attribute on the view correctly.
+        request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
         if version.id != 0 and request.data['location']['tag'] != 'offline' and request.data['location']['rack']:
             rack = Rack.objects.get(id=request.data['location']['rack'])
             versioned_rack = add_rack(rack, version)
@@ -85,23 +81,30 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
     serializer_class = AssetSerializer
 
     @transaction.atomic()
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):  # todo the logic in this looks fishy..
+        # Do you need to update data's id or is that done already? what about version?
+        # Does the new asset get added to the new version? What about its network ports?
+        # Make sure that network ports are not deleted in the offline case but connections are wiped
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
         asset_ver = asset.version
+        request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
+
+        site = Site.objects.get(id=request.data['location']['site'])
+        check_asset_perm(request.user.username, request.data['location']['site'])
+        check_asset_perm(request.user.username, asset.site.abbr)
+
         if version != asset_ver:
             data = request.data
-            site = Site.objects.get(id=request.data['location']['site'])
             if not site.offline:
                 rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
                 if not rack:
                     rack = add_rack(asset.rack, version)
-                    create_rack_extra(rack, version)
                 old_pdus = {port['id']: port['position']
                             for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
                 new_pdus = {port['position']: port['id']
                             for port in rack.pdu_set.order_by('position').values('id', 'position')}
-                data['rack'] = rack.id
+                data['location']['rack'] = rack.id
                 for i, port in enumerate(request.data['power_connections']):
                    data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
 
@@ -111,7 +114,6 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
                         data['network_ports'][i]['connection'] = versioned_conn.id
             else:
                 request.data['power_connections'] = []
-                request.data['network_ports'] = []
 
             if request.data['location']['tag'] == 'chassis-mount':
                 chassis = request.data['location']['asset']
@@ -263,9 +265,6 @@ class DecommissionAsset(views.APIView):
 
 class AssetIDForAssetNumber(views.APIView):
     def get(self, request, asset_number): 
-        try:
-            asset = Asset.objects.get(asset_number=asset_number)
-            return Response(asset.id)
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        asset = Asset.objects.get(asset_number=asset_number, version=0)
+        return Response(asset.id)
 

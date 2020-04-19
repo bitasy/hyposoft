@@ -17,6 +17,10 @@ def get_asset(request, asset_id):
 
     asset = Asset.objects.get(id=asset_id)
 
+    if not request.user.is_superuser:
+        if not (request.user.permission.power_perm or request.user == asset.owner):
+            raise serializers.ValidationError("You don't have permission.")
+
     if not asset.site.offline:
         if asset.itmodel.type == "blade":
             networked = True
@@ -55,15 +59,15 @@ def log(user, instance, old, new):
 
 @api_view(['POST'])
 def post_asset(request):
+    asset = Asset.objects.get(id=request.data['asset_id'])
     if not request.user.is_superuser:
-        if not request.user.permission.power_perm:
+        if not (request.user.permission.power_perm or request.user == asset.owner):
             raise serializers.ValidationError("You don't have permission.")
     if request.data['state'].lower() not in ("on", "off"):
         raise serializers.ValidationError(
             "Powered state must be either 'on' or 'off'"
         )
     state = request.data['state'].lower()
-    asset = Asset.objects.get(id=request.data['asset_id'])
 
     if not asset.site.offline:
         if asset.itmodel.type == "blade":
@@ -88,13 +92,13 @@ def post_asset(request):
 
 @api_view(['POST'])
 def cycle_asset(request):
-    if not request.user.is_superuser:
-        if not request.user.permission.power_perm:
-            raise serializers.ValidationError("You don't have permission.")
-
     threads = []
 
     asset = Asset.objects.get(id=request.data['asset_id'])
+
+    if not request.user.is_superuser:
+        if not (request.user.permission.power_perm or request.user == asset.owner):
+            raise serializers.ValidationError("You don't have permission.")
 
     if not asset.site.offline:
         if asset.itmodel.type == "blade":
