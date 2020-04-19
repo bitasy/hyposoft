@@ -81,7 +81,10 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
     serializer_class = AssetSerializer
 
     @transaction.atomic()
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):  # todo the logic in this looks fishy..
+        # Do you need to update data's id or is that done already? what about version?
+        # Does the new asset get added to the new version? What about its network ports?
+        # Make sure that network ports are not deleted in the offline case but connections are wiped
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
         asset_ver = asset.version
@@ -112,7 +115,6 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
                         data['network_ports'][i]['connection'] = versioned_conn.id
             else:
                 request.data['power_connections'] = []
-                request.data['network_ports'] = []
 
             if request.data['location']['tag'] == 'chassis-mount':
                 chassis = request.data['location']['asset']

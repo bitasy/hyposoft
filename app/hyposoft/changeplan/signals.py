@@ -172,7 +172,7 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             instance.changed_networkport.connection.label.name) if instance.changed_networkport.connection else ''
         ))
 
-    if instance.changed_networkport.connection:
+    if instance.changed_networkport and instance.changed_networkport.connection:
         if instance.changed_networkport.connection and \
                 instance.changed_networkport.asset == instance.changed_networkport.connection.asset:
             conflicts.append({"field": "network_port",

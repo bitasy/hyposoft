@@ -91,7 +91,7 @@ def post_pdu(rack, position, port, state):
 
 
 def update_asset_power(asset):
-    if asset.site.abbr.lower() == 'rtp1':
+    if asset.site.abbr.lower() == 'rtp1' and asset.rack and 'A1' <= asset.rack.rack <= 'E19':
         pdus = asset.pdu_set.all()
         for pdu in pdus:
             states, status_code = get_pdu(pdu.rack.rack, pdu.position)

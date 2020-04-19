@@ -28,21 +28,26 @@ def create_asset_diffs(changeplan, target):
 
 
 def create_networkport_diffs(changeplan, target):
-    changed_networkports = NetworkPort.objects.filter(version=changeplan)
-    for changed_networkport in changed_networkports:
-        try:
-            live_networkport = versioned_object(changed_networkport, target, NetworkPort.IDENTITY_FIELDS)
+    for asset in Asset.objects.filter(version=changeplan).order_by('id'):
+        live_asset = versioned_object(asset, target, ['hostname'])
+        new_ports = asset.networkport_set.all()
+        id_fields = ['asset__hostname', 'label__name']
+        if live_asset:
+            live_ports = live_asset.networkport_set.all()
+            for port in live_ports:
+                if versioned_object(port, changeplan, id_fields) not in new_ports:
+                    NetworkPortDiff.objects.create(
+                        changeplan=changeplan,
+                        live_networkport=port,
+                        changed_networkport=None
+                    )
+        for port in new_ports:
+            live_port = versioned_object(port, target, id_fields)
             NetworkPortDiff.objects.create(
                 changeplan=changeplan,
-                live_networkport=live_networkport,
-                changed_networkport=changed_networkport,
+                changed_networkport=port,
+                live_networkport=live_port
             )
-        except:
-            NetworkPortDiff.objects.create(
-                changeplan=changeplan,
-                changed_networkport=changed_networkport,
-            )
-
 
 def create_powered_diffs(changeplan, target):
     for asset in Asset.objects.filter(version=changeplan).order_by('id'):

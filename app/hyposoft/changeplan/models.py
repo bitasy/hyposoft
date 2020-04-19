@@ -79,6 +79,7 @@ class NetworkPortDiff(models.Model):
     changed_networkport = models.ForeignKey(
         'network.NetworkPort',
         related_name='changed_networkport',
+        null=True,
         on_delete=models.CASCADE
     )
     messages = ArrayField(

@@ -190,12 +190,12 @@ class AssetEntrySerializer(serializers.ModelSerializer):
         else:
             data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
 
+        update_asset_power(instance)
         networked = False
         for pdu in instance.pdu_set.all():
             if pdu.networked:
                 networked = True
                 break
-
     
         if not instance.site.offline:
             if instance.itmodel.type == ITModel.Type.BLADE:
@@ -285,7 +285,7 @@ class AssetSerializer(serializers.ModelSerializer):
 
         if power_connections:
             Powered.objects.filter(asset=instance).delete()
-        if net_ports:
+        if net_ports or validated_data['itmodel'] != instance.itmodel:
             NetworkPort.objects.filter(asset=instance).delete()
 
         create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
