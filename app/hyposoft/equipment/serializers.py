@@ -199,7 +199,9 @@ class AssetEntrySerializer(serializers.ModelSerializer):
     
         if not instance.site.offline:
             if instance.itmodel.type == ITModel.Type.BLADE:
-                data['power_action_visible'] = len(instance.blade_chassis.hostname or "") != 0
+                vendor_bmi = instance.blade_chassis.itmodel.vendor == "BMI"
+                valid_hostname = len(instance.blade_chassis.hostname or "") != 0
+                data['power_action_visible'] = vendor_bmi and valid_hostname
             else: 
                 data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
         else:
@@ -324,7 +326,8 @@ class AssetSerializer(serializers.ModelSerializer):
                 data['power_state'] = None
         elif not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
             chassis_hostname = instance.blade_chassis.hostname
-            if chassis_hostname:
+            vendor_bmi = instance.blade_chassis.itmodel.vendor == "BMI"
+            if chassis_hostname and vendor_bmi:
                 data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
             else:
                 data['power_state'] = None
