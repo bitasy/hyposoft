@@ -91,8 +91,8 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
         request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
 
         site = Site.objects.get(id=request.data['location']['site'])
-        check_asset_perm(self.user.username, request.data['location']['site'])
-        check_asset_perm(self.user.username, asset.site.abbr)
+        check_asset_perm(request.user.username, request.data['location']['site'])
+        check_asset_perm(request.user.username, asset.site.abbr)
 
         if version != asset_ver:
             data = request.data

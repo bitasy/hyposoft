@@ -22,7 +22,9 @@ class SiteSerializer(serializers.ModelSerializer):
         fields = ['id', 'abbr', 'name', 'offline']
 
     def to_internal_value(self, data):
-        data['offline'] = data.pop('type') == 'offline-storage'
+        site_type = data.pop('type', None)
+        if site_type is not None:
+            data['offline'] = site_type == 'offline-storage'
         return super(SiteSerializer, self).to_internal_value(data)
 
     def to_representation(self, instance):
@@ -32,13 +34,14 @@ class SiteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def update(self, instance, validated_data):
-        if instance.type == 'offline-storage' and validated_data['type'] == 'datacenter':
-            raise serializers.ValidationError(
-                "Cannot transform an offline site into a datacenter."
-            )
-        elif instance.type == 'datacenter' and validated_data['type'] == 'offline-storage':
-            instance.asset_set.update(rack=None, rack_position=None)
-            return super(SiteSerializer, self).update(instance, validated_data)
+        if hasattr(instance, 'type'):
+            if instance.type == 'offline-storage' and validated_data['type'] == 'datacenter':
+                raise serializers.ValidationError(
+                    "Cannot transform an offline site into a datacenter."
+                )
+            elif instance.type == 'datacenter' and validated_data['type'] == 'offline-storage':
+                instance.asset_set.update(rack=None, rack_position=None)
+                return super(SiteSerializer, self).update(instance, validated_data)
         return super(SiteSerializer, self).update(instance, validated_data)
 
 

@@ -168,9 +168,13 @@ class NetworkPortResource(VersionedResource):
                     if src.asset.asset_number > dest.asset.asset_number:
                         queryset = queryset.exclude(id=src.id)
 
+        queryset = queryset.exclude(mac_address__isnull=True, connection__isnull=True)
+
         version = ChangePlan.objects.get(id=version_id)
         versioned = versioned_queryset(queryset, version, NetworkPort.IDENTITY_FIELDS)
+        versioned = versioned.order_by('asset__hostname', 'label__name')
         return super(NetworkPortResource, self).export(versioned, *args, **kwargs)
 
     def after_export(self, queryset, data, *args, **kwargs):
         del data['version']
+        del data['mac_address']

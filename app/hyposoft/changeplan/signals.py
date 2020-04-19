@@ -51,7 +51,7 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             messages.append('OLD ITMODEL: ' + str(instance.live_asset.itmodel) + ' | ' +
                             'NEW ITMODEL: ' + str(instance.changed_asset.itmodel))
         if instance.changed_asset.owner != instance.live_asset.owner:
-            messages.append((('OLD OWNER: ' + (str(instance.live_asset.owner.username))
+            messages.append(('OLD OWNER: ' + ((str(instance.live_asset.owner.username))
                              if instance.live_asset.owner else 'None')) + ' | ' +
                             ('NEW OWNER: ' + (str(instance.changed_asset.owner.username)
                              if instance.changed_asset.owner else 'None')))

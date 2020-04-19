@@ -176,6 +176,10 @@ def get_site(row):
             chassis = newest_object(
                 Asset, ChangePlan.objects.get(id=row['version']), asset_number=row['chassis_number']
             )
+            if not chassis:
+                raise serializers.ValidationError(
+                    "Chassis does not exist."
+                )
             return chassis.site
     return None
 
@@ -190,6 +194,10 @@ class AssetResource(VersionedResource):
                 if my_site:
                     site = Site.objects.get(abbr=my_site)
                     rack = newest_object(Rack, version, rack=my_rack, site=site)
+                    if not rack:
+                        raise serializers.ValidationError(
+                            "Rack does not exist."
+                        )
                     return add_rack(rack, version)
             return None
 
@@ -311,6 +319,11 @@ class AssetResource(VersionedResource):
         new = [port for port in (port1, port2) if len(port) > 0]
         curr = [port[0] + str(port[1]) for port in instance.powered_set.values_list("pdu__position", "plug_number")]
 
+        if instance.site.abbr != original.site.abbr:
+            for port in original.networkport_set.all():
+                port.connection = None
+                port.save()
+
         if sorted(new) != sorted(curr):
             return False
 
@@ -366,11 +379,9 @@ class AssetResource(VersionedResource):
         if row['datacenter']:
             if row['offline_site']:
                 raise serializers.ValidationError('You cannot specify both datacenter and offline_site')
-        if row['asset_number'] == '' and self.version.id == 0:
+        if row['asset_number'] == '':
                 max_an = Asset.objects.all().aggregate(Max('asset_number'))
                 row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
-        elif row['asset_number'] == '':
-            row['asset_number'] = None
         else:
             row['asset_number'] = int(row['asset_number'])
 
