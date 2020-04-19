@@ -31,6 +31,7 @@ import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
 import FormDebugger from "../../../utility/formik/FormDebugger";
 import styled from "styled-components";
+import ConfigurePermissions from "../../../utility/ConfigurePermissions";
 
 const InputBlackPlaceholder = styled(Input)`
   ::placeholder {
