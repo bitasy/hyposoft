@@ -38,11 +38,12 @@ function ImportPage({ title, importData }) {
   }
 
   function forceUpload() {
+    message.loading("Importing...");
     importData(formData.current, true).then(({ errors }) => {
       if (errors) {
         setErrors(errors);
       } else {
-        message.success("success!");
+        message.loading("In progress...");
         history.push(origin);
       }
     });
