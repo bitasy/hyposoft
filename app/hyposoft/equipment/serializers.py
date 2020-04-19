@@ -291,14 +291,8 @@ class AssetSerializer(serializers.ModelSerializer):
         if net_ports or validated_data['itmodel'] != instance.itmodel:
             NetworkPort.objects.filter(asset=instance).delete()
 
-        create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
-
         instance = super(AssetSerializer, self).update(instance, validated_data)
-
-        if instance.site.offline:
-            for port in instance.networkport_set.all():
-                port.connection = None
-                port.save()
+        create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
 
         return instance
 
