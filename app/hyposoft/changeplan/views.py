@@ -30,16 +30,13 @@ class ExecuteChangePlan(views.APIView):
             create_asset_diffs(changeplan, live)
             create_powered_diffs(changeplan, live)
             create_networkport_diffs(changeplan, live)
-            print('DIFFS CREATED')
             # Update Objects
             execute_assets(changeplan)
             execute_networkports(changeplan)
             execute_powereds(changeplan)
-            print('EXECUTE')
             changeplan.executed = True
             changeplan.executed_at = now()
             changeplan.save()
-            print('SAVE')
             for child in children:
                 asset = Asset.objects.get(version=child, commissioned__isnull=True)
                 live_asset = versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
