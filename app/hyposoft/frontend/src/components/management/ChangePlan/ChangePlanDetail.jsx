@@ -75,7 +75,7 @@ function ChangePlanDetail() {
 
   const history = useHistory();
 
-  const { setChangePlan: setGlobalChangePlan } = React.useContext(
+  const { setChangePlan: setGlobalChangePlan, refresh } = React.useContext(
     ChangePlanContext,
   );
 
@@ -93,10 +93,13 @@ function ChangePlanDetail() {
 
   async function onUpdate(newName) {
     await updateChangePlan(id, newName);
-    setChangePlan({
+    const newCP = {
       ...changePlan,
       name: newName,
-    });
+    };
+    setChangePlan(newCP);
+    setGlobalChangePlan(newCP);
+    refresh();
   }
 
   async function execute() {
