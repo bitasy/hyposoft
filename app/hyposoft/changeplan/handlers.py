@@ -129,7 +129,7 @@ def execute_assets(changeplan):
                 live_asset.blade_chassis = changed_asset.blade_chassis if changed_asset.itmodel.type == ITModel.Type.BLADE or changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
                 live_asset.slot = changed_asset.slot if changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
                 live_asset.save()
-        except:
+        except Exception as e:
             create_live_asset(changed_asset)
         changed_asset.delete()
 

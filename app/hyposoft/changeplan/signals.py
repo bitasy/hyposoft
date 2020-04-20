@@ -162,7 +162,7 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             if instance.changed_networkport.mac_address != instance.live_networkport.mac_address:
                 messages.append('OLD MAC ADDRESS: ' + str(instance.live_networkport.mac_address) + ' | ' +
                                 'NEW MAC ADDRESS: ' + str(instance.changed_networkport.mac_address))
-            if instance.changed_networkport.connection != instance.live_networkport.connection:
+            if not versioned_equal(instance.live_networkport, instance.changed_networkport, ['asset__hostname', 'label__name']):
                 messages.append('OLD CONNECTION: ' + (str(instance.live_networkport.connection.asset) + ' ' +
                                                       str(instance.live_networkport.connection.label.name)
                                                       if instance.live_networkport.connection else 'None') + ' | ' +
