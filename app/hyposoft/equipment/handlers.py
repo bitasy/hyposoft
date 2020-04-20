@@ -40,6 +40,8 @@ def create_asset_extra(asset, version, power_connections, net_ports):
         for connection in power_connections:
             if order > asset.itmodel.power_ports:
                 break
+            if isinstance(connection['pdu_id'], int):
+                connection['pdu_id'] = PDU.objects.get(id=connection['pdu_id'])
             new_pdu = versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS)
             if new_pdu is None:
                 add_rack(connection['pdu_id'].rack, version)

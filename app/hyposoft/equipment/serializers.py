@@ -22,13 +22,27 @@ class SiteSerializer(serializers.ModelSerializer):
         fields = ['id', 'abbr', 'name', 'offline']
 
     def to_internal_value(self, data):
-        data['offline'] = data.pop('type') == 'offline-storage'
+        site_type = data.pop('type', None)
+        if site_type is not None:
+            data['offline'] = site_type == 'offline-storage'
         return super(SiteSerializer, self).to_internal_value(data)
 
     def to_representation(self, instance):
         data = super(SiteSerializer, self).to_representation(instance)
         data['type'] = 'offline-storage' if data.pop('offline') else 'datacenter'
         return data
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        if hasattr(instance, 'type'):
+            if instance.type == 'offline-storage' and validated_data['type'] == 'datacenter':
+                raise serializers.ValidationError(
+                    "Cannot transform an offline site into a datacenter."
+                )
+            elif instance.type == 'datacenter' and validated_data['type'] == 'offline-storage':
+                instance.asset_set.update(rack=None, rack_position=None)
+                return super(SiteSerializer, self).update(instance, validated_data)
+        return super(SiteSerializer, self).update(instance, validated_data)
 
 
 class ITModelEntrySerializer(serializers.ModelSerializer):
@@ -179,16 +193,18 @@ class AssetEntrySerializer(serializers.ModelSerializer):
         else:
             data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
 
+        update_asset_power(instance)
         networked = False
         for pdu in instance.pdu_set.all():
             if pdu.networked:
                 networked = True
                 break
-
     
         if not instance.site.offline:
             if instance.itmodel.type == ITModel.Type.BLADE:
-                data['power_action_visible'] = len(instance.blade_chassis.hostname or "") != 0
+                vendor_bmi = instance.blade_chassis.itmodel.vendor == "BMI"
+                valid_hostname = len(instance.blade_chassis.hostname or "") != 0
+                data['power_action_visible'] = vendor_bmi and valid_hostname
             else: 
                 data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
         else:
@@ -272,17 +288,11 @@ class AssetSerializer(serializers.ModelSerializer):
 
         if power_connections:
             Powered.objects.filter(asset=instance).delete()
-        if net_ports:
+        if net_ports or validated_data['itmodel'] != instance.itmodel:
             NetworkPort.objects.filter(asset=instance).delete()
 
-        create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
-
         instance = super(AssetSerializer, self).update(instance, validated_data)
-
-        if instance.site.offline:
-            for port in instance.networkport_set.all():
-                port.connection = None
-                port.save()
+        create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
 
         return instance
 
@@ -313,7 +323,8 @@ class AssetSerializer(serializers.ModelSerializer):
                 data['power_state'] = None
         elif not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
             chassis_hostname = instance.blade_chassis.hostname
-            if chassis_hostname:
+            vendor_bmi = instance.blade_chassis.itmodel.vendor == "BMI"
+            if chassis_hostname and vendor_bmi:
                 data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
             else:
                 data['power_state'] = None

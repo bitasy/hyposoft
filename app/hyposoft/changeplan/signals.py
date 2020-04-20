@@ -27,107 +27,115 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             messages.append('OLD HOSTNAME: ' + str(instance.live_asset.hostname) + ' | ' +
                             'NEW HOSTNAME: ' + str(instance.changed_asset.hostname))
 
-        if not instance.changed_asset.itmodel.offline:
-            if not instance.live_asset.itmodel.offline:
+        if instance.changed_asset.site != instance.live_asset.site:
+            messages.append('OLD SITE: ' + instance.live_asset.site.name + ' | ' +
+                            'NEW SITE: ' + instance.changed_asset.site.name)
+
+        if not instance.changed_asset.site.offline:
+            if not instance.live_asset.site.offline:
                 if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
                     messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' + #todo test if new rack create in change plan breaks this
                                     'NEW RACK: ' + str(instance.changed_asset.rack.rack))
             else:
                 messages.append('NEW RACK: ' + str(instance.changed_asset.rack.rack))
 
-        if not instance.changed_asset.itmodel.offline and instance.changed_asset.itmodel.type != 'blade':
-            if not instance.live_asset.itmodel.offline and instance.live_asset.itmodel.type != 'blade':
+        if not instance.changed_asset.site.offline and instance.changed_asset.itmodel.type != 'blade':
+            if not instance.live_asset.site.offline and instance.live_asset.itmodel.type != 'blade':
                 if instance.changed_asset.rack_position != instance.live_asset.rack_position:
                     messages.append('OLD RACK POSITION: ' + str(instance.live_asset.rack_position) + ' | ' +
                                     'NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
-                else:
-                    messages.append('NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
+            else:
+                messages.append('NEW RACK POSITION: ' + str(instance.changed_asset.rack_position))
 
         if instance.changed_asset.itmodel != instance.live_asset.itmodel:
             messages.append('OLD ITMODEL: ' + str(instance.live_asset.itmodel) + ' | ' +
                             'NEW ITMODEL: ' + str(instance.changed_asset.itmodel))
         if instance.changed_asset.owner != instance.live_asset.owner:
-            messages.append((('OLD OWNER: ' + str(instance.live_asset.owner.username))
-                             if instance.live_asset.owner else 'None') + ' | ' +
-                            ('NEW OWNER: ' + str(instance.changed_asset.owner.username)
-                             if instance.changed_asset.owner else 'None'))
+            messages.append(('OLD OWNER: ' + ((str(instance.live_asset.owner.username))
+                             if instance.live_asset.owner else 'None')) + ' | ' +
+                            ('NEW OWNER: ' + (str(instance.changed_asset.owner.username)
+                             if instance.changed_asset.owner else 'None')))
 
         # display_color, cpu, memory, storage
-        if instance.changed_asset.itmodel.type != 'chassis':
-            if instance.live_asset.itmodel.type != 'chassis':
-                if instance.changed_asset.display_color != instance.live_asset.display_color:
-                    messages.append('OLD DISPLAY COLOR: ' + str(instance.live_asset.display_color) + ' | ' +
-                                    'NEW DISPLAY COLOR: ' + str(instance.changed_asset.display_color))
-                if instance.changed_asset.cpu != instance.live_asset.cpu:
-                    messages.append('OLD CPU: ' + str(instance.live_asset.cpu) + ' | ' +
-                                    'NEW CPU: ' + str(instance.changed_asset.cpu))
-                if instance.changed_asset.memory != instance.live_asset.memory:
-                    messages.append('OLD MEMORY: ' + str(instance.live_asset.memory) + ' | ' +
-                                    'NEW MEMORY: ' + str(instance.changed_asset.memory))
-                if instance.changed_asset.storage != instance.live_asset.storage:
-                    messages.append('OLD STORAGE: ' + str(instance.live_asset.storage) + ' | ' +
-                                    'NEW STORAGE: ' + str(instance.changed_asset.storage))
+        def get_upgrades(attr):
+            if getattr(instance.live_asset, attr) is not None:
+                old_val = getattr(instance.live_asset, attr)
             else:
-                messages.append('NEW DISPLAY COLOR: ' + str(instance.changed_asset.display_color))
-                messages.append('NEW CPU: ' + str(instance.changed_asset.cpu))
-                messages.append('NEW MEMORY: ' + str(instance.changed_asset.memory))
-                messages.append('NEW STORAGE: ' + str(instance.changed_asset.storage))
+                old_val = getattr(instance.live_asset.itmodel, attr)
+            if getattr(instance.changed_asset, attr) is not None:
+                new_val = getattr(instance.changed_asset, attr)
+            else:
+                new_val = getattr(instance.changed_asset.itmodel, attr)
 
-        if instance.live_asset.commissioned is None and instance.new_asset.commissioned is not None:
+            return old_val, new_val
+
+        old_display_color, new_display_color = get_upgrades('display_color')
+        if old_display_color != new_display_color:
+            messages.append('OLD DISPLAY COLOR: ' + str(old_display_color) + ' | ' +
+                            'NEW DISPLAY COLOR: ' + str(new_display_color))
+        old_cpu, new_cpu = get_upgrades('cpu')
+        if old_cpu != new_cpu:
+            messages.append('OLD CPU: ' + (str(old_cpu) or 'None') + ' | ' +
+                            'NEW CPU: ' + (str(new_cpu) or 'None'))
+        old_storage, new_storage = get_upgrades('storage')
+        if old_storage != new_storage:
+            messages.append('OLD STORAGE: ' + (str(old_storage) or 'None') + ' | ' +
+                            'NEW STORAGE: ' + (str(new_storage) or 'None'))
+        old_memory, new_memory = get_upgrades('memory')
+        if old_memory != new_memory:
+            messages.append('OLD MEMORY: ' + str(old_memory) + ' | ' +
+                            'NEW MEMORY: ' + str(new_memory))
+
+        if instance.live_asset.commissioned is None and instance.changed_asset.commissioned is not None:
             conflicts.append({"field": "decommissioned",
                               "message": 'Live asset is decommissioned.'})
 
         # blade_chassis
-        if instance.changed_asset.itmodel.type == 'chassis' or instance.changed_asset.itmodel.type == 'blade':
-            if instance.live_asset.itmodel.type == 'chassis' or instance.live_asset.itmodel.type == 'blade':
-                if instance.changed_asset.blade_chassis != instance.changed_asset.blade_chassis:
-                    messages.append('OLD BLADE CHASSIS: ' + str(instance.live_asset.blade_chassis) + ' | ' +
-                                    'NEW BLADE CHASSIS: ' + str(instance.changed_asset.blade_chassis))
-            else:
-                messages.append('NEW BLADE CHASSIS: ' + str(instance.changed_asset.blade_chassis))
-        # slot
-        if instance.changed_asset.itmodel.type == 'chassis':
-            if instance.live_asset.itmodel.type == 'chassis':
-                if instance.changed_asset.slot != instance.changed_asset.slot:
-                    messages.append('OLD SLOT: ' + str(instance.live_asset.slot) + ' | ' +
-                                    'NEW SLOT: ' + str(instance.changed_asset.slot))
-            else:
-                messages.append('NEW SLOT: ' + str(instance.changed_asset.slot))
+        if instance.changed_asset.itmodel.type == 'blade':
+            if not versioned_equal(
+                    instance.changed_asset.blade_chassis, instance.live_asset.blade_chassis, Asset.IDENTITY_FIELDS):
+                messages.append('OLD BLADE CHASSIS: ' + str(instance.live_asset.blade_chassis) + ' | ' +
+                                'NEW BLADE CHASSIS: ' + str(instance.changed_asset.blade_chassis))
+            # slot
+            if instance.changed_asset.slot != instance.live_asset.slot:
+                messages.append('OLD SLOT: ' + str(instance.live_asset.slot) + ' | ' +
+                                'NEW SLOT: ' + str(instance.changed_asset.slot))
 
     else:
         changed = instance.changed_asset
-        messages.append('CREATE ASSET: {} in {}U{}'.format(
-            changed.hostname if changed.hostname else str(changed.itmodel),
-            changed.rack.rack,
-            changed.rack_position
+        messages.append('CREATE ASSET: {} in {}{}'.format(
+            str(changed) if str(changed) != '' and str(changed) != 'None' else str(changed.itmodel),
+            changed.site.name + ' ' + changed.rack.rack if changed.rack is not None else changed.site.name,
+            'U' + str(changed.rack_position) if changed.rack_position is not None else ''
         ))
 
-    blocked = Asset.objects.filter(
-        rack=instance.changed_asset.rack,
-        rack_position__range=(instance.changed_asset.rack_position,
-                              instance.changed_asset.rack_position + instance.changed_asset.itmodel.height),
-        site=instance.changed_asset.site,
-        version_id=0
-    )
-    if len(blocked) > 0:
-        conflicts.append({"field": "rack_position",
-                          "message": 'There is already an asset in this area of the specified rack.'})
-    i = instance.changed_asset.rack_position - 1
-    while i > 0:
-        live_rack = versioned_object(instance.changed_asset.rack, ChangePlan.objects.get(id=0), Rack.IDENTITY_FIELDS)
-        under = Asset.objects.filter(
-            rack=live_rack,
-            rack_position=i,
+    if instance.changed_asset.rack_position is not None:
+        blocked = Asset.objects.filter(
+            rack=instance.changed_asset.rack,
+            rack_position__range=(instance.changed_asset.rack_position,
+                                  instance.changed_asset.rack_position + instance.changed_asset.itmodel.height),
             site=instance.changed_asset.site,
             version_id=0
         )
-        if len(under) > 0:
-            asset = under.values_list(
-                'rack_position', 'itmodel__height')[0]
-            if asset[0] + asset[1] > instance.changed_asset.rack_position:
-                conflicts.append({"field": "rack_position",
-                                  "message": 'There is already an asset in this area of the specified rack.'})
-        i -= 1
+        if len(blocked) > 0:
+            conflicts.append({"field": "rack_position",
+                              "message": 'There is already an asset in this area of the specified rack.'})
+        i = instance.changed_asset.rack_position - 1
+        while i > 0:
+            live_rack = versioned_object(instance.changed_asset.rack, ChangePlan.objects.get(id=0), Rack.IDENTITY_FIELDS)
+            under = Asset.objects.filter(
+                rack=live_rack,
+                rack_position=i,
+                site=instance.changed_asset.site,
+                version_id=0
+            )
+            if len(under) > 0:
+                asset = under.values_list(
+                    'rack_position', 'itmodel__height')[0]
+                if asset[0] + asset[1] > instance.changed_asset.rack_position:
+                    conflicts.append({"field": "rack_position",
+                                      "message": 'There is already an asset in this area of the specified rack.'})
+            i -= 1
     instance.messages = messages
     instance.conflicts = conflicts
 
@@ -137,19 +145,22 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
     messages = []
     conflicts = []
     if instance.live_networkport:
-        if instance.changed_networkport.label != instance.live_networkport.label:
-            messages.append('OLD LABEL: ' + str(instance.live_networkport.label.name) + ' | ' +
-                            'NEW LABEL: ' + str(instance.changed_networkport.label.name))
-        if instance.changed_networkport.mac_address != instance.live_networkport.mac_address:
-            messages.append('OLD MAC ADDRESS: ' + str(instance.live_networkport.mac_address) + ' | ' +
-                            'NEW MAC ADDRESS: ' + str(instance.changed_networkport.mac_address))
-        if instance.changed_networkport.connection != instance.live_networkport.connection:
-            messages.append('OLD CONNECTION: ' + (str(instance.live_networkport.connection.asset) + ' ' +
-                                                  str(instance.live_networkport.connection.label.name)
-                                                  if instance.live_networkport.connection else 'None') + ' | ' +
-                            ('NEW CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
-                             str(instance.changed_networkport.connection.label.name)
-                             if instance.changed_networkport.connection else 'None'))
+        if not instance.changed_networkport:
+            messages.append('UNPLUG PORT: ' + str(instance.live_networkport.label.name))
+        else:
+            if instance.changed_networkport.label != instance.live_networkport.label:
+                messages.append('OLD LABEL: ' + str(instance.live_networkport.label.name) + ' | ' +
+                                'NEW LABEL: ' + str(instance.changed_networkport.label.name))
+            if instance.changed_networkport.mac_address != instance.live_networkport.mac_address:
+                messages.append('OLD MAC ADDRESS: ' + str(instance.live_networkport.mac_address) + ' | ' +
+                                'NEW MAC ADDRESS: ' + str(instance.changed_networkport.mac_address))
+            if instance.changed_networkport.connection != instance.live_networkport.connection:
+                messages.append('OLD CONNECTION: ' + (str(instance.live_networkport.connection.asset) + ' ' +
+                                                      str(instance.live_networkport.connection.label.name)
+                                                      if instance.live_networkport.connection else 'None') + ' | ' +
+                                ('NEW CONNECTION: ' + str(instance.changed_networkport.connection.asset) + ' ' +
+                                 str(instance.changed_networkport.connection.label.name)
+                                 if instance.changed_networkport.connection else 'None'))
 
     else:
         messages.append('CREATE NETWORKPORT CONNECTION: {} – {} {}'.format(
@@ -161,7 +172,7 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
             instance.changed_networkport.connection.label.name) if instance.changed_networkport.connection else ''
         ))
 
-    if instance.changed_networkport.connection:
+    if instance.changed_networkport and instance.changed_networkport.connection:
         if instance.changed_networkport.connection and \
                 instance.changed_networkport.asset == instance.changed_networkport.connection.asset:
             conflicts.append({"field": "network_port",

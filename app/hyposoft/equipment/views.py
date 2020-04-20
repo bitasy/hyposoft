@@ -1,16 +1,14 @@
 from django.db import IntegrityError
 from django.db.models import ProtectedError
-from django.utils import timezone
-from rest_framework import generics, views, status
-from rest_framework.response import Response
+from rest_framework import generics, views
 from rest_framework.status import HTTP_200_OK
-from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object, get_site
-from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
+from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
 from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
 from .models import *
 import logging
-from hypo_auth .mixins import *
+from hypo_auth.mixins import *
+from hypo_auth.handlers import *
 
 
 class SiteCreate(CreateAndLogMixin, generics.CreateAPIView):
@@ -83,24 +81,32 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
     serializer_class = AssetSerializer
 
     @transaction.atomic()
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):  # todo the logic in this looks fishy..
+        # Do you need to update data's id or is that done already? what about version?
+        # Does the new asset get added to the new version? What about its network ports?
+        # Make sure that network ports are not deleted in the offline case but connections are wiped
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
         asset_ver = asset.version
+        request.data['power_connections'] = request.data.get('power_connections', [])
+        request.data['network_ports'] = request.data.get('network_ports', [])
         request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
+
+        site = Site.objects.get(id=request.data['location']['site'])
+        check_asset_perm(request.user.username, request.data['location']['site'])
+        check_asset_perm(request.user.username, asset.site.abbr)
+
         if version != asset_ver:
             data = request.data
-            site = Site.objects.get(id=request.data['location']['site'])
             if not site.offline:
                 rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
                 if not rack:
                     rack = add_rack(asset.rack, version)
-                    create_rack_extra(rack, version)
                 old_pdus = {port['id']: port['position']
                             for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
                 new_pdus = {port['position']: port['id']
                             for port in rack.pdu_set.order_by('position').values('id', 'position')}
-                data['rack'] = rack.id
+                data['location']['rack'] = rack.id
                 for i, port in enumerate(request.data['power_connections']):
                    data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
 
@@ -110,10 +116,9 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
                         data['network_ports'][i]['connection'] = versioned_conn.id
             else:
                 request.data['power_connections'] = []
-                request.data['network_ports'] = []
 
             if request.data['location']['tag'] == 'chassis-mount':
-                chassis = request.data['location']['asset']
+                chassis = Asset.objects.get(id=request.data['location']['asset'])
                 request.data['location']['asset'] = add_asset(chassis, version, Asset.IDENTITY_FIELDS).id
                 pass
 

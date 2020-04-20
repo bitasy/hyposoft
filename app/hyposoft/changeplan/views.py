@@ -35,7 +35,7 @@ class ExecuteChangePlan(views.APIView):
             execute_networkports(changeplan)
             execute_powereds(changeplan)
             changeplan.executed = True
-            changeplan.executed_ate = now()
+            changeplan.executed_at = now()
             changeplan.save()
             for child in children:
                 asset = Asset.objects.get(version=child, commissioned__isnull=True)
@@ -50,8 +50,7 @@ class ExecuteChangePlan(views.APIView):
 
                 child.delete()
             return Response(ChangePlanDetailSerializer(changeplan).data, status=HTTP_200_OK)
-        except Exception as e:
-            print(e)
+        except:
             raise serializers.ValidationError("This ChangePlan is not valid.")
 
 

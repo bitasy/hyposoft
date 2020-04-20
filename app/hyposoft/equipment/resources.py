@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 from equipment.handlers import create_itmodel_extra, create_asset_extra
 from changeplan.models import ChangePlan
+from hypo_auth.handlers import check_asset_perm
 from hyposoft.utils import versioned_object, add_asset, add_rack, newest_object
 from .models import ITModel, Asset, Rack, Site
 from network.models import NetworkPortLabel
@@ -22,12 +23,8 @@ class VersionedResource(resources.ModelResource):
         self.version = ChangePlan.objects.get(id=version)
         self.owner = owner
         self.force = force
-
-    def before_save_instance(self, instance, using_transactions, dry_run):
-        if not self.force:
+        if not force:
             self.version = self.get_new_version()
-
-        instance.version = self.version
 
     def get_new_version(self):
         if self.force:
@@ -132,10 +129,9 @@ class ITModelResource(ModelResource):
             row['mount_type'] = 'regular'
 
         if row['mount_type'] == ITModel.Type.BLADE:
-            row['height'] = 0
+            row['height'] = 1
             row['power_ports'] = 0
-            row['network_ports'] = 1
-            row['network_port_name_1'] = 'chassis'
+            row['network_ports'] = 0
 
     def after_export(self, queryset, data, *args, **kwargs):
         for i, row in enumerate(data):
@@ -145,12 +141,9 @@ class ITModelResource(ModelResource):
                 row[0] = "asset"
             data.insert(i, row)
 
-    def after_import_row(self, row, row_result, **kwargs):
-        if row_result.import_type == 'skip':
-            return
-        my_model = ITModel.objects.get(vendor=row['vendor'], model_number=row['model_number'])
-        my_network_ports = int(row['network_ports'])
-        current = [label['name'] for label in my_model.networkportlabel_set.order_by('order').values()]
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        my_network_ports = instance.network_ports
+        current = [label['name'] for label in instance.networkportlabel_set.order_by('order').values()]
         if len(current) > my_network_ports >= 4:
             raise ValidationError(
                 'Cannot decrease amount of network ports.'
@@ -158,16 +151,19 @@ class ITModelResource(ModelResource):
 
         special = []
         for i in range(1, min(5, my_network_ports + 1)):
-            special.append(row['network_port_name_' + str(i)])
+            try:
+                special.append(getattr(instance, 'network_port_name_' + str(i)))
+            except:
+                special.append('')
 
-        if special != current[:len(special)]:
-            if my_model.asset_set.all().count() > 0:
+        if special != current[:len(special)] or my_network_ports <= 4:
+            if instance.asset_set.all().count() > 0:
                 raise serializers.ValidationError(
                     "Cannot modify interconnected ITModel attributes while assets are deployed."
                 )
             else:
-                my_model.networkportlabel_set.all().delete()
-                create_itmodel_extra(my_model, special + current)
+                instance.networkportlabel_set.all().delete()
+                create_itmodel_extra(instance, (special + current)[:my_network_ports])
 
 
 def get_site(row):
@@ -180,6 +176,10 @@ def get_site(row):
             chassis = newest_object(
                 Asset, ChangePlan.objects.get(id=row['version']), asset_number=row['chassis_number']
             )
+            if not chassis:
+                raise serializers.ValidationError(
+                    "Chassis does not exist."
+                )
             return chassis.site
     return None
 
@@ -194,6 +194,10 @@ class AssetResource(VersionedResource):
                 if my_site:
                     site = Site.objects.get(abbr=my_site)
                     rack = newest_object(Rack, version, rack=my_rack, site=site)
+                    if not rack:
+                        raise serializers.ValidationError(
+                            "Rack does not exist."
+                        )
                     return add_rack(rack, version)
             return None
 
@@ -230,6 +234,14 @@ class AssetResource(VersionedResource):
                 if self.column == 'offline_site' and value.offline:
                     return value.abbr
             return ""
+
+    class ChassisWidget(ForeignKeyWidget):
+        def clean(self, value, row=None, *args, **kwargs):
+            if value:
+                version = ChangePlan.objects.get(id=row['version'])
+                chassis = newest_object(Asset, version, asset_number=value)
+                return add_asset(chassis, version)
+            return None
 
     datacenter = fields.Field(
         column_name='datacenter',
@@ -270,10 +282,10 @@ class AssetResource(VersionedResource):
     blade_chassis = fields.Field(
         column_name='chassis_number',
         attribute='blade_chassis',
-        widget=ForeignKeyWidget(Asset, 'asset_number')
+        widget=ChassisWidget(Asset, 'asset_number')
     )
     slot = fields.Field(
-        column_name='slot_number',
+        column_name='chassis_slot',
         attribute='slot',
         widget=IntegerWidget()
     )
@@ -296,10 +308,21 @@ class AssetResource(VersionedResource):
     )
 
     def skip_row(self, instance, original):
+        try:
+            check_asset_perm(self.owner.username, original.site.abbr)
+        except:
+            pass
+        check_asset_perm(self.owner.username, instance.site.abbr)
+
         port1 = getattr(instance, "power_port_connection_1")
         port2 = getattr(instance, "power_port_connection_2")
         new = [port for port in (port1, port2) if len(port) > 0]
         curr = [port[0] + str(port[1]) for port in instance.powered_set.values_list("pdu__position", "plug_number")]
+
+        if hasattr(original, 'site') and instance.site.abbr != original.site.abbr:
+            for port in original.networkport_set.all():
+                port.connection = None
+                port.save()
 
         if sorted(new) != sorted(curr):
             return False
@@ -343,7 +366,7 @@ class AssetResource(VersionedResource):
     class Meta:
         model = Asset
         exclude = ('id', 'itmodel', 'site', 'commissioned', 'decommissioned_by', 'decommissioned_timestamp')
-        import_id_fields = ('hostname', 'vendor', 'model_number', 'version')
+        import_id_fields = ('asset_number', 'version')
         export_order = ('asset_number', 'hostname', 'datacenter', 'offline_site', 'rack', 'rack_position',
                         'blade_chassis', 'slot', 'vendor', 'model_number',
                         'owner', 'comment', 'power_port_connection_1', 'power_port_connection_2',
@@ -353,15 +376,21 @@ class AssetResource(VersionedResource):
         clean_model_instances = True
 
     def before_import_row(self, row, **kwargs):
-        if row['asset_number'] == '' and self.version.id == 0:
-            try:
-                exists = Asset.objects.get(hostname=row['hostname'], version_id=0)
-                row['asset_number'] = exists.asset_number
-            except:
+        if row['datacenter']:
+            if row['offline_site']:
+                raise serializers.ValidationError('You cannot specify both datacenter and offline_site')
+        if row['asset_number'] == '':
                 max_an = Asset.objects.all().aggregate(Max('asset_number'))
                 row['asset_number'] = (max_an['asset_number__max'] or 100000) + 1
-        elif row['asset_number'] == '':
-            row['asset_number'] = None
+        else:
+            row['asset_number'] = int(row['asset_number'])
+
+        val = row['custom_display_color']
+        row['custom_display_color'] = val if val else None
+        val = row['custom_cpu']
+        row['custom_cpu'] = val if val else None
+        val = row['custom_storage']
+        row['custom_storage'] = val if val else None
 
         row['version'] = self.version.id
 
@@ -387,24 +416,34 @@ class AssetResource(VersionedResource):
                         plug = int(pc[split:])
                         special.append({'pdu_id': PDU.objects.get(rack=my_rack, position=position), 'plug': plug})
                     except AttributeError:
-                        raise ValidationError('power_port_connection_' + str(i) + "formatted incorrectly")
+                        raise ValidationError('power_port_connection_' + str(i) + " formatted incorrectly")
                     except PDU.DoesNotExist:
                         raise ValidationError(pc + " does not exit on the specified rack")
             current = []
-            if len(special) >= 2:
+            powered_set = my_asset.powered_set
+            if 2 <= len(special) < my_asset.itmodel.power_ports and \
+                    powered_set.exists() and powered_set.first().pdu.rack == my_asset.rack:
                 special_simple = [port['pdu_id'].position + str(port['plug']) for port in special]
 
-                current = [{'pdu_id': port['pdu'], 'plug': port['plug_number']}
-                           for port in my_asset.powered_set.order_by('order').values('pdu', 'plug_number')]
+                current = [{'pdu_id': port['pdu'], 'plug': port['plug_number'], 'position': port['pdu__position']}
+                           for port in powered_set.order_by('order').values(
+                        'pdu', 'plug_number', 'pdu__position')]
 
                 for port in current:
-                    simple = port['pdu_id'].position + str(port['plug'])
+                    simple = port['position'] + str(port['plug'])
                     if simple in special_simple:
-                        current.remove(simple)
+                        current.remove(port)
 
             my_asset.powered_set.all().delete()
 
-            if row_result.import_type == "new":
+            create_ports = False
+            net_port = my_asset.networkport_set.first()
+            if net_port and net_port.label.itmodel != my_asset.itmodel:
+                for port in my_asset.networkport_set.all():
+                    port.delete()
+                create_ports = True
+
+            if row_result.import_type == "new" or create_ports:
                 ports = [{"label": port, "mac_address": None, "connection": None}
                          for port in
                          NetworkPortLabel.objects.filter(itmodel=my_asset.itmodel).values_list('name', flat=True)]
@@ -417,6 +456,15 @@ class AssetResource(VersionedResource):
                 special + current,
                 ports
             )
+
+        if my_asset.itmodel.type == ITModel.Type.BLADE:
+            my_asset.rack = my_asset.blade_chassis.rack
+            my_asset.save()
+
+        if my_asset.site.offline:
+            for port in my_asset.networkport_set.all():
+                port.connection = None
+                port.save()
 
     def after_export(self, queryset, data, *args, **kwargs):
         del data['version']

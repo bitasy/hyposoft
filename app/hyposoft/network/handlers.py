@@ -39,6 +39,10 @@ def net_graph(asset_id):
     if asset.blade_chassis is not None:
         blade_nodes.append({'id': asset.blade_chassis.id, 'label': str(asset.blade_chassis)})
         blade_edges.append((asset.id, asset.blade_chassis.id))
+        for e in asset.blade_chassis.networkport_set.select_related('asset'):
+            if e.connection:
+                assets.add(e.connection.asset)
+        edges = asset.blade_chassis.networkport_set.all()
     else:
         add_asset_blades(asset)
     for asset in assets:
