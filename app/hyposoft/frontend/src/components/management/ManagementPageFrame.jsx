@@ -25,7 +25,7 @@ import HGreed from "../utility/HGreed";
 import {getChangePlanList} from "../../api/changeplan";
 import {logout} from "../../api/auth";
 import {getSites} from "../../api/site";
-import ConfigurePermissions from "../utility/ConfigurePermissions";
+import ConfigureUserPermissions from "../utility/ConfigurePermissions";
 
 const {Header, Content, Sider} = Layout;
 
@@ -159,8 +159,8 @@ function Sidebar() {
 
     const {user} = useContext(AuthContext);
     const isAdmin = !!user?.permission?.admin_perm;
-    const doDisplay = ConfigurePermissions();
-    console.log(doDisplay);
+    const config = ConfigureUserPermissions();
+    console.log(config);
 
     function handleClick(e) {
         const key = e.key;
@@ -214,14 +214,14 @@ function Sidebar() {
                 <span>Reports</span>
             </Menu.Item>
 
-            {doDisplay.canLogView ? (
+            {config.canLogView ? (
                 <Menu.Item key="/logs">
                     <BarsOutlined/>
                     <span>Logs</span>
                 </Menu.Item>
             ) : null}
 
-            {doDisplay.canChangePlan ? (
+            {config.canChangePlan ? (
                 <Menu.Item key="/changeplan">
                     <PullRequestOutlined/>
                     <span>Change Plans</span>

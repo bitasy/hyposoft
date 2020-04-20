@@ -31,7 +31,7 @@ import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
 import FormDebugger from "../../../utility/formik/FormDebugger";
 import styled from "styled-components";
-import ConfigurePermissions from "../../../utility/ConfigurePermissions";
+import ConfigureUserPermissions from "../../../utility/ConfigurePermissions";
 
 const InputBlackPlaceholder = styled(Input)`
   ::placeholder {
@@ -49,7 +49,8 @@ function AssetForm({id, origin}) {
     const history = useHistory();
 
     //configure permissions
-    const config = ConfigurePermissions();
+    const config = ConfigureUserPermissions();
+    console.log("id used in asset form", id);
     const doDisplay = config.canAssetCUDD;
 
     const query = Object.fromEntries(

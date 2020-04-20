@@ -8,7 +8,7 @@ import { getModelList } from "../../../../api/model";
 import VSpace from "../../../utility/VSpace";
 import { exportModels } from "../../../../api/bulk";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
-import ConfigurePermissions from "../../../utility/ConfigurePermissions";
+import ConfigureUserPermissions from "../../../utility/ConfigurePermissions";
 
 
 const ModelTable = styled(Table)`
@@ -86,7 +86,7 @@ function ModelList() {
   const history = useHistory();
 
   //configure permissions
-  const config = ConfigurePermissions();
+  const config = ConfigureUserPermissions(); //done
   console.log(config);
   const doDisplay = config.canModelCUD;
   console.log("canModelCUD", doDisplay);

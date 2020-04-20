@@ -3,11 +3,13 @@ import Grid from "../RackManagement/Grid";
 import {Typography, Button, Select, Alert} from "antd";
 import {toIndex, indexToRow} from "./GridUtils";
 import {getRackList, createRack, deleteRacks} from "../../../api/rack";
-import {SiteContext} from "../../../contexts/contexts";
+import {AuthContext, SiteContext} from "../../../contexts/contexts";
 import {getSites} from "../../../api/site";
 import VSpace from "../../utility/VSpace";
 import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
-import ConfigurePermissions from "../../utility/ConfigurePermissions";
+import ConfigureUserPermissions, {
+    ConfigureSitePermissions
+} from "../../utility/ConfigurePermissions";
 
 const {Option} = Select;
 
@@ -73,9 +75,13 @@ function RackManagementPage() {
     const {site} = useContext(SiteContext);
 
     //configure permissions
-    const config = ConfigurePermissions();
+    const config = ConfigureUserPermissions();
     const doDisplay = config.canRackCUD;
     console.log("canRackCUD", doDisplay);
+
+    const { user } = useContext(AuthContext);
+    const permittedSitesAsString = user?.permission?.site_perm;
+    const permittedSitesAsArray = permittedSitesAsString.split(",");
 
     const [racks, setRacks] = useState([]);
     const [sites, setSites] = useState([]);
@@ -95,6 +101,7 @@ function RackManagementPage() {
         getSites().then(sites =>
             setSites(sites.filter(s => s.type === "datacenter")),
         );
+
         rehydrate();
         const listener = ({keyCode}) => {
             if (keyCode === 27) {
@@ -109,6 +116,7 @@ function RackManagementPage() {
     React.useEffect(() => {
         rehydrate();
     }, [finalSelectedSite]);
+
 
     function rehydrate() {
         const id = finalSelectedSite?.id;
@@ -203,7 +211,7 @@ function RackManagementPage() {
           This site is offline storage and contains no racks.
         </span>
             )}
-            {finalSelectedSite && finalSelectedSite?.type === "datacenter" && (
+            {finalSelectedSite && finalSelectedSite?.type === "datacenter" } (
                 <>
                     <Legend/>
                     <Grid
@@ -214,7 +222,7 @@ function RackManagementPage() {
                         range={range}
                     />
                     <div style={{marginTop: 16}}>
-                        {doDisplay ? (
+                        {doDisplay && permittedSitesAsArray.includes(finalSelectedSite) ? (
                             <Button
                                 disabled={!range}
                                 type="primary"
@@ -225,7 +233,7 @@ function RackManagementPage() {
                             </Button>
                         ) : null}
 
-                        {doDisplay ? (
+                        {doDisplay && permittedSitesAsArray.includes(finalSelectedSite) ?  (
                             <Button
                                 disabled={!range}
                                 type="danger"
