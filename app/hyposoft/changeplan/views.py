@@ -41,7 +41,7 @@ class ExecuteChangePlan(views.APIView):
                 asset = Asset.objects.get(version=child, commissioned__isnull=True)
                 live_asset = versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
                 if live_asset:
-                    decommission_asset(live_asset.id, DecommissionAsset(), request.user, child)
+                    decommission_asset(live_asset.id, DecommissionAsset(), request.user, live)
                     print('DECOMMISSIONED')
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):

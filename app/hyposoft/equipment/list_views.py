@@ -103,7 +103,6 @@ class AssetList(FilterBySiteMixin, generics.ListAPIView):
         'rack_position',
         'owner'
     ]
-    ordering = 'id'
 
     def get_queryset(self):
         return super(AssetList, self).get_queryset().filter(commissioned=Asset.Decommissioned.COMMISSIONED).order_by(
