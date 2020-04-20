@@ -246,8 +246,6 @@ function AssetForm({ id, origin }) {
                   <VSpace height="16px" />
                 </SubmitButton>
 
-                <FormDebugger />
-
                 {id && (
                   <>
                     <VSpace height="16px" />

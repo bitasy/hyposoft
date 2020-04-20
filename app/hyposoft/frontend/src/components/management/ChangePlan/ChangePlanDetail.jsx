@@ -36,9 +36,11 @@ const ASSET_HEADERS = [
         if (!chassis_str)
           chassis_str = "ID #" + ad.location.asset.id.toString();
         else chassis_str = "#" + chassis_str;
-        return `Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
+        return `${ad.location.site.abbr}: Rack ${
+          ad.location.rack.rack
+        } Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
       } else if (ad.location.type === "offline") {
-        return ad.location.site.name;
+        return ad.location.site.abbr;
       }
     },
   },
@@ -67,6 +69,22 @@ const ASSET_HEADERS = [
   {
     name: "owner",
     toText: ad => ad.owner?.username ?? "",
+  },
+  {
+    name: "upgrade color",
+    toText: ad => ad.display_color ?? "",
+  },
+  {
+    name: "upgrade memory",
+    toText: ad => ad.memory ?? "",
+  },
+  {
+    name: "upgrade storage",
+    toText: ad => ad.storage ?? "",
+  },
+  {
+    name: "upgrade cpu",
+    toText: ad => ad.cpu ?? "",
   },
 ];
 
@@ -104,6 +122,7 @@ function ChangePlanDetail() {
 
   async function execute() {
     await executeChangePlan(id);
+    setGlobalChangePlan(null);
     history.push("/changeplan");
   }
 
