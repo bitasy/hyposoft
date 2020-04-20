@@ -108,7 +108,7 @@ def execute_assets(changeplan):
                 live_asset.asset_number = changed_asset.asset_number
                 live_asset.hostname = changed_asset.hostname
                 live_asset.site = changed_asset.site
-                live_asset.rack = versioned_object(changed_asset.rack, live, Rack.IDENTITY_FIELDS) if not changed_asset.site.offline else None
+                live_asset.rack = add_rack(changed_asset.rack, live) if not changed_asset.site.offline else None
                 live_asset.rack_position = changed_asset.rack_position if not changed_asset.site.offline and changed_asset.itmodel.type != ITModel.Type.BLADE else None
                 live_asset.itmodel = changed_asset.itmodel
                 live_asset.owner = changed_asset.owner
