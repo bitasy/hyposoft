@@ -47,6 +47,9 @@ export function decommissionAsset(id) {
 }
 
 export function getAsset(id) {
+  if (id == null) {
+    return null;
+  }
   return Axios.get(`api/equipment/AssetRetrieve/${id}`, {
     headers: makeHeaders(),
   }).then(getData);

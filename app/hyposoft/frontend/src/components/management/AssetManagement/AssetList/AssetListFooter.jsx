@@ -3,14 +3,14 @@ import {AuthContext} from "../../../../contexts/contexts";
 import {useHistory} from "react-router-dom";
 import {PlusOutlined, PrinterOutlined} from "@ant-design/icons";
 import {Button} from "antd";
-import ConfigurePermissions from "../../../utility/ConfigurePermissions";
+import ConfigureUserPermissions from "../../../utility/ConfigurePermissions";
 
 function AssetListFooter({selectedAssets}) {
     const history = useHistory();
     //const { user } = useContext(AuthContext);
 
     //configure permissions
-    const config = ConfigurePermissions();
+    const config = ConfigureUserPermissions();
     const doDisplay = config.canAssetCUDD;
     console.log("canAssetCUDD", doDisplay);
 

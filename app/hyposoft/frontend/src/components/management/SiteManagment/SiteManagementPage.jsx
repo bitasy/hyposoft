@@ -16,19 +16,19 @@ import {
 } from "@ant-design/icons";
 import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 import VSpace from "../../utility/VSpace";
-import ConfigurePermissions from "../../utility/ConfigurePermissions";
+import ConfigureUserPermissions from "../../utility/ConfigurePermissions";
 
 function SiteCard({site, onUpdate, onRemove, disabled}) {
 
     //configure permissions
-    const config = ConfigurePermissions();
-    const doDisplay = config.canSiteCUD;
+    const config = ConfigureUserPermissions();
+    const doDisplay = config.canAssetCUDD;
     console.log("canSiteCUD", doDisplay);
 
     const [isEditing, setIsEditing] = React.useState(false);
     const [draft, setDraft] = React.useState(null);
 
-    console.log(draft);
+    console.log("draft", draft);
 
     function confirmUpdate() {
         onUpdate(draft);
@@ -118,7 +118,7 @@ function SiteCard({site, onUpdate, onRemove, disabled}) {
 function AddCard({onCreate, disabled}) {
 
     //configure permissions
-    const config = ConfigurePermissions();
+    const config = ConfigureUserPermissions();
     const doDisplay = config.canSiteCUD;
     console.log("canSiteCUD", doDisplay);
 

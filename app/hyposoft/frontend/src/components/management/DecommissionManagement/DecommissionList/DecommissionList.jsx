@@ -58,6 +58,7 @@ function DecommissionList({ modelID }) {
   const history = useHistory();
 
   const { site } = React.useContext(SiteContext);
+  console.log("site from decommisionlist", site);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);

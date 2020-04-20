@@ -4,7 +4,6 @@ import {useHistory} from "react-router-dom";
 import {PlusOutlined} from "@ant-design/icons";
 import CreateTooltip from "../../../utility/CreateTooltip";
 import {Button} from "antd";
-import ConfigurePermissions from "../../../utility/ConfigurePermissions";
 
 
 function ModelListFooter() {
