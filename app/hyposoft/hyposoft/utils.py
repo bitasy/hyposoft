@@ -79,10 +79,11 @@ def newest_object(model, version, **filters):
             try:
                 return model.objects.get(version=version.parent, **filters)
             except:
-                try:
-                    return model.objects.get(version=ChangePlan.objects.get(id=0), **filters)
-                except:
-                    return None
+                pass
+        try:
+            return model.objects.get(version=ChangePlan.objects.get(id=0), **filters)
+        except:
+            return None
 
 
 def versioned_object(obj, version, identity_fields):
@@ -91,7 +92,14 @@ def versioned_object(obj, version, identity_fields):
     obj_list = obj.__class__.objects.filter(id=obj.id).values(*identity_fields)[0]
     if any([v is None for v in obj_list.values()]):
         return None
-    return obj.__class__.objects.filter(version=version, **obj_list).first()
+    result = obj.__class__.objects.filter(version=version, **obj_list).first()
+    if result is None:
+        for child in version.changeplan_set.all():
+            decom = obj.__class__.objects.filter(version=child, **obj_list).first()
+            if decom is not None:
+                result = decom
+                break
+    return result
 
 
 def versioned_queryset(queryset, version, identity_fields):

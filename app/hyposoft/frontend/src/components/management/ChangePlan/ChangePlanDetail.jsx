@@ -37,7 +37,7 @@ const ASSET_HEADERS = [
           chassis_str = "ID #" + ad.location.asset.id.toString();
         else chassis_str = "#" + chassis_str;
         return `Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
-      } else if (ad.location.type === "offline") {
+      } else if (ad.location.tag === "offline") {
         return ad.location.site.name;
       }
     },

@@ -4,7 +4,7 @@ from equipment.models import Asset, Rack, ITModel
 from equipment.handlers import decommission_asset
 from network.models import NetworkPort
 from power.models import Powered, PDU
-from hyposoft.utils import versioned_object, add_network_conn, add_rack, add_asset
+from hyposoft.utils import versioned_object, add_network_conn, add_rack, add_asset, newest_object
 from .models import AssetDiff, NetworkPortDiff, PoweredDiff, ChangePlan
 
 
@@ -24,6 +24,15 @@ def create_asset_diffs(changeplan, target):
             AssetDiff.objects.create(
                 changeplan=changeplan,
                 changed_asset=changed_asset,
+            )
+    for child in changeplan.changeplan_set.all():
+        asset = Asset.objects.filter(commissioned=None, version=child).first()
+        if asset:
+            old = newest_object(Asset, changeplan, asset_number=asset.asset_number, hostname=asset.hostname)
+            AssetDiff.objects.create(
+                changeplan=changeplan,
+                live_asset=old,
+                changed_asset=asset
             )
 
 

@@ -31,10 +31,16 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             messages.append('OLD SITE: ' + instance.live_asset.site.name + ' | ' +
                             'NEW SITE: ' + instance.changed_asset.site.name)
 
+        if instance.live_asset.commissioned == Asset.Decommissioned.COMMISSIONED \
+                and instance.changed_asset.commissioned is None:
+            messages.append('DECOMMISSION ASSET' +
+                            (': ' + instance.live_asset.hostname) if instance.live_asset.hostname else '')
+
         if not instance.changed_asset.site.offline:
             if not instance.live_asset.site.offline:
                 if not versioned_equal(instance.changed_asset.rack, instance.live_asset.rack, Rack.IDENTITY_FIELDS):
-                    messages.append('OLD RACK: ' + str(instance.live_asset.rack.rack) + ' | ' + #todo test if new rack create in change plan breaks this
+                    messages.append('OLD RACK: ' + str(
+                        instance.live_asset.rack.rack) + ' | ' +  # todo test if new rack create in change plan breaks this
                                     'NEW RACK: ' + str(instance.changed_asset.rack.rack))
             else:
                 messages.append('NEW RACK: ' + str(instance.changed_asset.rack.rack))
@@ -52,9 +58,9 @@ def assetdiff_message(sender, instance, *args, **kwargs):
                             'NEW ITMODEL: ' + str(instance.changed_asset.itmodel))
         if instance.changed_asset.owner != instance.live_asset.owner:
             messages.append(('OLD OWNER: ' + ((str(instance.live_asset.owner.username))
-                             if instance.live_asset.owner else 'None')) + ' | ' +
+                                              if instance.live_asset.owner else 'None')) + ' | ' +
                             ('NEW OWNER: ' + (str(instance.changed_asset.owner.username)
-                             if instance.changed_asset.owner else 'None')))
+                                              if instance.changed_asset.owner else 'None')))
 
         # display_color, cpu, memory, storage
         def get_upgrades(attr):
@@ -109,30 +115,32 @@ def assetdiff_message(sender, instance, *args, **kwargs):
             'U' + str(changed.rack_position) if changed.rack_position is not None else ''
         ))
 
-    if instance.changed_asset.rack_position is not None:
+    asset = instance.changed_asset
+    if asset.rack_position is not None and asset.commissioned == Asset.Decommissioned.COMMISSIONED:
         blocked = Asset.objects.filter(
-            rack=instance.changed_asset.rack,
-            rack_position__range=(instance.changed_asset.rack_position,
-                                  instance.changed_asset.rack_position + instance.changed_asset.itmodel.height),
-            site=instance.changed_asset.site,
+            rack=asset.rack,
+            rack_position__range=(asset.rack_position,
+                                  asset.rack_position + asset.itmodel.height),
+            site=asset.site,
             version_id=0
         )
         if len(blocked) > 0:
             conflicts.append({"field": "rack_position",
                               "message": 'There is already an asset in this area of the specified rack.'})
-        i = instance.changed_asset.rack_position - 1
+        i = asset.rack_position - 1
         while i > 0:
-            live_rack = versioned_object(instance.changed_asset.rack, ChangePlan.objects.get(id=0), Rack.IDENTITY_FIELDS)
+            live_rack = versioned_object(asset.rack, ChangePlan.objects.get(id=0),
+                                         Rack.IDENTITY_FIELDS)
             under = Asset.objects.filter(
                 rack=live_rack,
                 rack_position=i,
-                site=instance.changed_asset.site,
+                site=asset.site,
                 version_id=0
             )
             if len(under) > 0:
-                asset = under.values_list(
+                other = under.values_list(
                     'rack_position', 'itmodel__height')[0]
-                if asset[0] + asset[1] > instance.changed_asset.rack_position:
+                if other[0] + other[1] > asset.rack_position:
                     conflicts.append({"field": "rack_position",
                                       "message": 'There is already an asset in this area of the specified rack.'})
             i -= 1
@@ -170,7 +178,7 @@ def networkportdiff_message(sender, instance, *args, **kwargs):
         ) + (" TO {} – {}".format(
             instance.changed_networkport.connection.asset,
             instance.changed_networkport.connection.label.name) if instance.changed_networkport.connection else ''
-        ))
+             ))
 
     if instance.changed_networkport and instance.changed_networkport.connection:
         if instance.changed_networkport.connection and \

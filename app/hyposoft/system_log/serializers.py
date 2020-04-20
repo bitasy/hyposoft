@@ -13,5 +13,5 @@ class LogSerializer(serializers.ModelSerializer):
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         new_format = '%d-%m-%Y %H:%M:%S'
 
-        data['timestamp'] = datetime.datetime.strptime(data['timestamp'], old_format).strftime(new_format)
+        data['timestamp'] = datetime.datetime.strptime(data['timestamp'], old_format).strftime(new_format) + ' UTC'
         return data

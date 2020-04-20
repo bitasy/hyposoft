@@ -119,20 +119,10 @@ def decommission_asset(asset_id, view, user, version):
 
         if rack:
             for pdu in old_rack.pdu_set.filter(version=version):
-                old_pdu = PDU.objects.get(id=pdu.id)
-                pdu = versioned_object(old_pdu, version=change_plan, identity_fields=PDU.IDENTITY_FIELDS)
-                if pdu is None:
-                    pdu.id = None
-                    pdu.rack = rack
-                    pdu.networked = False
-                    pdu.version = change_plan
-                    pdu.save()
-
-            for power in old_pdu.powered_set.filter(version=version, asset=old_asset):
-                new_power = versioned_object(power, version=change_plan, identity_fields=Powered.IDENTITY_FIELDS)
-                if new_power is None:
+                new_pdu = rack.pdu_set.get(position=pdu.position)
+                for power in pdu.powered_set.filter(asset=old_asset):
                     power.id = None
-                    power.pdu = pdu
+                    power.pdu = new_pdu
                     power.asset = asset
                     power.version = change_plan
                     power.save()

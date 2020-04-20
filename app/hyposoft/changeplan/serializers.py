@@ -19,14 +19,11 @@ class ChangePlanSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super(ChangePlanSerializer, self).to_representation(instance)
-        data['has_conflicts'] = False #todo set appropriately
-
-        data = super(ChangePlanSerializer, self).to_representation(instance)
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         new_format = '%d-%m-%Y %H:%M:%S'
 
         if data['executed_at'] is not None:
-            data['executed_at'] = datetime.datetime.strptime(data['executed_at'], old_format).strftime(new_format)
+            data['executed_at'] = datetime.datetime.strptime(data['executed_at'], old_format).strftime(new_format) + ' UTC'
         return data
 
 
@@ -52,7 +49,7 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
             conflicts = diff['conflicts']
 
             for power in powerDiff:
-                if power['new'].asset == asset:
+                if power['new'] and power['new'].asset == asset:
                     conflicts += power['conflicts']
 
             for network in networkDiff:
@@ -68,5 +65,5 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
         new_format = '%d-%m-%Y %H:%M:%S'
 
         if data['executed_at'] is not None:
-            data['executed_at'] = datetime.datetime.strptime(data['executed_at'], old_format).strftime(new_format)
+            data['executed_at'] = datetime.datetime.strptime(data['executed_at'], old_format).strftime(new_format) + ' UTC'
         return data

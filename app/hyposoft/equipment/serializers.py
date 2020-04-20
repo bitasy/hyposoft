@@ -408,10 +408,18 @@ class AssetDetailSerializer(AssetSerializer):
             data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
             data['location']['asset'] = AssetSerializer(Asset.objects.get(id=data['location']['asset'])).data
 
+        old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+        new_format = '%m-%d-%Y %H:%M:%S'
+
+        if data['decommissioned_timestamp']:
+            data['decommissioned_timestamp'] = \
+                datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format) + ' UTC'
+
         return data
 
 
 class DecommissionedAssetSerializer(AssetEntrySerializer):
+    itmodel = serializers.StringRelatedField()
     decommissioned_by = serializers.StringRelatedField()
 
     class Meta:
@@ -432,6 +440,7 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         new_format = '%m-%d-%Y %H:%M:%S'
 
-        data['decommissioned_timestamp'] = \
-            datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)
+        if data['decommissioned_timestamp']:
+            data['decommissioned_timestamp'] = \
+                datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format) + ' UTC'
         return data
