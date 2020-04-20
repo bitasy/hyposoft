@@ -88,6 +88,8 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
         asset_ver = asset.version
+        request.data['power_connections'] = request.data.get('power_connections', [])
+        request.data['network_ports'] = request.data.get('network_ports', [])
         request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
 
         site = Site.objects.get(id=request.data['location']['site'])
@@ -116,7 +118,7 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
                 request.data['power_connections'] = []
 
             if request.data['location']['tag'] == 'chassis-mount':
-                chassis = request.data['location']['asset']
+                chassis = Asset.objects.get(id=request.data['location']['asset'])
                 request.data['location']['asset'] = add_asset(chassis, version, Asset.IDENTITY_FIELDS).id
                 pass
 

@@ -51,63 +51,65 @@ function Diff0({ messages }) {
 
 function Diff({ headers, diff, beforeText = "Before", afterText = "After" }) {
   return (
-    <table style={{ border: "1px solid black" }}>
-      <thead>
-        <tr>
-          <TH />
-          {headers.map((header, idx) => (
-            <TH key={idx}>{header}</TH>
+    <div style={{ width: "100%", overflow: "auto" }}>
+      <table style={{ border: "1px solid black" }}>
+        <thead>
+          <tr>
+            <TH />
+            {headers.map((header, idx) => (
+              <TH key={idx}>{header}</TH>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {diff.map(({ before, after, warning, error, action }, idx) => (
+            <React.Fragment key={idx}>
+              <tr>
+                <TDD colSpan={headers.length + 1} />
+              </tr>
+              <tr>
+                <TD key="before">{beforeText}</TD>
+                {before != null ? (
+                  before.map((field, idx) => <TD key={idx}>{field}</TD>)
+                ) : (
+                  <TD colSpan={headers.length}>(Non-existent)</TD>
+                )}
+              </tr>
+              <tr key={"after" + idx}>
+                <TD key="after">{afterText}</TD>
+                {after != null ? (
+                  after.map((field, idx) => <TD key={idx}>{field}</TD>)
+                ) : (
+                  <TD colSpan={headers.length}>(Non-existent)</TD>
+                )}
+              </tr>
+              {warning && (
+                <tr key={idx + "warning"} style={{ color: "orange" }}>
+                  <TD>Warning</TD>
+                  <TD colSpan={headers.length}>{warning}</TD>
+                </tr>
+              )}
+              {error && (
+                <tr key={idx + "error"} style={{ color: "red" }}>
+                  <TD>Error</TD>
+                  <TD colSpan={headers.length}>{error}</TD>
+                </tr>
+              )}
+              {action && (
+                <tr key={idx + "action"} style={{ textAlign: "center" }}>
+                  <TD>Action</TD>
+                  <TD colSpan={headers.length}>
+                    <Button size="small" onClick={action.onClick}>
+                      {action.name}
+                    </Button>
+                  </TD>
+                </tr>
+              )}
+            </React.Fragment>
           ))}
-        </tr>
-      </thead>
-      <tbody>
-        {diff.map(({ before, after, warning, error, action }, idx) => (
-          <React.Fragment key={idx}>
-            <tr>
-              <TDD colSpan={headers.length + 1} />
-            </tr>
-            <tr>
-              <TD key="before">{beforeText}</TD>
-              {before != null ? (
-                before.map((field, idx) => <TD key={idx}>{field}</TD>)
-              ) : (
-                <TD colSpan={headers.length}>(Non-existent)</TD>
-              )}
-            </tr>
-            <tr key={"after" + idx}>
-              <TD key="after">{afterText}</TD>
-              {after != null ? (
-                after.map((field, idx) => <TD key={idx}>{field}</TD>)
-              ) : (
-                <TD colSpan={headers.length}>(Non-existent)</TD>
-              )}
-            </tr>
-            {warning && (
-              <tr key={idx + "warning"} style={{ color: "orange" }}>
-                <TD>Warning</TD>
-                <TD colSpan={headers.length}>{warning}</TD>
-              </tr>
-            )}
-            {error && (
-              <tr key={idx + "error"} style={{ color: "red" }}>
-                <TD>Error</TD>
-                <TD colSpan={headers.length}>{error}</TD>
-              </tr>
-            )}
-            {action && (
-              <tr key={idx + "action"} style={{ textAlign: "center" }}>
-                <TD>Action</TD>
-                <TD colSpan={headers.length}>
-                  <Button size="small" onClick={action.onClick}>
-                    {action.name}
-                  </Button>
-                </TD>
-              </tr>
-            )}
-          </React.Fragment>
-        ))}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   );
 }
 

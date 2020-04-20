@@ -36,16 +36,18 @@ const ASSET_HEADERS = [
         if (!chassis_str)
           chassis_str = "ID #" + ad.location.asset.id.toString();
         else chassis_str = "#" + chassis_str;
-        return `Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
+        return `${ad.location.site.abbr}: Rack ${
+          ad.location.rack.rack
+        } Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
       } else if (ad.location.type === "offline") {
-        return ad.location.site.name;
+        return ad.location.site.abbr;
       }
     },
   },
   {
     name: "power conn.",
     toText: ad =>
-      ad.power_connections
+      (ad.power_connections ?? [])
         .map(({ label }) => label)
         .sort()
         .join("\n"),
@@ -53,7 +55,7 @@ const ASSET_HEADERS = [
   {
     name: "network conn.",
     toText: ad =>
-      ad.network_ports
+      (ad.network_ports ?? [])
         .map(
           ({ label, connection_str }) =>
             `${label} -> ${connection_str ?? "(Nothing)"}`,
@@ -68,6 +70,26 @@ const ASSET_HEADERS = [
     name: "owner",
     toText: ad => ad.owner?.username ?? "",
   },
+  {
+    name: "upgrade color",
+    toText: ad => ad.display_color ?? "",
+  },
+  {
+    name: "upgrade memory",
+    toText: ad => ad.memory ?? "",
+  },
+  {
+    name: "upgrade storage",
+    toText: ad => ad.storage ?? "",
+  },
+  {
+    name: "upgrade cpu",
+    toText: ad => ad.cpu ?? "",
+  },
+  {
+    name: "decom. at",
+    toText: ad => ad.decommissioned_at ?? "",
+  },
 ];
 
 function ChangePlanDetail() {
@@ -75,7 +97,7 @@ function ChangePlanDetail() {
 
   const history = useHistory();
 
-  const { setChangePlan: setGlobalChangePlan } = React.useContext(
+  const { setChangePlan: setGlobalChangePlan, refresh } = React.useContext(
     ChangePlanContext,
   );
 
@@ -93,14 +115,18 @@ function ChangePlanDetail() {
 
   async function onUpdate(newName) {
     await updateChangePlan(id, newName);
-    setChangePlan({
+    const newCP = {
       ...changePlan,
       name: newName,
-    });
+    };
+    setChangePlan(newCP);
+    setGlobalChangePlan(newCP);
+    refresh();
   }
 
   async function execute() {
     await executeChangePlan(id);
+    setGlobalChangePlan(null);
     history.push("/changeplan");
   }
 
