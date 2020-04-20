@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, useContext} from "react";
 import {Formik} from "formik";
 import {Form, Button, Typography, Row, Col, Divider} from "antd";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
@@ -31,7 +31,8 @@ import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
 import FormDebugger from "../../../utility/formik/FormDebugger";
 import styled from "styled-components";
-import ConfigureUserPermissions from "../../../utility/ConfigurePermissions";
+import ConfigureUserPermissions, {CheckSitePermissions} from "../../../utility/ConfigurePermissions";
+import {AuthContext} from "../../../../contexts/contexts";
 
 const InputBlackPlaceholder = styled(Input)`
   ::placeholder {
@@ -47,11 +48,16 @@ const InputNumberBlackPlaceholder = styled(InputNumber)`
 
 function AssetForm({id, origin}) {
     const history = useHistory();
+    const { user } = useContext(AuthContext);
 
     //configure permissions
     const config = ConfigureUserPermissions();
     console.log("id used in asset form", id);
     const doDisplay = config.canAssetCUDD;
+
+    const permittedSitesAsString = user?.permission?.site_perm;
+    const permittedSitesAsArray = permittedSitesAsString.split(",");
+
 
     const query = Object.fromEntries(
         new URLSearchParams(useLocation().search).entries(),
@@ -70,7 +76,9 @@ function AssetForm({id, origin}) {
 
     React.useEffect(() => {
         getModelPicklist().then(setModelPickList);
-        getSites().then(setSiteList);
+        //getSites().then(setSiteList);
+        getSites().then(sites =>
+            setSiteList(sites.filter(s => permittedSitesAsArray.includes(s.abbr))))
         getUserList().then(setUsers);
 
         if (id) {
@@ -248,7 +256,7 @@ function AssetForm({id, origin}) {
                                     <TextArea name="comment" rows={5}/>
                                 </ItemWithLabel>
 
-                                {doDisplay ? (
+                                {doDisplay && CheckSitePermissions(asset.location.site) ? (
                                     <SubmitButton ghost type="primary" block>
                                         {id ? "Update" : "Create"}
                                         <VSpace height="16px"/>
@@ -260,13 +268,13 @@ function AssetForm({id, origin}) {
                                 {id && (
                                     <>
                                         <VSpace height="16px"/>
-                                        {doDisplay ? (
+                                        {doDisplay && CheckSitePermissions(asset.location.site) ? (
                                             <Button ghost type="danger" onClick={handleDelete} block>
                                                 Delete
                                             </Button>
                                         ) : null}
                                         <VSpace height="16px"/>
-                                        {doDisplay ? (
+                                        {doDisplay && CheckSitePermissions(asset.location.site) ? (
                                             <Button
                                                 ghost
                                                 type="primary"

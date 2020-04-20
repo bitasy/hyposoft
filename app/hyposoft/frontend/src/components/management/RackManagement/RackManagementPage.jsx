@@ -9,7 +9,6 @@ import VSpace from "../../utility/VSpace";
 import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 import ConfigureUserPermissions, {
     CheckSitePermissions,
-    ConfigureSitePermissions
 } from "../../utility/ConfigurePermissions";
 
 const {Option} = Select;

@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import {AuthContext, SiteContext} from "../../contexts/contexts";
 import {getAsset} from "../../api/asset";
+import {getSites} from "../../api/site";
 
 export async function ConfigureSitePermissions({site}) {
 
@@ -41,15 +42,29 @@ export function ConfigureOwnerPermissions({assetID}) {
 }
 
 // a function to check if a user can CUD sites (datacenters and offline storage)
-export function CheckSitePermissions(site) {
+export async function CheckSitePermissions(site) {
 
     const { user } = useContext(AuthContext);
     const permittedSitesAsString = user?.permission?.site_perm;
     const permittedSitesAsArray = permittedSitesAsString.split(",");
     console.log("permitted sites", permittedSitesAsArray);
-    const sitePermitted = permittedSitesAsArray.includes(site);
-    console.log("sitePermitted", sitePermitted);
-    return sitePermitted;
+    const sitePermittedGivenAbbr = permittedSitesAsArray.includes(site);
+    console.log("sitePermittedGivenAbbr", sitePermittedGivenAbbr);
+
+    const siteList = await getSites();
+    console.log("site list", siteList);
+    let permittedSiteIDsAsArray = [];
+    for (let i = 0; i < permittedSitesAsArray.length; i++) {
+        for (let j = 0; j < siteList.length; j++) {
+            if (permittedSitesAsArray[i] == siteList[j].abbr)
+            permittedSiteIDsAsArray.push(siteList[j].id);
+        }
+    }
+    console.log("permittedSiteIDsAsArray", permittedSiteIDsAsArray);
+
+    const sitePermittedGivenID = permittedSiteIDsAsArray.includes(site-1);
+    console.log("sitePermittedGivenID", sitePermittedGivenID);
+    return sitePermittedGivenAbbr || sitePermittedGivenID;
 
 }
 
