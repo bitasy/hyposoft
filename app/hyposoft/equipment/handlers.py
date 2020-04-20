@@ -90,7 +90,6 @@ def create_rack_extra(rack, version):
 def decommission_asset(asset_id, view, user, version):
     try:
         asset = Asset.objects.get(id=asset_id)
-
         change_plan = ChangePlan.objects.create(
             owner=user,
             name='_DECOMMISSION_' + str(asset.id),
@@ -99,7 +98,6 @@ def decommission_asset(asset_id, view, user, version):
             auto_created=True,
             parent=version
         )
-
         # Freeze Asset - Copy all data to new change plan
         # Requires resetting of all foreign keys
 
@@ -128,14 +126,14 @@ def decommission_asset(asset_id, view, user, version):
                     pdu.version = change_plan
                     pdu.save()
 
-            for power in old_pdu.powered_set.filter(version=version, asset=old_asset):
-                new_power = versioned_object(power, version=change_plan, identity_fields=Powered.IDENTITY_FIELDS)
-                if new_power is None:
-                    power.id = None
-                    power.pdu = pdu
-                    power.asset = asset
-                    power.version = change_plan
-                    power.save()
+                for power in old_pdu.powered_set.filter(version=version, asset=old_asset):
+                    new_power = versioned_object(power, version=change_plan, identity_fields=Powered.IDENTITY_FIELDS)
+                    if new_power is None:
+                        power.id = None
+                        power.pdu = pdu
+                        power.asset = asset
+                        power.version = change_plan
+                        power.save()
 
             def loop_ports(old_asset, recurse):
                 for port in old_asset.networkport_set.all():
@@ -152,12 +150,9 @@ def decommission_asset(asset_id, view, user, version):
                         port.save()
 
             loop_ports(old_asset, True)
-
-        log_decommission(view, old_asset)
-
+        log_decommission(user, old_asset)
         if old_asset.version == version:
             old_asset.delete()
-
         return asset
 
     except Asset.DoesNotExist:
