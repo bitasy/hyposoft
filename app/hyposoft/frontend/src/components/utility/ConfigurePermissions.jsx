@@ -11,7 +11,7 @@ export async function CheckOwnerPermissions(asset) {
     const owner = asset?.owner;
 
     let isPermitted = false;
-    if (username.equals(owner)) {
+    if (username === owner) {
         isPermitted = true;
     }
     return isPermitted;
