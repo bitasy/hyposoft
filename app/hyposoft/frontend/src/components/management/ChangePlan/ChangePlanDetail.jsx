@@ -47,7 +47,7 @@ const ASSET_HEADERS = [
   {
     name: "power conn.",
     toText: ad =>
-      ad.power_connections
+      (ad.power_connections ?? [])
         .map(({ label }) => label)
         .sort()
         .join("\n"),
@@ -55,7 +55,7 @@ const ASSET_HEADERS = [
   {
     name: "network conn.",
     toText: ad =>
-      ad.network_ports
+      (ad.network_ports ?? [])
         .map(
           ({ label, connection_str }) =>
             `${label} -> ${connection_str ?? "(Nothing)"}`,
@@ -85,6 +85,10 @@ const ASSET_HEADERS = [
   {
     name: "upgrade cpu",
     toText: ad => ad.cpu ?? "",
+  },
+  {
+    name: "decom. at",
+    toText: ad => ad.decommissioned_at ?? "",
   },
 ];
 

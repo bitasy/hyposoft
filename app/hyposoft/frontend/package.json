@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@react-pdf/renderer": "^1.6.8",
     "@zxing/library": "^0.15.2",
     "antd": "^4.0.3",
     "axios": "^0.19.2",

@@ -10,6 +10,7 @@ import { SiteContext } from "../../../../contexts/contexts";
 import { exportAssets, exportNetwork } from "../../../../api/bulk";
 import VSpace from "../../../utility/VSpace";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import ConfigurePermissions from "../../../utility/ConfigurePermissions";
 
 const AssetTable = styled(Table)`
   :hover {
@@ -78,6 +79,7 @@ const initialFilterValues = {
 // modelID?: number
 function AssetList({ modelID, forOffline }) {
   const history = useHistory();
+  const doDisplay = ConfigurePermissions;
 
   const { site } = React.useContext(SiteContext);
 
@@ -213,6 +215,11 @@ function AssetList({ modelID, forOffline }) {
           )}
         </div>
       )}
+
+      {doDisplay ?
+          <AssetListFooter selectedAssets={selectedAssets} />
+          : null}
+
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
 
       <AssetTable
@@ -222,9 +229,6 @@ function AssetList({ modelID, forOffline }) {
         dataSource={data}
         onChange={onChange}
         pagination={false}
-        footer={() =>
-          modelID ? null : <AssetListFooter selectedAssets={selectedAssets} />
-        }
       />
     </>
   );

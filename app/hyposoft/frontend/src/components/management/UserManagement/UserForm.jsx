@@ -5,8 +5,8 @@ import { getUser, createUser, updateUser, deleteUser } from "../../../api/user";
 import * as Yup from "yup";
 import ItemWithLabel from "../../utility/formik/ItemWithLabel";
 import Input from "../../utility/formik/Input";
-import FormDebugger from "../../utility/formik/FormDebugger";
 import Switch from "../../utility/formik/Switch";
+import { Switch as $Switch } from "antd";
 import { Divider, Button } from "antd";
 import Select from "../../utility/formik/Select";
 import { getSites } from "../../../api/site";
@@ -65,7 +65,11 @@ function UserForm({ id }) {
         const user = await getUser(id);
         user.permission.site_perm = user.permission?.site_perm
           ?.split(",")
-          ?.map(abbr => sites.find(({ abbr: sabbr }) => abbr == sabbr)?.id)
+          ?.map(abbr =>
+            abbr == "Global"
+              ? "Global"
+              : sites.find(({ abbr: sabbr }) => abbr == sabbr)?.id,
+          )
           ?.filter(id => !!id);
         setUser(user);
       } else {
@@ -77,7 +81,11 @@ function UserForm({ id }) {
   async function handleCreate(values) {
     const v = produce(values, draft => {
       draft.permission.site_perm = draft.permission.site_perm
-        .map(id => sites.find(({ id: sid }) => sid == id).abbr)
+        .map(id =>
+          id == "Global"
+            ? "Global"
+            : sites.find(({ id: sid }) => sid == id).abbr,
+        )
         .join(",");
     });
     await createUser(v);
@@ -92,7 +100,11 @@ function UserForm({ id }) {
   async function handleUpdate(values) {
     const v = produce(values, draft => {
       draft.permission.site_perm = draft.permission.site_perm
-        .map(id => sites.find(({ id: sid }) => sid == id).abbr)
+        .map(id =>
+          id == "Global"
+            ? "Global"
+            : sites.find(({ id: sid }) => sid == id).abbr,
+        )
         .join(",");
     });
     await updateUser(id, v);
@@ -166,13 +178,30 @@ function UserForm({ id }) {
                     name="permission.site_perm"
                     label="Site Permission"
                   >
-                    <Select
-                      name="permission.site_perm"
-                      mode="multiple"
-                      options={sites.map(({ id, abbr }) => {
-                        return { value: id, text: abbr };
-                      })}
+                    Global?:{" "}
+                    <$Switch
+                      defaultChecked={user.permission.site_perm.includes(
+                        "Global",
+                      )}
+                      onChange={b => {
+                        props.setFieldValue(
+                          "permission.site_perm",
+                          b ? ["Global"] : [],
+                        );
+                      }}
                     />
+                    {!(
+                      props.values.permission.site_perm.length == 1 &&
+                      props.values.permission.site_perm[0] == "Global"
+                    ) && (
+                      <Select
+                        name="permission.site_perm"
+                        mode="multiple"
+                        options={sites.map(({ id, abbr }) => {
+                          return { value: id, text: abbr };
+                        })}
+                      />
+                    )}
                   </ItemWithLabel>
                 </>
               )}

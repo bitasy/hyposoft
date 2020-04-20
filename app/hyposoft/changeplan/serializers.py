@@ -53,7 +53,7 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
                     conflicts += power['conflicts']
 
             for network in networkDiff:
-                if network['new'].asset == asset:
+                if network['new'] and network['new'].asset == asset:
                     conflicts += network['conflicts']
 
             entry['conflicts'] = conflicts
