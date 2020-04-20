@@ -12,13 +12,15 @@ from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, DestroyMod
 from django.forms.models import model_to_dict
 
 
-def create_dict(self, action, instance_id):
+def create_dict(self, action, instance_id, user=None, model=None):
+    user = user if user else self.request.user
+    model = model if model else self.serializer_class.Meta.model.__name__
     d = {
         'action': action,
-        'username': username(self.request.user),
-        'display_name': display_name(self.request.user)
-        if self.request.user.is_authenticated else "Anonymous User",
-        'model': self.serializer_class.Meta.model.__name__, 'instance_id': instance_id}
+        'username': username(user),
+        'display_name': display_name(user)
+        if user.is_authenticated else "Anonymous User",
+        'model': model, 'instance_id': instance_id}
     return d
 
 
@@ -72,9 +74,9 @@ class DeleteAndLogMixin(DestroyModelMixin):
             raise e
 
 
-def log_decommission(self, old_asset):
+def log_decommission(user, old_asset):
     entry = ActionLog.objects.create(
-        **create_dict(self, ActionLog.Action.DECOMMISSION, old_asset.id)
+        **create_dict(None, ActionLog.Action.DECOMMISSION, old_asset.id, user, 'Asset')
     )
     entry.save()
 

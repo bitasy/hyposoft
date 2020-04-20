@@ -42,6 +42,7 @@ class ExecuteChangePlan(views.APIView):
                 live_asset = versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
                 if live_asset:
                     decommission_asset(live_asset.id, DecommissionAsset(), request.user, child)
+                    print('DECOMMISSIONED')
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
                     if model == Asset:
@@ -50,7 +51,7 @@ class ExecuteChangePlan(views.APIView):
 
                 child.delete()
             return Response(ChangePlanDetailSerializer(changeplan).data, status=HTTP_200_OK)
-        except:
+        except Exception as e:
             raise serializers.ValidationError("This ChangePlan is not valid.")
 
 

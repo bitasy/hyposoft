@@ -142,9 +142,7 @@ def decommission_asset(asset_id, view, user, version):
                         port.save()
 
             loop_ports(old_asset, True)
-
-        log_decommission(view, old_asset)
-
+        log_decommission(user, old_asset)
         if old_asset.version == version:
             old_asset.delete()
 
