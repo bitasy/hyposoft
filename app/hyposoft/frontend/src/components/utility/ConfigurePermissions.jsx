@@ -3,42 +3,18 @@ import {AuthContext, SiteContext} from "../../contexts/contexts";
 import {getAsset} from "../../api/asset";
 import {getSites} from "../../api/site";
 
-export async function ConfigureSitePermissions({site}) {
+export async function CheckOwnerPermissions(asset) {
 
-    console.log("assetID", site);
+    const {user} = useContext(AuthContext);
+    const username = user?.username;
+    //const asset = await getAsset(assetID);
+    const owner = asset?.owner;
 
-    // api calls
-    const {user} = useContext(AuthContext); //returns user object from auth/current_user
-
-    // let {site} = useContext(SiteContext);
-    // if (site == null) {
-    //     site = "Global";
-    // }
-    // console.log("site", site);
-    //
-    //
-    // const sitePermList = user?.permission?.site_perm;
-    // console.log("sitePermList", sitePermList);
-    //
-    // const asset = await getAsset(assetID);
-    // const assetSite = asset?.location.site;
-    // console.log("assetSite", assetSite);
-
-    // see if assetSite is contained in sitePermList
-
-
-
-
-
-    const hasSitePerm = true;
-
-    return hasSitePerm;
-
-}
-
-export function ConfigureOwnerPermissions({assetID}) {
-
-    return true;
+    let isPermitted = false;
+    if (username.equals(owner)) {
+        isPermitted = true;
+    }
+    return isPermitted;
 }
 
 // a function to check if a user can CUD sites (datacenters and offline storage)
@@ -47,12 +23,12 @@ export async function CheckSitePermissions(site) {
     const { user } = useContext(AuthContext);
     const permittedSitesAsString = user?.permission?.site_perm;
     const permittedSitesAsArray = permittedSitesAsString.split(",");
-    console.log("permitted sites", permittedSitesAsArray);
-    const sitePermittedGivenAbbr = permittedSitesAsArray.includes(site);
-    console.log("sitePermittedGivenAbbr", sitePermittedGivenAbbr);
+   // console.log("permitted sites", permittedSitesAsArray);
+    const isPermittedGivenAbbr = permittedSitesAsArray.includes(site);
+   // console.log("sitePermittedGivenAbbr", sitePermittedGivenAbbr);
 
     const siteList = await getSites();
-    console.log("site list", siteList);
+   // console.log("site list", siteList);
     let permittedSiteIDsAsArray = [];
     for (let i = 0; i < permittedSitesAsArray.length; i++) {
         for (let j = 0; j < siteList.length; j++) {
@@ -60,11 +36,11 @@ export async function CheckSitePermissions(site) {
             permittedSiteIDsAsArray.push(siteList[j].id);
         }
     }
-    console.log("permittedSiteIDsAsArray", permittedSiteIDsAsArray);
+   // console.log("permittedSiteIDsAsArray", permittedSiteIDsAsArray);
 
-    const sitePermittedGivenID = permittedSiteIDsAsArray.includes(site-1);
-    console.log("sitePermittedGivenID", sitePermittedGivenID);
-    return sitePermittedGivenAbbr || sitePermittedGivenID;
+    const isPermittedGivenID = permittedSiteIDsAsArray.includes(site);
+   // console.log("sitePermittedGivenID", sitePermittedGivenID);
+    return isPermittedGivenAbbr || isPermittedGivenID;
 
 }
 

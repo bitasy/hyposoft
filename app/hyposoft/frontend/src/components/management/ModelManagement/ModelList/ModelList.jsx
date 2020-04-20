@@ -196,7 +196,7 @@ function ModelList() {
       </Button>
       <Button onClick={handleExport}>Export Models</Button>
       <VSpace height="8px" />
-      {doDisplay ? null : <ModelListFooter/>}
+      {doDisplay ? <ModelListFooter/> : null}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <ModelTable
         rowKey={r => r.id}

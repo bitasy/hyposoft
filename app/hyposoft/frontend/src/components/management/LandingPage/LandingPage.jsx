@@ -21,7 +21,7 @@ function LandingPage() {
   return (
     <FullDiv>
       <Typography.Title level={3}>
-        Test 4 Logged in as {user.username}
+        Test 8 Logged in as {user.username}
       </Typography.Title>
       <FullRow justify="center" align="middle">
         <img src="/static/favicon.ico" />

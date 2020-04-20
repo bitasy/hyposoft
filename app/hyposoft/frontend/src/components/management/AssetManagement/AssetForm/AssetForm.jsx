@@ -31,7 +31,10 @@ import ColorPicker from "../../ModelManagement/ModelForm/ColorPicker";
 import ChassisView from "../ChassisView";
 import FormDebugger from "../../../utility/formik/FormDebugger";
 import styled from "styled-components";
-import ConfigureUserPermissions, {CheckSitePermissions} from "../../../utility/ConfigurePermissions";
+import ConfigureUserPermissions, {
+    CheckOwnerPermissions,
+    CheckSitePermissions
+} from "../../../utility/ConfigurePermissions";
 import {AuthContext} from "../../../../contexts/contexts";
 
 const InputBlackPlaceholder = styled(Input)`
@@ -49,15 +52,6 @@ const InputNumberBlackPlaceholder = styled(InputNumber)`
 function AssetForm({id, origin}) {
     const history = useHistory();
     const { user } = useContext(AuthContext);
-
-    //configure permissions
-    const config = ConfigureUserPermissions();
-    console.log("id used in asset form", id);
-    const doDisplay = config.canAssetCUDD;
-
-    const permittedSitesAsString = user?.permission?.site_perm;
-    const permittedSitesAsArray = permittedSitesAsString.split(",");
-
 
     const query = Object.fromEntries(
         new URLSearchParams(useLocation().search).entries(),
@@ -78,7 +72,7 @@ function AssetForm({id, origin}) {
         getModelPicklist().then(setModelPickList);
         //getSites().then(setSiteList);
         getSites().then(sites =>
-            setSiteList(sites.filter(s => permittedSitesAsArray.includes(s.abbr))))
+            setSiteList(sites.filter(s => permittedSitesAsArray.includes(s?.abbr))))
         getUserList().then(setUsers);
 
         if (id) {
@@ -95,6 +89,17 @@ function AssetForm({id, origin}) {
             }, 1000);
         }
     }, []);
+
+    //configure permissions
+    const config = ConfigureUserPermissions();
+    console.log("id used in asset form", id);
+    const doDisplayCUDButtons = config.canAssetCUDD && CheckSitePermissions(asset?.location?.site);
+    //const doDisplayCUDButtons = config.canAssetCUDD;
+    console.log("doDisplayCUDButtons", doDisplayCUDButtons);
+    const doDisplayPowerButtons = config.canAssetPower || CheckOwnerPermissions(asset);
+    console.log("doDisplayPowerButtons", doDisplayPowerButtons);
+    const permittedSitesAsString = user?.permission?.site_perm;
+    const permittedSitesAsArray = permittedSitesAsString.split(",");
 
     React.useEffect(() => {
         if (asset?.itmodel) handleModelSelect(asset.itmodel);
@@ -136,7 +141,9 @@ function AssetForm({id, origin}) {
         <div>
             {asset.power_state != null && (
                 <div>
-                    <NetworkPowerActionButtons assetID={asset.id} displayState/>
+                    {doDisplayPowerButtons ? (
+                        <NetworkPowerActionButtons assetID={asset.id} displayState/>)
+                        : null};
                     <VSpace height="16px"/>
                 </div>
             )}
@@ -256,7 +263,7 @@ function AssetForm({id, origin}) {
                                     <TextArea name="comment" rows={5}/>
                                 </ItemWithLabel>
 
-                                {doDisplay && CheckSitePermissions(asset.location.site) ? (
+                                {doDisplayCUDButtons ? (
                                     <SubmitButton ghost type="primary" block>
                                         {id ? "Update" : "Create"}
                                         <VSpace height="16px"/>
@@ -268,13 +275,13 @@ function AssetForm({id, origin}) {
                                 {id && (
                                     <>
                                         <VSpace height="16px"/>
-                                        {doDisplay && CheckSitePermissions(asset.location.site) ? (
+                                        {doDisplayCUDButtons ? (
                                             <Button ghost type="danger" onClick={handleDelete} block>
                                                 Delete
                                             </Button>
                                         ) : null}
                                         <VSpace height="16px"/>
-                                        {doDisplay && CheckSitePermissions(asset.location.site) ? (
+                                        {doDisplayCUDButtons ? (
                                             <Button
                                                 ghost
                                                 type="primary"
