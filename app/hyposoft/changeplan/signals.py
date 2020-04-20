@@ -120,7 +120,7 @@ def assetdiff_message(sender, instance, *args, **kwargs):
         blocked = Asset.objects.filter(
             rack=asset.rack,
             rack_position__range=(asset.rack_position,
-                                  asset.rack_position + asset.itmodel.height),
+                                  asset.rack_position + asset.itmodel.height - 1),
             site=asset.site,
             version_id=0
         )
@@ -137,6 +137,8 @@ def assetdiff_message(sender, instance, *args, **kwargs):
                 site=asset.site,
                 version_id=0
             )
+            if asset.asset_number is not None:
+                under = under.exclude(asset_number=asset.asset_number)
             if len(under) > 0:
                 other = under.values_list(
                     'rack_position', 'itmodel__height')[0]

@@ -294,6 +294,8 @@ class AssetSerializer(serializers.ModelSerializer):
         instance = super(AssetSerializer, self).update(instance, validated_data)
         create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
 
+        instance.blade_set.update(rack=instance.rack, site=instance.site)
+
         return instance
 
     def to_representation(self, instance):
@@ -343,7 +345,7 @@ class AssetSerializer(serializers.ModelSerializer):
             location['rack_position'] = instance.rack_position
         elif instance.slot is not None:
             location['tag'] = 'chassis-mount'
-            location['rack'] = instance.blade_chassis.rack.id
+            location['rack'] = instance.blade_chassis.rack.id if instance.blade_chassis.rack else None
             location['asset'] = instance.blade_chassis.id
             location['slot'] = instance.slot
         elif instance.site.offline:
@@ -405,7 +407,8 @@ class AssetDetailSerializer(AssetSerializer):
         if data['location']['tag'] == 'rack-mount':
             data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
         if data['location']['tag'] == 'chassis-mount':
-            data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
+            if data['location']['rack']:
+                data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
             data['location']['asset'] = AssetSerializer(Asset.objects.get(id=data['location']['asset'])).data
 
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'

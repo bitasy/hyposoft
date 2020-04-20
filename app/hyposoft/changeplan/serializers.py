@@ -57,7 +57,8 @@ class ChangePlanDetailSerializer(serializers.ModelSerializer):
                     conflicts += network['conflicts']
 
             entry['conflicts'] = conflicts
-            diffs.append(entry)
+            if diff['messages'] or conflicts:
+                diffs.append(entry)
 
         data['diffs'] = diffs
 

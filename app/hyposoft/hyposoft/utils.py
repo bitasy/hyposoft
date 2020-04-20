@@ -165,6 +165,7 @@ def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
         if rack is None:
             rack = add_rack(asset.rack, change_plan)
 
+    old_asset = Asset.objects.get(id=asset.id)
     asset.id = None
     asset.version = change_plan
     asset.rack = rack
@@ -173,7 +174,7 @@ def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
     if asset.blade_chassis is not None:
         asset.blade_chassis = add_asset(asset.blade_chassis, change_plan, identity_fields)
 
-    for blade in asset.blade_set.all():
+    for blade in old_asset.blade_set.all():
         add_asset(blade, change_plan, identity_fields)
 
     return asset

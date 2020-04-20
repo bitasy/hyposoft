@@ -103,7 +103,7 @@ def decommission_asset(asset_id, view, user, version):
         # Freeze Asset - Copy all data to new change plan
         # Requires resetting of all foreign keys
 
-        old_rack = Rack.objects.get(id=asset.rack.id)
+        old_rack = Rack.objects.get(id=asset.rack.id) if asset.rack else None
         old_asset = Asset.objects.get(id=asset.id)
 
         asset = add_asset(asset, change_plan)
@@ -143,6 +143,9 @@ def decommission_asset(asset_id, view, user, version):
 
             loop_ports(old_asset, True)
         log_decommission(user, old_asset)
+        for blade in old_asset.blade_set.all():
+            blade.delete()
+
         if old_asset.version == version:
             old_asset.delete()
 

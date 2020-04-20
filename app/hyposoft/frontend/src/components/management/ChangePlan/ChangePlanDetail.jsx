@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { Typography, Button, Divider, Input } from "antd";
 import {
@@ -32,13 +32,14 @@ const ASSET_HEADERS = [
         return `${ad.location.site.abbr}: Rack ${ad.location.rack.rack}U${ad.location.rack_position}`;
       } else if (ad.location.tag === "chassis-mount") {
         let chassis_str = ad.location.asset?.hostname;
-        if (!chassis_str) chassis_str = ad.location.asset?.asset_number;
-        if (!chassis_str)
-          chassis_str = "ID #" + ad.location.asset.id.toString();
-        else chassis_str = "#" + chassis_str;
-        return `${ad.location.site.abbr}: Rack ${
-          ad.location.rack.rack
-        } Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
+        if (!chassis_str) {
+          chassis_str = ad.location.asset?.asset_number;
+          if (!chassis_str)
+            chassis_str = "ID #" + ad.location.asset.id.toString();
+          else chassis_str = "#" + chassis_str;
+        }
+        return `${ad.location.site.abbr}: ${"Rack " + ad.location.rack?.rack ??
+          ""} Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
       } else if (ad.location.tag === "offline") {
         return ad.location.site.name;
       }
@@ -87,8 +88,9 @@ const ASSET_HEADERS = [
     toText: ad => ad.cpu ?? "",
   },
   {
-    name: "decom. at",
-    toText: ad => ad.decommissioned_at ?? "",
+    name: "decommissioned by",
+    toText: ad => {
+      return ad.decommissioned_by?.username ?? "N/A"},
   },
 ];
 
@@ -102,9 +104,19 @@ function ChangePlanDetail() {
   );
 
   const [changePlan, setChangePlan] = React.useState(null);
+  const [conflicted, setConflicted] = React.useState(false);
 
   React.useEffect(() => {
-    getChangePlanDetail(id).then(setChangePlan);
+    getChangePlanDetail(id).then(cp => {
+      setChangePlan(cp);
+      setConflicted(false);
+      cp.diffs.map(({ conflicts }) => {
+        if (conflicts.length > 0) {
+          setConflicted(true);
+        }
+      });
+      console.log("change plan from effect", cp);
+    });
   }, [id]);
 
   if (!changePlan) return null;
@@ -114,6 +126,7 @@ function ChangePlanDetail() {
   }
 
   async function onUpdate(newName) {
+    console.log("updated");
     await updateChangePlan(id, newName);
     const newCP = {
       ...changePlan,
@@ -133,6 +146,7 @@ function ChangePlanDetail() {
   const summaryHeaders = ASSET_HEADERS.map(({ name }) => name);
 
   const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
+
     const before =
       live != null ? ASSET_HEADERS.map(({ toText }) => toText(live)) : null;
 
@@ -140,14 +154,14 @@ function ChangePlanDetail() {
       cp != null ? ASSET_HEADERS.map(({ toText }) => toText(cp)) : null;
 
     const error =
-      conflicts.length == 0
+      conflicts.length === 0
         ? null
         : conflicts
             .map(({ field, message }) => `${field}: ${message}`)
             .join("\n");
 
     const action =
-      conflicts.length == 0
+      conflicts.length === 0
         ? null
         : {
             name: "Fix it",
@@ -202,12 +216,14 @@ function ChangePlanDetail() {
       <Button
         type="primary"
         onClick={execute}
-        disabled={changePlan?.executed_at}
+        disabled={conflicted || changePlan?.executed_at}
         style={{ marginRight: 16 }}
       >
         Execute
       </Button>
-      <Button onClick={openWorkOrder}>Work Order</Button>
+      <Button onClick={openWorkOrder} disabled={conflicted}>
+        Work Order
+      </Button>
     </div>
   );
 }

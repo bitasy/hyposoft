@@ -80,14 +80,8 @@ def create_powered_diffs(changeplan, target):
             )
 
 
-def create_live_asset(changed_asset):
-    changed_asset.id = None
-    changed_asset.version_id = 0
-    changed_asset.save()
-
-
 def execute_assets(changeplan):
-    changed_assets = Asset.objects.filter(version=changeplan)
+    changed_assets = Asset.objects.filter(version=changeplan).order_by('itmodel__type')
     for changed_asset in changed_assets:
         try:
             live = ChangePlan.objects.get(id=0)
@@ -109,7 +103,8 @@ def execute_assets(changeplan):
                     cpu=changed_asset.cpu if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
                     memory=changed_asset.memory if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
                     storage=changed_asset.storage if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None,
-                    blade_chassis=changed_asset.blade_chassis if changed_asset.itmodel.type == ITModel.Type.BLADE or changed_asset.itmodel.type == ITModel.Type.CHASSIS else None,
+                    blade_chassis=add_asset(changed_asset.blade_chassis, live, Asset.IDENTITY_FIELDS)\
+                    if changed_asset.itmodel.type == ITModel.Type.BLADE or changed_asset.itmodel.type == ITModel.Type.CHASSIS else None,
                     slot=changed_asset.slot if changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
                 )
 
@@ -126,33 +121,12 @@ def execute_assets(changeplan):
                 live_asset.cpu = changed_asset.cpu if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
                 live_asset.memory = changed_asset.memory if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
                 live_asset.storage = changed_asset.storage if changed_asset.itmodel.type != ITModel.Type.CHASSIS else None
-                live_asset.blade_chassis = changed_asset.blade_chassis if changed_asset.itmodel.type == ITModel.Type.BLADE or changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
-                live_asset.slot = changed_asset.slot if changed_asset.itmodel.type == ITModel.Type.CHASSIS else None
+                live_asset.blade_chassis = add_asset(changed_asset.blade_chassis, live, Asset.IDENTITY_FIELDS)\
+                    if changed_asset.itmodel.type == ITModel.Type.BLADE else None
+                live_asset.slot = changed_asset.slot if changed_asset.itmodel.type == ITModel.Type.BLADE else None
                 live_asset.save()
         except Exception as e:
-            create_live_asset(changed_asset)
-        changed_asset.delete()
-
-
-def execute_decommissioned_assets(changeplan):
-    changed_assets = Asset.objects.filter(changeplan=changeplan)
-    for changed_asset in changed_assets:
-        try:
-            live = ChangePlan.objects.get(id=0)
-            live_asset = versioned_object(changed_asset, live, Asset.IDENTITY_FIELDS)
-            if live_asset is None:
-                live_asset = versioned_object(changed_asset, live, ['hostname'])
-
-            live_asset.destroy()
-            create_live_asset(changed_asset)
-        except:
-            create_live_asset(changed_asset)
-
-
-def create_live_networkport(changed_networkport):
-    changed_networkport.id = None
-    changed_networkport.version_id = 0
-    changed_networkport.save()
+            pass
 
 
 def execute_networkports(changeplan):
@@ -176,18 +150,12 @@ def execute_networkports(changeplan):
                 live_networkport.mac_address = changed_networkport.mac_address
                 if changed_networkport.connection:
                     live_networkport.connection = add_network_conn(changed_networkport.connection, live)
+                else:
+                    live_networkport.connection = None
                 live_networkport.save()
 
         except Exception as e:
-            print(e)
-            create_live_networkport(changed_networkport)
-        changed_networkport.delete()
-
-
-def create_live_powered(changed_powered):
-    changed_powered.id = None
-    changed_powered.version = 0
-    changed_powered.save()
+            pass
 
 
 def execute_powereds(changeplan):
@@ -208,8 +176,7 @@ def execute_powereds(changeplan):
             live_powered.save()
 
         except:
-            create_live_powered(changed_powered)
-        changed_powered.destroy()
+            pass
 
 
 def get_asset(changeplan, target):
