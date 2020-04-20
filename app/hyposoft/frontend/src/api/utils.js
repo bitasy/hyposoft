@@ -51,6 +51,7 @@ export function processAssetQuery(query) {
 
   const whatCanIDoIfDjangoForcesMeToLOL = {
     model: ["itmodel__vendor", "itmodel__model_number"],
+    asset_number: ["asset_number"],
     hostname: ["hostname"],
     location: ["site__abbr", "rack__rack", "rack_position"],
     owner: ["owner"],
@@ -60,6 +61,11 @@ export function processAssetQuery(query) {
 
   const [r1, c1] = query.rack_from ? toIndex(query.rack_from) : [null, null];
   const [r2, c2] = query.rack_to ? toIndex(query.rack_to) : [null, null];
+
+  delete query.direction;
+  delete query.rack_from;
+  delete query.rack_to;
+  delete query.ordering;
 
   return {
     ...query,

@@ -117,6 +117,7 @@ function App() {
   const cpContextValue = {
     changePlan,
     setChangePlan: cp => {
+      console.log(cp);
       if (cp) {
         const { id, name } = cp;
         sessionStorage.setItem(CHANGE_PLAN_SESSION_KEY, id);
