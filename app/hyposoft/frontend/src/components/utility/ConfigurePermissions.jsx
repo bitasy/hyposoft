@@ -41,13 +41,15 @@ export function ConfigureOwnerPermissions({assetID}) {
 }
 
 // a function to check if a user can CUD sites (datacenters and offline storage)
-function CheckSiteCUDPermissions() {
+export function CheckSitePermissions(site) {
 
     const { user } = useContext(AuthContext);
     const permittedSitesAsString = user?.permission?.site_perm;
     const permittedSitesAsArray = permittedSitesAsString.split(",");
-    const canSiteCUD = permittedSitesAsArray.includes("Global");
-    return canSiteCUD;
+    console.log("permitted sites", permittedSitesAsArray);
+    const sitePermitted = permittedSitesAsArray.includes(site);
+    console.log("sitePermitted", sitePermitted);
+    return sitePermitted;
 
 }
 
@@ -79,7 +81,7 @@ function ConfigureUserPermissions() {
     const canModelCUD = !!(hasModelPerm || hasAdminPerm);
     const canAssetCUDD = !!(hasAssetPerm || hasAdminPerm);
     const canOfflineCUDD = !!(hasAssetPerm || hasAdminPerm);
-    const canSiteCUD = CheckSiteCUDPermissions();
+    const canSiteCUD = CheckSitePermissions("Global"); //must have global access to create a site
     const canRackCUD = !!(hasAssetPerm || hasAdminPerm);
 
     //configure signals for within detail views

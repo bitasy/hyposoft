@@ -8,6 +8,7 @@ import {getSites} from "../../../api/site";
 import VSpace from "../../utility/VSpace";
 import useRedirectOnCPChange from "../../utility/useRedirectOnCPChange";
 import ConfigureUserPermissions, {
+    CheckSitePermissions,
     ConfigureSitePermissions
 } from "../../utility/ConfigurePermissions";
 
@@ -78,10 +79,6 @@ function RackManagementPage() {
     const config = ConfigureUserPermissions();
     const doDisplay = config.canRackCUD;
     console.log("canRackCUD", doDisplay);
-
-    const { user } = useContext(AuthContext);
-    const permittedSitesAsString = user?.permission?.site_perm;
-    const permittedSitesAsArray = permittedSitesAsString.split(",");
 
     const [racks, setRacks] = useState([]);
     const [sites, setSites] = useState([]);
@@ -222,7 +219,7 @@ function RackManagementPage() {
                         range={range}
                     />
                     <div style={{marginTop: 16}}>
-                        {doDisplay && permittedSitesAsArray.includes(finalSelectedSite) ? (
+                        {doDisplay && CheckSitePermissions(finalSelectedSite?.abbr) ? (
                             <Button
                                 disabled={!range}
                                 type="primary"
@@ -232,8 +229,8 @@ function RackManagementPage() {
                                 Create
                             </Button>
                         ) : null}
-
-                        {doDisplay && permittedSitesAsArray.includes(finalSelectedSite) ?  (
+                        {console.log(finalSelectedSite)}
+                        {doDisplay && CheckSitePermissions(finalSelectedSite?.abbr) ?  (
                             <Button
                                 disabled={!range}
                                 type="danger"
