@@ -40,7 +40,7 @@ export async function CheckSitePermissions(site) {
 
     const isPermittedGivenID = permittedSiteIDsAsArray.includes(site);
    // console.log("sitePermittedGivenID", sitePermittedGivenID);
-    return isPermittedGivenAbbr || isPermittedGivenID;
+    return isPermittedGivenAbbr || isPermittedGivenID || (!!user?.permission?.admin_perm);
 
 }
 

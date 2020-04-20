@@ -66,14 +66,22 @@ function AssetForm({id, origin}) {
     const [siteList, setSiteList] = useState([]);
     const [users, setUsers] = useState([]);
 
+
+    const permittedSitesAsString = user?.permission?.site_perm;
+    const permittedSitesAsArray = permittedSitesAsString.split(",");
+
     useRedirectOnCPChange(origin);
 
     React.useEffect(() => {
         getModelPicklist().then(setModelPickList);
-        //getSites().then(setSiteList);
-        getSites().then(sites =>
-            setSiteList(sites.filter(s => permittedSitesAsArray.includes(s?.abbr))))
-        getUserList().then(setUsers);
+        if (!!user?.permission?.admin_perm) {
+            getSites().then(setSiteList);
+        }
+        else {
+            getSites().then(sites =>
+                setSiteList(sites.filter(s => permittedSitesAsArray.includes(s?.abbr))))
+            getUserList().then(setUsers);
+        }
 
         if (id) {
             getAsset(id).then(asset => {
@@ -98,8 +106,6 @@ function AssetForm({id, origin}) {
     console.log("doDisplayCUDButtons", doDisplayCUDButtons);
     const doDisplayPowerButtons = config.canAssetPower || CheckOwnerPermissions(asset);
     console.log("doDisplayPowerButtons", doDisplayPowerButtons);
-    const permittedSitesAsString = user?.permission?.site_perm;
-    const permittedSitesAsArray = permittedSitesAsString.split(",");
 
     React.useEffect(() => {
         if (asset?.itmodel) handleModelSelect(asset.itmodel);
@@ -270,7 +276,6 @@ function AssetForm({id, origin}) {
                                     </SubmitButton>
                                 ) : null}
 
-                                <FormDebugger/>
 
                                 {id && (
                                     <>
