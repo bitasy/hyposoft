@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-		"@zxing/library": "^0.15.2",
+    "@zxing/library": "^0.15.2",
     "antd": "^4.0.3",
     "axios": "^0.19.2",
     "formik": "^2.1.4",

@@ -30,13 +30,16 @@ class ExecuteChangePlan(views.APIView):
             create_asset_diffs(changeplan, live)
             create_powered_diffs(changeplan, live)
             create_networkport_diffs(changeplan, live)
+            print('DIFFS CREATED')
             # Update Objects
             execute_assets(changeplan)
             execute_networkports(changeplan)
             execute_powereds(changeplan)
+            print('EXECUTE')
             changeplan.executed = True
-            changeplan.executed_ate = now()
+            changeplan.executed_at = now()
             changeplan.save()
+            print('SAVE')
             for child in children:
                 asset = Asset.objects.get(version=child, commissioned__isnull=True)
                 live_asset = versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
@@ -50,8 +53,7 @@ class ExecuteChangePlan(views.APIView):
 
                 child.delete()
             return Response(ChangePlanDetailSerializer(changeplan).data, status=HTTP_200_OK)
-        except Exception as e:
-            print(e)
+        except:
             raise serializers.ValidationError("This ChangePlan is not valid.")
 
 
