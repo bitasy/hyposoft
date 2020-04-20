@@ -228,7 +228,7 @@ function RackManagementPage() {
                                 Create
                             </Button>
                         ) : null}
-                        {console.log(finalSelectedSite)}
+                        {console.log("finalSelectedSite", finalSelectedSite)}
                         {doDisplay && CheckSitePermissions(finalSelectedSite?.abbr) ?  (
                             <Button
                                 disabled={!range}
