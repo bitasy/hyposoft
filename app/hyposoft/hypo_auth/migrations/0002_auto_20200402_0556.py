@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='permission',
             name='datacenter_perm',
-            field=models.CharField(blank=True, max_length=10000, verbose_name="Datacenter Permission (Enter existing datacenter abbreviations comma-separated. For global, enter 'Global')"),
+            field=models.CharField(blank=True, max_length=10000, verbose_name="Site Permission (Enter existing site abbreviations comma-separated. For global, enter 'Global')"),
         ),
     ]

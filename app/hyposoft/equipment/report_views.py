@@ -3,27 +3,28 @@ from rest_framework import views
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
-from equipment.models import ITModel, Datacenter, Rack, Asset
+from equipment.models import ITModel, Site, Rack
+from hyposoft.utils import get_site
 
 
 class Report(views.APIView):
-    def get_vendor(self, vendor, my_datacenter):
-        itmodels = ITModel.objects.filter(vendor=vendor)
+    def get_vendor(self, vendor, my_site):
+        itmodels = ITModel.objects.filter(vendor=vendor, type__in=(ITModel.Type.REGULAR, ITModel.Type.CHASSIS))
         total_space = 0
         used_space = 0
-        if my_datacenter:
-            racks = Rack.objects.filter(datacenter=my_datacenter, version_id=0)
+        if my_site:
+            racks = Rack.objects.filter(site=my_site, version_id=0)
             for rack in racks:
                 total_space += 42
-                for asset in rack.asset_set.all():
+                for asset in rack.asset_set.filter(blade_chassis=None):
                     if asset.itmodel in itmodels:
                         used_space += asset.itmodel.height
         else:
-            for datacenter in Datacenter.objects.all():
-                racks = Rack.objects.filter(datacenter=datacenter, version_id=0)
+            for site in Site.objects.all():
+                racks = Rack.objects.filter(site=site, version_id=0)
                 for rack in racks:
                     total_space += 42
-                    for asset in rack.asset_set.all():
+                    for asset in rack.asset_set.filter(blade_chassis=None):
                         if asset.itmodel in itmodels:
                             used_space += asset.itmodel.height
         try:
@@ -32,31 +33,25 @@ class Report(views.APIView):
         except:
             used = 0
             free = 0
-        msg = [
-            {
-                "category": vendor,
-                "used": used,
-                "free": free
-            }
-        ]
+        msg = {"category": vendor, "used": used, "free": free}
         return msg
 
-    def get_model(self, model, my_datacenter):
+    def get_model(self, model, my_site):
         total_space = 0
         used_space = 0
-        if my_datacenter:
-            racks = Rack.objects.filter(datacenter=my_datacenter, version_id=0)
+        if my_site:
+            racks = Rack.objects.filter(site=my_site, version_id=0)
             for rack in racks:
                 total_space += 42
-                for asset in rack.asset_set.all():
+                for asset in rack.asset_set.filter(blade_chassis=None):
                     if asset.itmodel == model:
                         used_space += asset.itmodel.height
         else:
-            for datacenter in Datacenter.objects.all():
-                racks = Rack.objects.filter(datacenter=datacenter, version_id=0)
+            for site in Site.objects.all():
+                racks = Rack.objects.filter(site=site, version_id=0)
                 for rack in racks:
                     total_space += 42
-                    for asset in rack.asset_set.all():
+                    for asset in rack.asset_set.filter(blade_chassis=None):
                         if asset.itmodel == model:
                             used_space += asset.itmodel.height
         try:
@@ -65,30 +60,25 @@ class Report(views.APIView):
         except:
             used = 0
             free = 0
-        msg = [
-            {"category": str(model),
-             "used": used,
-             "free": free
-             }
-        ]
+        msg = {"category": str(model), "used": used, "free": free}
         return msg
 
-    def get_owner(self, my_owner, my_datacenter):
+    def get_owner(self, my_owner, my_site):
         total_space = 0
         used_space = 0
-        if my_datacenter:
-            racks = Rack.objects.filter(datacenter=my_datacenter, version_id=0)
+        if my_site:
+            racks = Rack.objects.filter(site=my_site, version_id=0)
             for rack in racks:
                 total_space += 42
-                rack_assets = rack.asset_set.filter(owner=my_owner)
+                rack_assets = rack.asset_set.filter(blade_chassis=None, owner=my_owner)
                 for asset in rack_assets:
                     used_space += asset.itmodel.height
         else:
-            for datacenter in Datacenter.objects.all():
-                racks = Rack.objects.filter(datacenter=datacenter, version_id=0)
+            for site in Site.objects.all():
+                racks = Rack.objects.filter(site=site, version_id=0)
                 for rack in racks:
                     total_space += 42
-                    rack_assets = rack.asset_set.filter(owner=my_owner)
+                    rack_assets = rack.asset_set.filter(blade_chassis=None, owner=my_owner)
                     for asset in rack_assets:
                         used_space += asset.itmodel.height
         try:
@@ -97,31 +87,26 @@ class Report(views.APIView):
         except:
             used = 0
             free = 0
-        msg = [
-            {
-                "category": my_owner.username,
-                "used": used,
-                "free": free
-            }
-        ]
+        msg = {"category": my_owner.username, "used": used,"free": free}
         return msg
 
     def get(self, request):
         try:
-            datacenter = Datacenter.objects.get(abbr=self.request.META.get('HTTP_X_DATACENTER'))
+            site = Site.objects.get(id=get_site(request))
         except:
-            datacenter = None
-        models = [self.get_model(model, datacenter) for model in ITModel.objects.all()]
-        owners = [self.get_owner(owner, datacenter) for owner in User.objects.all()]
-        vendors = [self.get_vendor(vendor, datacenter)
-                   for vendor in ITModel.objects.values_list('vendor', flat=True).distinct()]
+            site = None
+        models = [self.get_model(model, site)
+                  for model in ITModel.objects.filter(type__in=(ITModel.Type.REGULAR, ITModel.Type.CHASSIS))]
+        owners = [self.get_owner(owner, site) for owner in User.objects.all()]
+        vendors = [self.get_vendor(vendor, site)
+                   for vendor in ITModel.objects.values_list('vendor', flat=True).distinct('vendor')]
 
         used = 0
-        for model in ITModel.objects.all():
-            used += model.asset_set.filter(version_id=0).count()
+        for model in ITModel.objects.filter(type__in=(ITModel.Type.REGULAR, ITModel.Type.CHASSIS)):
+            used += model.asset_set.filter(blade_chassis=None, version_id=0).count()
 
-        if datacenter:
-            total = Rack.objects.filter(datacenter=datacenter, version_id=0).count()
+        if site:
+            total = Rack.objects.filter(site=site, version_id=0).count()
         else:
             total = Rack.objects.filter(version_id=0).count()
         total *= 42
@@ -133,7 +118,7 @@ class Report(views.APIView):
             used = 0
             free = 0
         return Response({
-            'total': [{"category": "total", "used": used / total, "free": (total - used) / total}],
+            'total': [{"category": "total", "used": used, "free": free}],
             'by_model': models,
             'by_owner': owners,
             'by_vendor': vendors

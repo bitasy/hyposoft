@@ -10,16 +10,39 @@ from .handlers import create_asset_extra, create_itmodel_extra
 from .models import *
 from network.models import NetworkPort, NetworkPortLabel
 from power.models import PDU, Powered
-from power.handlers import update_asset_power
-from hypo_auth.serializers import UserSerializer
+from power.handlers import update_asset_power, is_blade_power_on
 
 from rest_framework import serializers
+from hyposoft.users import UserSerializer
 
 
-class DatacenterSerializer(serializers.ModelSerializer):
+class SiteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Datacenter
-        fields = '__all__'
+        model = Site
+        fields = ['id', 'abbr', 'name', 'offline']
+
+    def to_internal_value(self, data):
+        site_type = data.pop('type', None)
+        if site_type is not None:
+            data['offline'] = site_type == 'offline-storage'
+        return super(SiteSerializer, self).to_internal_value(data)
+
+    def to_representation(self, instance):
+        data = super(SiteSerializer, self).to_representation(instance)
+        data['type'] = 'offline-storage' if data.pop('offline') else 'datacenter'
+        return data
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        if hasattr(instance, 'type'):
+            if instance.type == 'offline-storage' and validated_data['type'] == 'datacenter':
+                raise serializers.ValidationError(
+                    "Cannot transform an offline site into a datacenter."
+                )
+            elif instance.type == 'datacenter' and validated_data['type'] == 'offline-storage':
+                instance.asset_set.update(rack=None, rack_position=None)
+                return super(SiteSerializer, self).update(instance, validated_data)
+        return super(SiteSerializer, self).update(instance, validated_data)
 
 
 class ITModelEntrySerializer(serializers.ModelSerializer):
@@ -62,6 +85,10 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def create(self, validated_data):
+        if validated_data['type'] == ITModel.Type.BLADE:
+            validated_data['height'] = 0
+            validated_data['power_ports'] = 0
+            validated_data['network_port_labels'] = []
 
         labels = validated_data.pop('network_port_labels')
 
@@ -76,14 +103,19 @@ class ITModelSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def update(self, instance, validated_data):
+        if instance.type != validated_data['type']:
+            raise serializers.ValidationError(
+                "You cannot change the type of a Model."
+            )
         ports = instance.networkportlabel_set.all()
         old_ports = [name for name in ports.values_list('name', flat=True).order_by('order')]
         new_ports = validated_data['network_port_labels']
         if instance.asset_set.exists():
             def throw():
                 raise serializers.ValidationError(
-                    "Cannot modify physical fields if assets are deployed"
+                    "Cannot modify interconnected ITModel attributes while assets are deployed."
                 )
+
             if instance.height != validated_data['height']:
                 throw()
             if instance.power_ports != validated_data['power_ports']:
@@ -137,7 +169,6 @@ class ITModelPickSerializer(serializers.ModelSerializer):
 
 
 class AssetEntrySerializer(serializers.ModelSerializer):
-    location = serializers.CharField(source='rack.rack')
     model = serializers.CharField(source='itmodel')
     owner = serializers.CharField()
 
@@ -150,23 +181,34 @@ class AssetEntrySerializer(serializers.ModelSerializer):
             'asset_number',
             'hostname',
             'owner',
-            'location',
         ]
 
     def to_representation(self, instance):
         data = super(AssetEntrySerializer, self).to_representation(instance)
 
-        data['location'] = "{}: Rack {}U{}".format(instance.datacenter.abbr, instance.rack.rack, instance.rack_position)
+        if instance.slot is not None:
+            data['location'] = "Chassis {}: Slot {}".format(instance.blade_chassis, instance.slot)
+        elif instance.site.offline:
+            data['location'] = instance.site.abbr
+        else:
+            data['location'] = "{}: Rack {}U{}".format(instance.site.abbr, instance.rack.rack, instance.rack_position)
 
+        update_asset_power(instance)
         networked = False
         for pdu in instance.pdu_set.all():
             if pdu.networked:
                 networked = True
                 break
-        permission = True # self.context['request'].user == instance.owner #todo implement this correctly
-        data['power_action_visible'] = \
-            permission and networked and instance.commissioned is not None and instance.version.id == 0
-
+    
+        if not instance.site.offline:
+            if instance.itmodel.type == ITModel.Type.BLADE:
+                vendor_bmi = instance.blade_chassis.itmodel.vendor == "BMI"
+                valid_hostname = len(instance.blade_chassis.hostname or "") != 0
+                data['power_action_visible'] = vendor_bmi and valid_hostname
+            else: 
+                data['power_action_visible'] = networked and instance.commissioned is not None and instance.version.id == 0
+        else:
+            data['power_action_visible'] = False
         return data
 
 
@@ -205,6 +247,25 @@ class AssetSerializer(serializers.ModelSerializer):
         version = get_version(req)
         data['version'] = self.context.get('version') or version
 
+        location = data.pop('location')
+        data['site'] = location['site']
+        if location['tag'] == 'rack-mount':
+            data['rack'] = location['rack']
+            # data['rack_position'] = location['position'] ???
+            data['rack_position'] = location['rack_position']
+        elif location['tag'] == 'chassis-mount':
+            data['blade_chassis'] = location['asset']
+            data['slot'] = location['slot']
+            data['rack'] = location['rack']
+            data['rack_position'] = None
+        elif location['tag'] == 'offline':
+            data['rack'] = None
+            data['rack_position'] = None
+        else:
+            raise serializers.ValidationError(
+                "Invalid location given for this asset."
+            )
+
         return super(AssetSerializer, self).to_internal_value(data)
 
     @transaction.atomic
@@ -227,39 +288,80 @@ class AssetSerializer(serializers.ModelSerializer):
 
         if power_connections:
             Powered.objects.filter(asset=instance).delete()
-        if net_ports:
+        if net_ports or validated_data['itmodel'] != instance.itmodel:
             NetworkPort.objects.filter(asset=instance).delete()
 
+        instance = super(AssetSerializer, self).update(instance, validated_data)
         create_asset_extra(instance, validated_data['version'], power_connections, net_ports)
 
-        return super(AssetSerializer, self).update(instance, validated_data)
+        instance.blade_set.update(rack=instance.rack, site=instance.site)
+
+        return instance
 
     def to_representation(self, instance):
         data = super(AssetSerializer, self).to_representation(instance)
-        connections = Powered.objects.filter(asset=instance)
-        ports = NetworkPort.objects.filter(asset=instance)
-        if instance.version.id != 0:
-            connections = versioned_queryset(connections, instance.version, Powered.IDENTITY_FIELDS)
-            ports = versioned_queryset(ports, instance.version, NetworkPort.IDENTITY_FIELDS)
-        data['power_connections'] = [
-            {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
-            connections.values('pdu', 'plug_number')]
-        data['network_ports'] = [
-            NetworkPortSerializer(port).data
-            for port in ports.order_by('label')
-        ]
-        data['decommissioned'] = not instance.commissioned
-        update_asset_power(instance)
-        networked = instance.pdu_set.filter(networked=True)
-        data['network_graph'] = net_graph(instance.id)
-        if networked.exists() and instance.version.id == 0:
-            for pdu in networked:
-                if pdu.powered_set.filter(asset=instance, on=True).exists():
-                    data['power_state'] = "On"
-                    return data
-            data['power_state'] = "Off"
+        if not instance.site.offline and not instance.itmodel.type == ITModel.Type.BLADE:
+            connections = Powered.objects.filter(asset=instance)
+            ports = NetworkPort.objects.filter(asset=instance)
+            if instance.version.id != 0:
+                connections = versioned_queryset(connections, instance.version, Powered.IDENTITY_FIELDS)
+                ports = versioned_queryset(ports, instance.version, NetworkPort.IDENTITY_FIELDS)
+            data['power_connections'] = [
+                {'pdu_id': conn['pdu'], 'plug': conn['plug_number']} for conn in
+                connections.values('pdu', 'plug_number')]
+            data['network_ports'] = [
+                NetworkPortSerializer(port).data
+                for port in ports.order_by('label') if port
+            ]
+            update_asset_power(instance)
+            networked = instance.pdu_set.filter(networked=True)
+            if networked.exists() and instance.version.id == 0:
+                data['power_state'] = "Off"
+                for pdu in networked:
+                    if pdu.powered_set.filter(asset=instance, on=True).exists():
+                        data['power_state'] = "On"
+                        break
+            else:
+                data['power_state'] = None
+        elif not instance.site.offline and instance.itmodel.type == ITModel.Type.BLADE:
+            chassis_hostname = instance.blade_chassis.hostname
+            vendor_bmi = instance.blade_chassis.itmodel.vendor == "BMI"
+            if chassis_hostname and vendor_bmi:
+                data['power_state'] = "On" if is_blade_power_on(chassis_hostname, instance.slot) else "Off"
+            else:
+                data['power_state'] = None
         else:
+            data['power_connections'] = []
+            data['network_ports'] = []
             data['power_state'] = None
+
+        data['decommissioned'] = not instance.commissioned
+        data['network_graph'] = net_graph(instance.id)
+
+        location = {"site": instance.site.id}
+        if instance.rack_position is not None:
+            location['tag'] = 'rack-mount'
+            location['rack'] = instance.rack.id
+            location['rack_position'] = instance.rack_position
+        elif instance.slot is not None:
+            location['tag'] = 'chassis-mount'
+            location['rack'] = instance.blade_chassis.rack.id if instance.blade_chassis.rack else None
+            location['asset'] = instance.blade_chassis.id
+            location['slot'] = instance.slot
+        elif instance.site.offline:
+            location['tag'] = 'offline'
+        else:
+            raise serializers.ValidationError(
+                "Location of this asset is inconsistent."
+            )
+        data['location'] = location
+
+        del data['site']
+        del data['rack']
+        del data['rack_position']
+        del data['blade_chassis']
+        del data['slot']
+
         return data
 
     def validate_asset_number(self, value):
@@ -277,12 +379,12 @@ class AssetSerializer(serializers.ModelSerializer):
 class RackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rack
-        fields = ["id", "rack", "datacenter", "decommissioned"]
+        fields = ["id", "rack", "site", "decommissioned"]
 
 
 class AssetDetailSerializer(AssetSerializer):
     itmodel = ITModelSerializer()
-    datacenter = DatacenterSerializer()
+    site = SiteSerializer()
     rack = RackSerializer()
     decommissioned_by = UserSerializer()
     owner = UserSerializer()
@@ -294,17 +396,33 @@ class AssetDetailSerializer(AssetSerializer):
     def to_representation(self, instance):
         data = super(AssetDetailSerializer, self).to_representation(instance)
 
-        for i, connection in enumerate(data['power_connections']):
+        for i, connection in enumerate(data.get('power_connections') or []):
             pdu = PDU.objects.get(id=connection['pdu_id'])
             data['power_connections'][i]['label'] = pdu.position + str(connection['plug'])
-        for i, port in enumerate(data['network_ports']):
+        for i, port in enumerate(data.get('network_ports') or []):
             if port['connection']:
                 data['network_ports'][i]['connection_str'] = str(NetworkPort.objects.get(id=port['connection']))
+
+        data['location']['site'] = SiteSerializer(Site.objects.get(id=data['location']['site'])).data
+        if data['location']['tag'] == 'rack-mount':
+            data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
+        if data['location']['tag'] == 'chassis-mount':
+            if data['location']['rack']:
+                data['location']['rack'] = RackSerializer(Rack.objects.get(id=data['location']['rack'])).data
+            data['location']['asset'] = AssetSerializer(Asset.objects.get(id=data['location']['asset'])).data
+
+        old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+        new_format = '%m-%d-%Y %H:%M:%S'
+
+        if data['decommissioned_timestamp']:
+            data['decommissioned_timestamp'] = \
+                datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format) + ' UTC'
 
         return data
 
 
 class DecommissionedAssetSerializer(AssetEntrySerializer):
+    itmodel = serializers.StringRelatedField()
     decommissioned_by = serializers.StringRelatedField()
 
     class Meta:
@@ -325,7 +443,7 @@ class DecommissionedAssetSerializer(AssetEntrySerializer):
         old_format = '%Y-%m-%dT%H:%M:%S.%fZ'
         new_format = '%m-%d-%Y %H:%M:%S'
 
-        data['decommissioned_timestamp'] = \
-            datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format)
+        if data['decommissioned_timestamp']:
+            data['decommissioned_timestamp'] = \
+                datetime.datetime.strptime(data['decommissioned_timestamp'], old_format).strftime(new_format) + ' UTC'
         return data
-

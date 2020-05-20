@@ -1,17 +1,20 @@
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import User
 
 from changeplan.models import ChangePlan
 
 
-class Datacenter(models.Model):
+class Site(models.Model):
     abbr = models.CharField(
         max_length=6,
         unique=True
     )
     name = models.CharField(
         max_length=64
+    )
+    offline = models.BooleanField(
+        default=False
     )
 
     def __str__(self):
@@ -81,6 +84,16 @@ class ITModel(models.Model):
         ]
     )
 
+    class Type(models.TextChoices):
+        REGULAR = ('regular', 'regular')
+        CHASSIS = ('chassis', 'chassis')
+        BLADE = ('blade', 'blade')
+
+    type = models.CharField(
+        max_length=16,
+        choices=Type.choices
+    )
+
     class Meta:
         unique_together = ('vendor', 'model_number')
         verbose_name = "Model"
@@ -99,8 +112,8 @@ class Rack(models.Model):
                            message="Row number must be specified by one or two capital letters.")
         ],
     )
-    datacenter = models.ForeignKey(
-        Datacenter,
+    site = models.ForeignKey(
+        Site,
         on_delete=models.PROTECT,
     )
     version = models.ForeignKey(
@@ -113,13 +126,13 @@ class Rack(models.Model):
     )
 
     def __str__(self):
-        return "Rack {} Datacenter {}".format(self.rack, self.datacenter)
+        return "Rack {} Site {}".format(self.rack, self.site)
 
     class Meta:
-        unique_together = ['rack', 'datacenter', 'version']
+        unique_together = ['rack', 'site', 'version']
         ordering = 'rack',
 
-    IDENTITY_FIELDS = ['rack', 'datacenter']
+    IDENTITY_FIELDS = ['rack', 'site']
 
 
 class Asset(models.Model):
@@ -136,19 +149,23 @@ class Asset(models.Model):
                            message="Hostname must be compliant with RFC 1034.")
         ]
     )
-    datacenter = models.ForeignKey(
-        Datacenter,
+    site = models.ForeignKey(
+        Site,
         on_delete=models.PROTECT,
     )
     rack = models.ForeignKey(
         Rack,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
     )
     rack_position = models.IntegerField(
         validators=[
             MinValueValidator(1,
                               message="Rack position must be at least 1.")
-        ]
+        ],
+        null=True,
+        blank=True
     )
     itmodel = models.ForeignKey(
         ITModel,
@@ -161,6 +178,35 @@ class Asset(models.Model):
         blank=True,
         on_delete=models.SET(None),
         related_name='owned_assets'
+    )
+    display_color = models.CharField(
+        max_length=10,
+        blank=True, 
+        validators=[
+            RegexValidator("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+                           message="Please enter a valid color code.")  # Color code
+        ],
+        default="#ddd",
+        null=True, # Thought these were nullable???
+    )
+    cpu = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True, # Thought these were nullable???
+    )
+    memory = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Memory (GB)",
+        validators=[
+            MinValueValidator(0,
+                              message="Number of GB of memory must be at least 0.")
+        ]
+    )
+    storage = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True, # Thought these were nullable???
     )
     comment = models.TextField(
         blank=True,
@@ -184,7 +230,6 @@ class Asset(models.Model):
         choices=Decommissioned.choices,
         default=Decommissioned.COMMISSIONED
     )
-
     decommissioned_timestamp = models.DateTimeField(
         null=True,
         blank=True
@@ -195,6 +240,25 @@ class Asset(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='decommissioned_assets'
+    )
+    blade_chassis = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.PROTECT,
+        related_name="blade_set"
+    )
+    slot = models.IntegerField(
+        null=True,
+        blank=True,
+        default=None,
+        validators=[
+            MinValueValidator(1,
+                              message="Chassis slot position must be at least 1."),
+            MaxValueValidator(14,
+                              message="Chassis slot position must be at most 14."),
+        ]
     )
 
     class Meta:
@@ -208,7 +272,7 @@ class Asset(models.Model):
     def __str__(self):
         if self.hostname is not None and len(self.hostname) > 0:
             return self.hostname
-        # return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.datacenter)
+        # return "#{}: Rack {} U{} in {}".format(self.asset_number, self.rack.rack, self.rack_position, self.site)
         return str(self.asset_number)
 
     IDENTITY_FIELDS = ['asset_number']

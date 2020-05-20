@@ -15,6 +15,7 @@ const { Title, Paragraph } = Typography;
 const CenteringRow = styled(Row)`
   text-align: center;
   height: 100vh;
+  padding: 16px;
 `;
 
 const schema = Yup.object({

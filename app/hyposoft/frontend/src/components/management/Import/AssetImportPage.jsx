@@ -3,8 +3,13 @@ import { Typography, Row, Col, Button, Divider, message, Alert } from "antd";
 import VSpace from "../../utility/VSpace";
 import { UploadOutlined } from "@ant-design/icons";
 import { importAssets } from "../../../api/bulk";
+import { useHistory, useLocation } from "react-router-dom";
 
 function AssetImportPage() {
+  const history = useHistory();
+
+  const origin = new URLSearchParams(useLocation().search).get("origin");
+
   const fileInputRef = React.useRef(null);
   const [asset, setAsset] = React.useState([]);
   const [power, setPower] = React.useState([]);
@@ -22,10 +27,9 @@ function AssetImportPage() {
 
     importAssets(fd, false).then(({ status, asset, power, errors }) => {
       if (status === "diff") {
+        setErrors([]);
         setAsset(asset);
         setPower(power);
-        console.log("ASSET ", asset);
-        console.log("POWER ", power);
       } else if (status === "error") {
         setErrors(errors.map(({ errors }) => errors));
       } else {
@@ -42,6 +46,7 @@ function AssetImportPage() {
         setErrors(errors.map(({ errors }) => errors));
       } else {
         message.success("success!");
+        history.push(origin);
       }
     });
   }

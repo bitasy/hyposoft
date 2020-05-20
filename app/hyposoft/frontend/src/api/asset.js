@@ -15,13 +15,14 @@ export function createAsset(fields) {
   );
 }
 
-export function getAssetList(query) {
-  return Axios.get(
-    `api/equipment/AssetList?${makeQueryString(processAssetQuery(query))}`,
-    {
-      headers: makeHeaders(),
-    },
-  ).then(getData);
+export async function getAssetList(query) {
+  const queryStr = makeQueryString(processAssetQuery(query));
+
+  const resp = await Axios.get(`api/equipment/AssetList?${queryStr}`, {
+    headers: makeHeaders(),
+  });
+
+  return getData(resp);
 }
 
 export function getDecommissionedAssetList(query) {
@@ -46,6 +47,9 @@ export function decommissionAsset(id) {
 }
 
 export function getAsset(id) {
+  if (id == null) {
+    return null;
+  }
   return Axios.get(`api/equipment/AssetRetrieve/${id}`, {
     headers: makeHeaders(),
   }).then(getData);
@@ -78,4 +82,10 @@ export function networkPortList(assetID) {
     `api/network/NetworkPortList?${makeQueryString({ asset_id: assetID })}`,
     { headers: makeHeaders() },
   ).then(getData);
+}
+
+export function getAssetIDForAssetNumber(assetNumber) {
+  return Axios.get(`api/equipment/AssetIDForAssetNumber/${assetNumber}`).then(
+    getData,
+  );
 }

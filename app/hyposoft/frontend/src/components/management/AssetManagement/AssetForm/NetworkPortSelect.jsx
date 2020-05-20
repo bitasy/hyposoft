@@ -1,10 +1,9 @@
 import React from "react";
 import styled from "styled-components";
-import { RawSelect } from "../../../utility/formik/Select";
 import Input from "../../../utility/formik/Input";
 import VSpace from "../../../utility/VSpace";
 import { useFormikContext } from "formik";
-import { getAssetPicklist, networkPortList } from "../../../../api/asset";
+import { networkPortList } from "../../../../api/asset";
 import GroupSelect from "../../../utility/formik/GroupSelect";
 
 const BlockHeader = styled("h4")`
@@ -37,10 +36,10 @@ function AssetNetworkPortSelect({ idx }) {
   const [networkPorts, setNetworkPorts] = React.useState([]);
 
   React.useEffect(() => {
-    if (values?.datacenter) {
+    if (values?.location.site) {
       networkPortList().then(setNetworkPorts);
     }
-  }, [values?.datacenter]);
+  }, [values?.location.site]);
 
   const networkPortGroups = Object.entries(
     networkPorts.reduce((acc, np) => {

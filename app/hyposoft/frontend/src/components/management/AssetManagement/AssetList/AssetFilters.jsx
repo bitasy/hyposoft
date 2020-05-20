@@ -5,6 +5,7 @@ import VSpace from "../../../utility/VSpace";
 import RangeSlider from "../../../utility/formik/RangeSlider";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import Input from "../../../utility/formik/Input";
+import ResetButton from "../../../utility/formik/ResetButton";
 
 // Props
 /* 
@@ -17,7 +18,7 @@ import Input from "../../../utility/formik/Input";
 */
 // onChange: (an object with the same form as the initialFilterValues) => void
 
-function AssetFilters({ initialFilterValues, onChange }) {
+function AssetFilters({ initialFilterValues, onChange, forOffline }) {
   return (
     <Collapse>
       <Collapse.Panel header="Filters">
@@ -29,39 +30,33 @@ function AssetFilters({ initialFilterValues, onChange }) {
           <Form>
             <Row>
               <Col md={8}>
-                <ItemWithLabel
-                  name="search"
-                  label="Keyword search"
-                >
+                <ItemWithLabel name="search" label="Keyword search">
                   <Input name="search" />
                 </ItemWithLabel>
 
                 <VSpace height="8px" />
 
-                <ItemWithLabel
-                  name="rack_from"
-                  label="Rack from"
-                >
-                  <Input name="rack_from" />
-                </ItemWithLabel>
+                {!forOffline && (
+                  <>
+                    <ItemWithLabel name="rack_from" label="Rack from">
+                      <Input name="rack_from" />
+                    </ItemWithLabel>
 
-                <VSpace height="8px" />
+                    <VSpace height="8px" />
 
-                <ItemWithLabel
-                  name="rack_to"
-                  label="Rack to"
-                >
-                  <Input name="rack_to" />
-                </ItemWithLabel>
+                    <ItemWithLabel name="rack_to" label="Rack to">
+                      <Input name="rack_to" />
+                    </ItemWithLabel>
 
-                <VSpace height="8px" />
+                    <VSpace height="8px" />
 
-                <ItemWithLabel
-                  name="rack_position"
-                  label="Rack position"
-                >
-                  <RangeSlider name="rack_position" />
-                </ItemWithLabel>
+                    <ItemWithLabel name="rack_position" label="Rack position">
+                      <RangeSlider name="rack_position" />
+                    </ItemWithLabel>
+                  </>
+                )}
+
+                <ResetButton block>Reset</ResetButton>
               </Col>
             </Row>
           </Form>

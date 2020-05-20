@@ -1,16 +1,15 @@
-
-
-# Given a rack row letter, provides the next row letter
-# Essentially, after Z is AA and after AA is AB etc.
 from copy import deepcopy
 
 from django.db.models import Q
 from rest_framework import serializers
 
 from equipment.models import Rack, Asset
+from changeplan.models import ChangePlan
 from power.models import PDU
 
 
+# Given a rack row letter, provides the next row letter
+# Essentially, after Z is AA and after AA is AB etc.
 def next_char(char):
     if len(char) == 1:
         if char < "Z":
@@ -64,13 +63,43 @@ def get_version(request):
         return 0
 
 
+def get_site(request):
+    val = request.META.get('HTTP_X_SITE', None)
+    try:
+        return int(val)
+    except:
+        return None
+
+
+def newest_object(model, version, **filters):
+    try:
+        return model.objects.get(version=version, **filters)
+    except:
+        if version.parent is not None:
+            try:
+                return model.objects.get(version=version.parent, **filters)
+            except:
+                pass
+        try:
+            return model.objects.get(version=ChangePlan.objects.get(id=0), **filters)
+        except:
+            return None
+
+
 def versioned_object(obj, version, identity_fields):
     if obj.version == version:
         return obj
     obj_list = obj.__class__.objects.filter(id=obj.id).values(*identity_fields)[0]
     if any([v is None for v in obj_list.values()]):
         return None
-    return obj.__class__.objects.filter(version=version, **obj_list).first()
+    result = obj.__class__.objects.filter(version=version, **obj_list).first()
+    if result is None:
+        for child in version.changeplan_set.all():
+            decom = obj.__class__.objects.filter(version=child, **obj_list).first()
+            if decom is not None:
+                result = decom
+                break
+    return result
 
 
 def versioned_queryset(queryset, version, identity_fields):
@@ -123,21 +152,31 @@ def add_rack(rack, change_plan):
 
 
 def add_asset(asset, change_plan, identity_fields=Asset.IDENTITY_FIELDS):
-    if asset.rack.version != asset.version:
+    if asset.rack and asset.rack.version != asset.version:
         asset.rack = add_rack(asset.rack, asset.version)
     if asset.version == change_plan:
         return asset
     newer_asset = versioned_object(asset, change_plan, identity_fields)
     if newer_asset:
         return newer_asset
-    rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
-    if rack is None:
-        rack = add_rack(asset.rack, change_plan)
+    rack = None
+    if asset.rack:
+        rack = versioned_object(asset.rack, change_plan, Rack.IDENTITY_FIELDS)
+        if rack is None:
+            rack = add_rack(asset.rack, change_plan)
 
+    old_asset = Asset.objects.get(id=asset.id)
     asset.id = None
     asset.version = change_plan
     asset.rack = rack
     asset.save()
+
+    if asset.blade_chassis is not None:
+        asset.blade_chassis = add_asset(asset.blade_chassis, change_plan, identity_fields)
+
+    for blade in old_asset.blade_set.all():
+        add_asset(blade, change_plan, identity_fields)
+
     return asset
 
 

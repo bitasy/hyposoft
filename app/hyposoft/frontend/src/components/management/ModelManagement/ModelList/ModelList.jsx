@@ -8,6 +8,8 @@ import { getModelList } from "../../../../api/model";
 import VSpace from "../../../utility/VSpace";
 import { exportModels } from "../../../../api/bulk";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
+import ConfigureUserPermissions from "../../../utility/ConfigurePermissions";
+
 
 const ModelTable = styled(Table)`
   :hover {
@@ -79,10 +81,15 @@ const initialFilterValues = {
   power_ports: [0, 10],
 };
 
-// noCreate?: boolean
 
-function ModelList({ noCreate }) {
+function ModelList() {
   const history = useHistory();
+
+  //configure permissions
+  const config = ConfigureUserPermissions(); //done
+  console.log(config);
+  const doDisplay = config.canModelCUD;
+  console.log("canModelCUD", doDisplay);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [total, setTotal] = React.useState(0);
@@ -180,13 +187,16 @@ function ModelList({ noCreate }) {
       />
       <VSpace height="8px" />
       <Button
-        onClick={() => history.push("/import/model")}
+        onClick={() =>
+          history.push(`/import/model?origin=${history.location.pathname}`)
+        }
         style={{ marginRight: 8 }}
       >
         Import Models
       </Button>
       <Button onClick={handleExport}>Export Models</Button>
       <VSpace height="8px" />
+      {doDisplay ? <ModelListFooter/> : null}
       <Pagination {...paginationConfig} style={{ margin: "8px 0" }} />
       <ModelTable
         rowKey={r => r.id}
@@ -195,7 +205,6 @@ function ModelList({ noCreate }) {
         onRow={onRow}
         onChange={onChange}
         pagination={false}
-        footer={() => (noCreate ? null : ModelListFooter())}
       />
     </>
   );

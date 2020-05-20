@@ -21,6 +21,7 @@ function NetworkImportPage() {
 
     importNetwork(fd, false).then(({ status, network, errors }) => {
       if (status === "diff") {
+        setErrors([]);
         setNetwork(network);
       } else if (status === "error") {
         setErrors(errors.map(({ errors }) => errors));
@@ -33,20 +34,21 @@ function NetworkImportPage() {
   }
 
   function forceUpload() {
+    message.loading("In progress...");
     importNetwork(formData.current, true).then(({ errors }) => {
       if (errors) {
-        setErrors(errors);
+        setErrors(errors.map(({ errors }) => errors));
       } else {
         message.success("success!");
       }
     });
   }
 
-  const displayForce = !errors && formData.current;
+  const displayForce = errors.length == 0 && formData.current;
 
   return (
     <div style={{ padding: "16px" }}>
-      <Typography.Title level={3}>Import Networks</Typography.Title>
+      <Typography.Title level={3}>Import Network</Typography.Title>
       <VSpace height="16px" />
       <Row>
         <Col md={8}>
@@ -57,8 +59,6 @@ function NetworkImportPage() {
           <Divider />
         </Col>
       </Row>
-
-      <VSpace height="16px" />
 
       <VSpace height="16px" />
 

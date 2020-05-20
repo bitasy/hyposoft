@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { Typography, Button, Divider, Input } from "antd";
 import {
@@ -6,11 +6,8 @@ import {
   updateChangePlan,
   getChangePlanDetail,
 } from "../../../api/changeplan";
-import moment from "moment";
 import Diff from "../../utility/Diff";
-import Diff0 from "../../utility/Diff";
 import { ChangePlanContext } from "../../../contexts/contexts";
-import VSpace from "../../utility/VSpace";
 
 const ASSET_HEADERS = [
   {
@@ -30,13 +27,28 @@ const ASSET_HEADERS = [
   },
   {
     name: "location",
-    toText: ad =>
-      `${ad.datacenter.abbr}: Rack ${ad.rack.rack}U${ad.rack_position}`,
+    toText: ad => {
+      if (ad.location.tag === "rack-mount") {
+        return `${ad.location.site.abbr}: Rack ${ad.location.rack.rack}U${ad.location.rack_position}`;
+      } else if (ad.location.tag === "chassis-mount") {
+        let chassis_str = ad.location.asset?.hostname;
+        if (!chassis_str) {
+          chassis_str = ad.location.asset?.asset_number;
+          if (!chassis_str)
+            chassis_str = "ID #" + ad.location.asset.id.toString();
+          else chassis_str = "#" + chassis_str;
+        }
+        return `${ad.location.site.abbr}: ${"Rack " + ad.location.rack?.rack ??
+          ""} Chassis ${chassis_str} Slot ${ad.location.slot.toString()}`;
+      } else if (ad.location.tag === "offline") {
+        return ad.location.site.name;
+      }
+    },
   },
   {
     name: "power conn.",
     toText: ad =>
-      ad.power_connections
+      (ad.power_connections ?? [])
         .map(({ label }) => label)
         .sort()
         .join("\n"),
@@ -44,7 +56,7 @@ const ASSET_HEADERS = [
   {
     name: "network conn.",
     toText: ad =>
-      ad.network_ports
+      (ad.network_ports ?? [])
         .map(
           ({ label, connection_str }) =>
             `${label} -> ${connection_str ?? "(Nothing)"}`,
@@ -59,6 +71,27 @@ const ASSET_HEADERS = [
     name: "owner",
     toText: ad => ad.owner?.username ?? "",
   },
+  {
+    name: "upgrade color",
+    toText: ad => ad.display_color ?? "",
+  },
+  {
+    name: "upgrade memory",
+    toText: ad => ad.memory ?? "",
+  },
+  {
+    name: "upgrade storage",
+    toText: ad => ad.storage ?? "",
+  },
+  {
+    name: "upgrade cpu",
+    toText: ad => ad.cpu ?? "",
+  },
+  {
+    name: "decommissioned by",
+    toText: ad => {
+      return ad.decommissioned_by?.username ?? "N/A"},
+  },
 ];
 
 function ChangePlanDetail() {
@@ -66,14 +99,24 @@ function ChangePlanDetail() {
 
   const history = useHistory();
 
-  const { setChangePlan: setGlobalChangePlan } = React.useContext(
+  const { setChangePlan: setGlobalChangePlan, refresh } = React.useContext(
     ChangePlanContext,
   );
 
   const [changePlan, setChangePlan] = React.useState(null);
+  const [conflicted, setConflicted] = React.useState(false);
 
   React.useEffect(() => {
-    getChangePlanDetail(id).then(setChangePlan);
+    getChangePlanDetail(id).then(cp => {
+      setChangePlan(cp);
+      setConflicted(false);
+      cp.diffs.map(({ conflicts }) => {
+        if (conflicts.length > 0) {
+          setConflicted(true);
+        }
+      });
+      console.log("change plan from effect", cp);
+    });
   }, [id]);
 
   if (!changePlan) return null;
@@ -83,37 +126,27 @@ function ChangePlanDetail() {
   }
 
   async function onUpdate(newName) {
+    console.log("updated");
     await updateChangePlan(id, newName);
-    setChangePlan({
+    const newCP = {
       ...changePlan,
       name: newName,
-    });
+    };
+    setChangePlan(newCP);
+    setGlobalChangePlan(newCP);
+    refresh();
   }
 
   async function execute() {
     await executeChangePlan(id);
+    setGlobalChangePlan(null);
     history.push("/changeplan");
   }
 
   const summaryHeaders = ASSET_HEADERS.map(({ name }) => name);
 
-  const summaryDiff0 = function() {
-    let diffList = [];
-    let diffType;
-    for (diffType in changePlan.diffs) {
-      let diff;
-      for (diff in changePlan.diffs[diffType]) {
-        diffList.push({
-          diffType: diffType,
-          message: changePlan.diffs[diffType][diff]["message"],
-        });
-      }
-    }
-
-    return diffList;
-  };
-
   const summaryDiff = changePlan.diffs.map(({ live, cp, conflicts }) => {
+
     const before =
       live != null ? ASSET_HEADERS.map(({ toText }) => toText(live)) : null;
 
@@ -121,14 +154,14 @@ function ChangePlanDetail() {
       cp != null ? ASSET_HEADERS.map(({ toText }) => toText(cp)) : null;
 
     const error =
-      conflicts.length == 0
+      conflicts.length === 0
         ? null
         : conflicts
             .map(({ field, message }) => `${field}: ${message}`)
             .join("\n");
 
     const action =
-      conflicts.length == 0
+      conflicts.length === 0
         ? null
         : {
             name: "Fix it",
@@ -183,12 +216,14 @@ function ChangePlanDetail() {
       <Button
         type="primary"
         onClick={execute}
-        disabled={changePlan?.executed_at}
+        disabled={conflicted || changePlan?.executed_at}
         style={{ marginRight: 16 }}
       >
         Execute
       </Button>
-      <Button onClick={openWorkOrder}>Work Order</Button>
+      <Button onClick={openWorkOrder} disabled={conflicted}>
+        Work Order
+      </Button>
     </div>
   );
 }

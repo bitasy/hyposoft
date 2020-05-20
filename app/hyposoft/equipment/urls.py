@@ -8,16 +8,16 @@ urlpatterns = [
     path('ITModelCreate', ITModelCreate.as_view()),
     path('AssetCreate', AssetCreate.as_view()),
     path('RackRangeCreate', RackRangeCreate.as_view()),
-    path('DatacenterCreate', DatacenterCreate.as_view()),
+    path('SiteCreate', SiteCreate.as_view()),
 
     path('ITModelUpdate/<int:pk>', ITModelUpdate.as_view()),
     path('AssetUpdate/<int:pk>', AssetUpdate.as_view()),
-    path('DatacenterUpdate/<int:pk>', DatacenterUpdate.as_view()),
+    path('SiteUpdate/<int:pk>', SiteUpdate.as_view()),
 
     path('ITModelDestroy/<int:pk>', ITModelDestroy.as_view()),
     path('AssetDestroy/<int:pk>', AssetDestroy.as_view()),
     path('RackRangeDestroy', RackRangeDestroy.as_view()),
-    path('DatacenterDestroy/<int:pk>', DatacenterDestroy.as_view()),
+    path('SiteDestroy/<int:pk>', SiteDestroy.as_view()),
 
     path('ITModelRetrieve/<int:pk>', ITModelRetrieve.as_view()),
     path('AssetRetrieve/<int:pk>', AssetRetrieve.as_view()),
@@ -31,11 +31,12 @@ urlpatterns = [
     path('DecommissionedAssetList', DecommissionedAssetList.as_view()),
 
     path('RackList', RackList.as_view()),
-    path('DatacenterList', DatacenterList.as_view()),
+    path('SiteList', SiteList.as_view()),
 
     path('rack_view', RackView.as_view()),
     path('report', Report.as_view()),
 
     path('DecommissionAsset/<int:asset_id>', DecommissionAsset.as_view()),
 
+    path('AssetIDForAssetNumber/<int:asset_number>', AssetIDForAssetNumber.as_view()),
 ]

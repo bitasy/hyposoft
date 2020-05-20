@@ -1,21 +1,19 @@
 from django.db import IntegrityError
 from django.db.models import ProtectedError
-from django.utils import timezone
-from rest_framework import generics, views, status
-from rest_framework.response import Response
+from rest_framework import generics, views
 from rest_framework.status import HTTP_200_OK
 from hyposoft.utils import generate_racks, add_rack, add_asset, add_network_conn, versioned_object
-from system_log.views import CreateAndLogMixin, UpdateAndLogMixin, DeleteAndLogMixin, log_decommission
 from .handlers import create_rack_extra, decommission_asset
 from .serializers import *
 from .models import *
 import logging
-from hypo_auth .mixins import *
+from hypo_auth.mixins import *
+from hypo_auth.handlers import *
 
 
-class DatacenterCreate(CreateAndLogMixin, generics.CreateAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteCreate(CreateAndLogMixin, generics.CreateAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
 
 
 class ITModelCreate(ITModelPermissionCreateMixin, generics.CreateAPIView):
@@ -29,12 +27,11 @@ class AssetCreate(AssetPermissionCreateMixin, generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         version = ChangePlan.objects.get(id=get_version(request))
-        if version.id != 0:
-            rack = Rack.objects.get(id=request.data['rack'])
-            versioned_rack = versioned_object(rack, version, Rack.IDENTITY_FIELDS)
-            if not versioned_rack:
-                versioned_rack = add_rack(rack, version)
-            request.data['rack'] = versioned_rack.id
+        request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
+        if version.id != 0 and request.data['location']['tag'] != 'offline' and request.data['location']['rack']:
+            rack = Rack.objects.get(id=request.data['location']['rack'])
+            versioned_rack = add_rack(rack, version)
+            request.data['location']['rack'] = versioned_rack.id
         return super(AssetCreate, self).create(request, *args, **kwargs)
 
 
@@ -55,7 +52,7 @@ class RackRangeCreate(views.APIView):
         for rack in racks:
             try:
                 new = Rack(
-                    datacenter=Datacenter.objects.get(id=request.data['datacenter']),
+                    site=Site.objects.get(id=request.data['site']),
                     version=version,
                     rack=rack
                 )
@@ -84,28 +81,46 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
     serializer_class = AssetSerializer
 
     @transaction.atomic()
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):  # todo the logic in this looks fishy..
+        # Do you need to update data's id or is that done already? what about version?
+        # Does the new asset get added to the new version? What about its network ports?
+        # Make sure that network ports are not deleted in the offline case but connections are wiped
         version = ChangePlan.objects.get(id=get_version(request))
         asset = self.get_object()
         asset_ver = asset.version
+        request.data['power_connections'] = request.data.get('power_connections', [])
+        request.data['network_ports'] = request.data.get('network_ports', [])
+        request.data['power_connections'] = [entry for entry in request.data['power_connections'] if entry]
+
+        site = Site.objects.get(id=request.data['location']['site'])
+        check_asset_perm(request.user.username, site.abbr)
+        check_asset_perm(request.user.username, asset.site.abbr)
+
         if version != asset_ver:
             data = request.data
-            rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
-            if not rack:
-                rack = add_rack(asset.rack, version)
-                create_rack_extra(rack, version)
-            old_pdus = {port['id']: port['position']
-                        for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
-            new_pdus = {port['position']: port['id']
-                        for port in rack.pdu_set.order_by('position').values('id', 'position')}
-            data['rack'] = rack.id
-            for i, port in enumerate(request.data['power_connections']):
-               data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
+            if not site.offline:
+                rack = versioned_object(asset.rack, version, Rack.IDENTITY_FIELDS)
+                if not rack:
+                    rack = add_rack(asset.rack, version)
+                old_pdus = {port['id']: port['position']
+                            for port in asset.rack.pdu_set.order_by('position').values('id', 'position')}
+                new_pdus = {port['position']: port['id']
+                            for port in rack.pdu_set.order_by('position').values('id', 'position')}
+                data['location']['rack'] = rack.id
+                for i, port in enumerate(request.data['power_connections']):
+                   data['power_connections'][i]['pdu_id'] = new_pdus[old_pdus[int(port['pdu_id'])]]
 
-            for i, port in enumerate(request.data['network_ports']):
-                if port['connection'] is not None:
-                    versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
-                    data['network_ports'][i]['connection'] = versioned_conn.id
+                for i, port in enumerate(request.data['network_ports']):
+                    if port['connection'] is not None:
+                        versioned_conn = add_network_conn(NetworkPort.objects.get(id=port['connection']), version)
+                        data['network_ports'][i]['connection'] = versioned_conn.id
+            else:
+                request.data['power_connections'] = []
+
+            if request.data['location']['tag'] == 'chassis-mount':
+                chassis = Asset.objects.get(id=request.data['location']['asset'])
+                request.data['location']['asset'] = add_asset(chassis, version, Asset.IDENTITY_FIELDS).id
+                pass
 
             serializer = AssetSerializer(data=data, context={'request': request, 'version': version.id})
             serializer.is_valid(raise_exception=True)
@@ -116,9 +131,9 @@ class AssetUpdate(AssetPermissionUpdateMixin, generics.UpdateAPIView):
             return super(AssetUpdate, self).update(request, *args, **kwargs)
 
 
-class DatacenterUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteUpdate(UpdateAndLogMixin, generics.UpdateAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
 
 
 class DestroyWithIdMixin(object):
@@ -132,11 +147,17 @@ class ITModelDestroy(ITModelPermissionDestroyMixin, ITModelDestroyWithIdMixin, g
     queryset = ITModel.objects.all()
     serializer_class = ITModelSerializer
 
+    def delete(self, request, *args, **kwargs):
+        if self.get_object().asset_set.all().count() > 0:
+            raise serializers.ValidationError(
+                "Cannot delete ITModel while assets are deployed."
+            )
+        return super(ITModelDestroy, self).delete(request, *args, **kwargs)
+
 
 class VendorList(views.APIView):
     def get(self, request):
-        vendors = ITModel.objects.values('vendor')
-        return Response([v['vendor'] for v in vendors])
+        return Response(list(ITModel.objects.values_list('vendor', flat=True).distinct('vendor')))
 
 
 class AssetDestroy(AssetPermissionDestroyMixin, AssetDestroyWithIdMixin, generics.DestroyAPIView):
@@ -150,7 +171,7 @@ class RackRangeDestroy(views.APIView):
         r2 = request.data['r2']
         c1 = request.data['c1']
         c2 = request.data['c2']
-        datacenter = request.data['datacenter']
+        datacenter = request.data['site']
 
         version = get_version(request)
         removed = []
@@ -161,7 +182,7 @@ class RackRangeDestroy(views.APIView):
 
         for rackname in racks:
             try:
-                rack = Rack.objects.get(rack=rackname, datacenter_id=datacenter, version=version)
+                rack = Rack.objects.get(rack=rackname, site_id=datacenter, version=version)
                 rack_id = rack.id
                 rack.delete()
                 removed.append(rack_id)
@@ -190,9 +211,9 @@ class RackRangeDestroy(views.APIView):
         })
 
 
-class DatacenterDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
-    queryset = Datacenter.objects.all()
-    serializer_class = DatacenterSerializer
+class SiteDestroy(DeleteAndLogMixin, DestroyWithIdMixin, generics.DestroyAPIView):
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
 
 
 class ITModelRetrieve(generics.RetrieveAPIView):
@@ -243,3 +264,9 @@ class DecommissionAsset(views.APIView):
             raise serializers.ValidationError(
                 'Change Plan does not exist.'
             )
+
+class AssetIDForAssetNumber(views.APIView):
+    def get(self, request, asset_number): 
+        asset = Asset.objects.get(asset_number=asset_number, version=0)
+        return Response(asset.id)
+

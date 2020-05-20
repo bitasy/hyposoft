@@ -17,8 +17,7 @@ export function colToIndex(col) {
 }
 
 export function indexToCol(idx) {
-  const s = (idx + 1).toString();
-  return s.length > 1 ? s : "0" + s;
+  return (idx + 1).toString();
 }
 
 export function indexToColNoZero(idx) {

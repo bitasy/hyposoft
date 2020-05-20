@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
-from equipment.models import Datacenter
+from equipment.models import Site
 from rest_framework import serializers
 
 
@@ -27,22 +27,25 @@ class Permission(models.Model):
         verbose_name='Admin Permission',
         default=False
     )
-    datacenter_perm = models.CharField(
+    site_perm = models.CharField(
         blank=True,
-        verbose_name="Datacenter Permission (Enter existing datacenter abbreviations comma-separated. For global, enter 'Global')",
+        verbose_name="Site Permission (Enter existing site abbreviations comma-separated. For global, enter 'Global')",
         max_length=10000
     )
 
     def clean(self):
-        if not self.datacenter_perm:
+        if not self.site_perm:
             return
-        dcs = self.datacenter_perm.split(',')
+        dcs = self.site_perm.split(',')
         for dc in dcs:
             if dc == 'Global':
                 return
             try:
-                Datacenter.objects.get(abbr=dc)
+                Site.objects.get(abbr=dc)
             except:
                 raise ValidationError(
-                    "Please enter existing datacenter abbreviations comma-separated. For global permission, enter 'Global'."
+                    "Please enter existing site abbreviations comma-separated. For global permission, enter 'Global'."
                 )
+
+    def __str__(self):
+        return self.user.username + ' Permissions'

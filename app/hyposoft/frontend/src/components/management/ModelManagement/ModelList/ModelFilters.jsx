@@ -5,6 +5,7 @@ import VSpace from "../../../utility/VSpace";
 import RangeSlider from "../../../utility/formik/RangeSlider";
 import ItemWithLabel from "../../../utility/formik/ItemWithLabel";
 import Input from "../../../utility/formik/Input";
+import ResetButton from "../../../utility/formik/ResetButton";
 
 // Props
 // initialFilterValues: { search: string, height: [number, number], network_ports: [number, number], power_ports: [number, number]}
@@ -22,10 +23,7 @@ function ModelFilters({ initialFilterValues, onChange }) {
           <Form>
             <Row>
               <Col md={8}>
-                <ItemWithLabel
-                  name="search"
-                  label="Keyword search"
-                >
+                <ItemWithLabel name="search" label="Keyword search">
                   <Input name="search" />
                 </ItemWithLabel>
 
@@ -37,21 +35,17 @@ function ModelFilters({ initialFilterValues, onChange }) {
 
                 <VSpace height="8px" />
 
-                <ItemWithLabel
-                  name="network_ports"
-                  label="# of network ports"
-                >
+                <ItemWithLabel name="network_ports" label="# of network ports">
                   <RangeSlider name="network_ports" />
                 </ItemWithLabel>
 
                 <VSpace height="8px" />
 
-                <ItemWithLabel
-                  name="power_ports"
-                  label="# of power ports"
-                >
+                <ItemWithLabel name="power_ports" label="# of power ports">
                   <RangeSlider name="power_ports" />
                 </ItemWithLabel>
+
+                <ResetButton block>Reset</ResetButton>
               </Col>
             </Row>
           </Form>

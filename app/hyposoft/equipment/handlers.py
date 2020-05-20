@@ -1,7 +1,6 @@
-import datetime
-
 from django.db import transaction
 from django.db.models import Max
+from django.utils.timezone import now
 from rest_framework import serializers
 
 from system_log.views import log_decommission
@@ -41,6 +40,8 @@ def create_asset_extra(asset, version, power_connections, net_ports):
         for connection in power_connections:
             if order > asset.itmodel.power_ports:
                 break
+            if isinstance(connection['pdu_id'], int):
+                connection['pdu_id'] = PDU.objects.get(id=connection['pdu_id'])
             new_pdu = versioned_object(connection['pdu_id'], version, PDU.IDENTITY_FIELDS)
             if new_pdu is None:
                 add_rack(connection['pdu_id'].rack, version)
@@ -86,10 +87,9 @@ def create_rack_extra(rack, version):
 
 
 @transaction.atomic()
-def decommission_asset(asset_id, view, user, changeplan):
+def decommission_asset(asset_id, view, user, version):
     try:
         asset = Asset.objects.get(id=asset_id)
-        version = ChangePlan.objects.get(id=changeplan.id)
 
         change_plan = ChangePlan.objects.create(
             owner=user,
@@ -103,51 +103,48 @@ def decommission_asset(asset_id, view, user, changeplan):
         # Freeze Asset - Copy all data to new change plan
         # Requires resetting of all foreign keys
 
-        old_rack = Rack.objects.get(id=asset.rack.id)
+        old_rack = Rack.objects.get(id=asset.rack.id) if asset.rack else None
         old_asset = Asset.objects.get(id=asset.id)
 
         asset = add_asset(asset, change_plan)
         rack = asset.rack
         asset.commissioned = None
         asset.decommissioned_by = user
-        asset.decommissioned_timestamp = datetime.datetime.now()
+        asset.decommissioned_timestamp = now()
         asset.save()
 
-        for a in old_rack.asset_set.exclude(id=old_asset.id):
-            add_asset(a, change_plan)
+        if old_rack:
+            for a in old_rack.asset_set.exclude(id=old_asset.id):
+                add_asset(a, change_plan)
 
-        for pdu in old_rack.pdu_set.filter(version=version):
-            old_pdu = PDU.objects.get(id=pdu.id)
-            pdu.id = None
-            pdu.rack = rack
-            pdu.networked = False
-            pdu.version = change_plan
-            pdu.save()
+        if rack:
+            for pdu in old_rack.pdu_set.filter(version=version):
+                new_pdu = rack.pdu_set.get(position=pdu.position)
+                for power in pdu.powered_set.filter(asset=old_asset):
+                    power.id = None
+                    power.pdu = new_pdu
+                    power.asset = asset
+                    power.version = change_plan
+                    power.save()
 
-            for power in old_pdu.powered_set.filter(version=version):
-                power.id = None
-                power.pdu = pdu
-                power.asset = asset
-                power.version = change_plan
-                power.save()
+            def loop_ports(old_asset, recurse):
+                for port in old_asset.networkport_set.all():
+                    old_port = NetworkPort.objects.get(id=port.id)
+                    other = old_port.connection
+                    port = add_network_conn(port, change_plan)
+                    if other:
+                        if recurse:
+                            loop_ports(other.asset, False)
+                        other = add_network_conn(other, change_plan)
+                        other.connection = port
+                        port.connection = other
+                        other.save()
+                        port.save()
 
-        def loop_ports(old_asset, recurse):
-            for port in old_asset.networkport_set.all():
-                old_port = NetworkPort.objects.get(id=port.id)
-                other = old_port.connection
-                port = add_network_conn(port, change_plan)
-                if other:
-                    if recurse:
-                        loop_ports(other.asset, False)
-                    other = add_network_conn(other, change_plan)
-                    other.connection = port
-                    port.connection = other
-                    other.save()
-                    port.save()
-
-        loop_ports(old_asset, True)
-
-        log_decommission(view, old_asset)
+            loop_ports(old_asset, True)
+        log_decommission(user, old_asset)
+        for blade in old_asset.blade_set.all():
+            blade.delete()
 
         if old_asset.version == version:
             old_asset.delete()

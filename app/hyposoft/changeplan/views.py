@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
 from equipment.handlers import decommission_asset
-from equipment.models import Rack, Asset
+from equipment.models import Rack, Asset, ITModel
 from equipment.views import DecommissionAsset
 from hyposoft.utils import versioned_object
 from network.models import NetworkPort
@@ -35,21 +35,23 @@ class ExecuteChangePlan(views.APIView):
             execute_networkports(changeplan)
             execute_powereds(changeplan)
             changeplan.executed = True
-            changeplan.executed_ate = now()
+            changeplan.executed_at = now()
             changeplan.save()
             for child in children:
                 asset = Asset.objects.get(version=child, commissioned__isnull=True)
                 live_asset = versioned_object(asset, ChangePlan.objects.get(id=0), Asset.IDENTITY_FIELDS)
                 if live_asset:
-                    decommission_asset(live_asset.id, DecommissionAsset(), request.user, child)
+                    decommission_asset(live_asset.id, DecommissionAsset(), request.user, live)
+                    print('DECOMMISSIONED')
 
                 for model in (Powered, NetworkPort, Asset, PDU, Rack):
+                    if model == Asset:
+                        model.objects.filter(version=child, itmodel__type=ITModel.Type.BLADE).delete()
                     model.objects.filter(version=child).delete()
 
                 child.delete()
             return Response(ChangePlanDetailSerializer(changeplan).data, status=HTTP_200_OK)
         except Exception as e:
-            print(e)
             raise serializers.ValidationError("This ChangePlan is not valid.")
 
 
@@ -78,6 +80,8 @@ class ChangePlanDestroy(UserChangePlansMixin, generics.DestroyAPIView):
 
         # Order matters!
         for model in (Powered, NetworkPort, Asset, PDU, Rack):
+            if model == Asset:
+                model.objects.filter(version=version, itmodel__type=ITModel.Type.BLADE).delete()
             model.objects.filter(version=version).delete()
 
         return super(ChangePlanDestroy, self).destroy(request, *args, **kwargs)

@@ -17,7 +17,7 @@ def display_name(user):
 class ActionLog(models.Model):
 
     MODELS = {
-        'Datacenter': Datacenter,
+        'Site': Site,
         'ITModel': ITModel,
         'Rack': Rack,
         'PDU': PDU,

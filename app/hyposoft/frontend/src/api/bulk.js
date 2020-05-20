@@ -3,7 +3,6 @@ import jfd from "js-file-download";
 import {
   getData,
   makeQueryString,
-  withLoading,
   processModelQuery,
   processAssetQuery,
 } from "./utils";

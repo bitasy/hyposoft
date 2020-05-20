@@ -4,7 +4,7 @@ import { Table, Pagination } from "antd";
 import { useHistory } from "react-router-dom";
 import DecommissionFilters from "./DecommissionFilters";
 import { getDecommissionedAssetList } from "../../../../api/asset";
-import { DCContext } from "../../../../contexts/contexts";
+import { SiteContext } from "../../../../contexts/contexts";
 import useRedirectOnCPChange from "../../../utility/useRedirectOnCPChange";
 
 const DecommissionTable = styled(Table)`
@@ -57,7 +57,8 @@ const initialFilterValues = {
 function DecommissionList({ modelID }) {
   const history = useHistory();
 
-  const { datacenter } = React.useContext(DCContext);
+  const { site } = React.useContext(SiteContext);
+  console.log("site from decommisionlist", site);
 
   const [filterValues, setFilterValues] = React.useState(initialFilterValues);
   const [page, setPage] = React.useState(1);
@@ -93,7 +94,7 @@ function DecommissionList({ modelID }) {
         setTotal(r.count);
       }
     });
-  }, [filterValues, page, pageSize, ordering, direction, datacenter?.id]);
+  }, [filterValues, page, pageSize, ordering, direction, site?.id]);
 
   React.useEffect(() => {
     setPage(1);

@@ -21,11 +21,20 @@ class LoginSerializer(serializers.Serializer):
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
-        fields = '__all__'
+        fields = ['model_perm', 'asset_perm', 'power_perm', 'audit_perm', 'admin_perm', 'site_perm']
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserPermSerializer(serializers.ModelSerializer):
+    permission = PermissionSerializer(read_only=False)
+
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'is_staff']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'permission']
 
+    def update(self, instance, validated_data):
+        perm = validated_data.pop('permission')
+        obj = Permission.objects.get(user=instance)
+        for (field, val) in perm.items():
+            setattr(obj, field, val)
+        obj.save()
+        return super(UserPermSerializer, self).update(instance, validated_data)

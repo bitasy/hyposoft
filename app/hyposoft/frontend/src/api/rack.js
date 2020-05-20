@@ -5,10 +5,10 @@ import {
   indexToCol,
 } from "../components/management/RackManagement/GridUtils";
 
-export function createRack(dcID, r1, r2, c1, c2) {
+export function createRack(siteID, r1, r2, c1, c2) {
   return withLoading(() =>
     Axios.post("api/equipment/RackRangeCreate", {
-      datacenter: dcID,
+      site: siteID,
       r1: indexToRow(r1),
       r2: indexToRow(r2),
       c1: indexToCol(c1),
@@ -17,16 +17,16 @@ export function createRack(dcID, r1, r2, c1, c2) {
   );
 }
 
-export function getRackList(dcName) {
+export function getRackList(siteID) {
   return Axios.get("api/equipment/RackList", {
-    headers: makeHeaders({ dcName }),
+    headers: makeHeaders({ siteID }),
   }).then(getData);
 }
 
-export function deleteRacks(dcID, r1, r2, c1, c2) {
+export function deleteRacks(siteID, r1, r2, c1, c2) {
   return withLoading(() =>
     Axios.post(`api/equipment/RackRangeDestroy`, {
-      datacenter: dcID,
+      site: siteID,
       r1: indexToRow(r1),
       r2: indexToRow(r2),
       c1: indexToCol(c1),

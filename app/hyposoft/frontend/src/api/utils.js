@@ -8,15 +8,15 @@ import {
 
 export const GLOBAL_ABBR = "global";
 
-export const DATACENTER_HEADER_NAME = "X-DATACENTER";
+export const SITE_HEADER_NAME = "X-SITE";
 export const CHANGEPLAN_HEADER_NAME = "X-CHANGE-PLAN";
 
-// overrides: { dcName: string, changePlanID: number }
+// overrides: { siteID: string, changePlanID: number }
 export function makeHeaders(overrides) {
-  const dcname = overrides?.dcName;
+  const siteid = overrides?.siteID;
   const cpid = overrides?.changePlanID;
   return {
-    ...(dcname != null ? { [DATACENTER_HEADER_NAME]: dcname } : {}),
+    ...(siteid != null ? { [SITE_HEADER_NAME]: siteid } : {}),
     ...(cpid != null ? { [CHANGEPLAN_HEADER_NAME]: cpid } : {}),
   };
 }
@@ -51,26 +51,28 @@ export function processAssetQuery(query) {
 
   const whatCanIDoIfDjangoForcesMeToLOL = {
     model: ["itmodel__vendor", "itmodel__model_number"],
+    asset_number: ["asset_number"],
     hostname: ["hostname"],
-    location: ["datacenter__abbr", "rack__rack", "rack_position"],
+    location: ["site__abbr", "rack__rack", "rack_position"],
     owner: ["owner"],
   };
 
   const ordering = whatCanIDoIfDjangoForcesMeToLOL[query.ordering];
 
-  const [r1, c1] = query.rack_from
-    ? toIndex(query.rack_from)
-    : [undefined, undefined];
-  const [r2, c2] = query.rack_to
-    ? toIndex(query.rack_to)
-    : [undefined, undefined];
+  const [r1, c1] = query.rack_from ? toIndex(query.rack_from) : [null, null];
+  const [r2, c2] = query.rack_to ? toIndex(query.rack_to) : [null, null];
+
+  delete query.direction;
+  delete query.rack_from;
+  delete query.rack_to;
+  delete query.ordering;
 
   return {
     ...query,
-    r1: r1 && indexToRow(r1),
-    r2: r2 && indexToRow(r2),
-    c1: c1 && indexToCol(c1),
-    c2: c2 && indexToCol(c2),
+    r1: r1 == null ? null : indexToRow(r1),
+    r2: r2 == null ? null : indexToRow(r2),
+    c1: c1 == null ? null : indexToCol(c1),
+    c2: c2 == null ? null : indexToCol(c2),
     ordering: ordering
       ? ordering.map(o => directionPrefix + o).join(",")
       : undefined,

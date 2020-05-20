@@ -1,9 +1,12 @@
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.contrib import auth
-from rest_framework import views, generics
+from rest_framework import views, generics, serializers
+from rest_framework.response import Response
+
 from hyposoft.users import UserSerializer
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, UserPermSerializer
+from .models import Permission
 
 from django.conf import settings
 from django.shortcuts import redirect
@@ -18,7 +21,7 @@ class SessionView(views.APIView):
     def get(self, request):
         u = auth.get_user(request)
         if u.is_authenticated:
-            user = UserSerializer(u.__dict__).data
+            user = UserPermSerializer(u).data
             return JsonResponse(user)
         else:
             return HttpResponse()
@@ -33,7 +36,7 @@ class LoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         auth.login(request, user)
-        return JsonResponse(UserSerializer(user).data)
+        return JsonResponse(UserPermSerializer(user).data)
 
 
 class LogoutView(views.APIView):
@@ -102,6 +105,54 @@ class ShibbolethLogoutView(TemplateView):
         #Get target url in order of preference.
 
 
+class UserCreate(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        perms = data['user'].pop('permission')
+        if perms['asset_perm'] and not perms['site_perm']:
+            raise serializers.ValidationError(
+                "If asset permission is specified, site permission must also be specified."
+            )
+        try:
+            user = User.objects.get(username=data['user']['username'])
+        except:
+            user = User.objects.create_user(
+                username=data['user']['username'],
+                first_name=data['user']['first_name'],
+                last_name=data['user']['last_name'],
+                password=data['password'],
+                email=data['user']['email']
+            )
+        perm = Permission.objects.get(user=user)  # Created by user signal
+        perm.model_perm = perms['model_perm']
+        perm.asset_perm=perms['asset_perm']
+        perm.power_perm=perms['power_perm']
+        perm.audit_perm=perms['audit_perm']
+        perm.admin_perm=perms['admin_perm']
+        perm.site_perm=perms['site_perm']
+        perm.save()
+
+        return Response(UserPermSerializer(user).data)
+
+
+class UserRetrieve(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
+
+
+class UserUpdate(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
+
+
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserPermSerializer
+
+
+class UserDestroy(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserPermSerializer
