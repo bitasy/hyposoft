@@ -15,7 +15,7 @@
     "@react-pdf/renderer": "^1.6.8",
     "@zxing/library": "^0.15.2",
     "antd": "^4.0.3",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "formik": "^2.1.4",
     "immer": "^5.3.6",
     "js-cookie": "^2.2.1",
